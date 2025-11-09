@@ -8,7 +8,9 @@ Data sonification for design system metrics. Translates JSON structure into mult
 python3 -m http.server 5555
 ```
 
-Open `http://localhost:5555`
+Open:
+- `http://localhost:5555` - Brutalist UI version
+- `http://localhost:5555/p5-version.html` - Live coding terminal version
 
 ## Mappings
 
