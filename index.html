@@ -340,7 +340,7 @@
             <div class="progress-bar" id="progressBar" style="width: 0%"></div>
         </div>
 
-        <svg id="visualization" width="1160" height="580"></svg>
+        <svg id="visualization" width="1160" height="420"></svg>
 
         <div class="component-display">
             <div class="component-name" id="currentName">—</div>
@@ -427,8 +427,8 @@
             // Create delay effect (this will bleed over the entire track!)
             delay = new Tone.FeedbackDelay({
                 delayTime: 0.15,  // Starting delay time in seconds
-                feedback: 0.93,   // 93% feedback - near-infinite echoes that build up massively!
-                wet: 0.4          // Always on at 40% mix
+                feedback: 0.65,   // 65% feedback - echoes persist but won't build up excessively
+                wet: 0.35         // 35% mix - more subtle
             }).connect(reverb);
 
             // Create vibrato (controlled by category balance)
@@ -585,7 +585,7 @@
             return min + (normalized * (max - min));
         }
 
-        // NEW: Map category balance to vibrato depth
+        // NEW: Map category balance to vibrato depth (reduced for less dissonance)
         function mapCategoryBalanceToVibrato(component) {
             const counts = component.categoryRefCounts;
             const total = component.totalTplRefs;
@@ -599,7 +599,7 @@
             // More imbalanced = more vibrato (imbalanced components get wobbly)
             // Balanced components = steady tone
             const imbalance = (dominance - 0.25) / 0.75; // Normalize to 0-1
-            return Math.max(0, imbalance) * 0.3; // Max 30% vibrato depth
+            return Math.max(0, imbalance) * 0.08; // Reduced to max 8% vibrato depth for subtlety
         }
 
         // NEW: Map path depth to reverb room size
@@ -614,7 +614,7 @@
             return min + (normalized * (max - min));
         }
 
-        // Generate chord from component data
+        // Generate chord from component data (consonant intervals only)
         function generateChord(component) {
             const counts = component.categoryRefCounts;
             const baseFreq = mapToFrequency(counts.color);
@@ -622,25 +622,23 @@
             // Start with root note
             const chord = [baseFreq];
             
-            // Add third if typography > 5 (major third = 1.26 ratio)
-            if (counts.typography > 5) {
+            // Always add perfect fifth for fuller sound (most consonant interval)
+            if (counts.spacing > 0) {
+                chord.push(baseFreq * 1.5); // Perfect fifth
+            }
+            
+            // Add major third if typography > 3 (creates major triad)
+            if (counts.typography > 3) {
                 chord.push(baseFreq * 1.26); // Major third
-            } else if (counts.typography > 0) {
-                chord.push(baseFreq * 1.189); // Minor third
             }
             
-            // Add fifth if spacing > 3 (perfect fifth = 1.5 ratio)
-            if (counts.spacing > 3) {
-                chord.push(baseFreq * 1.5);
+            // Add octave if other > 8 (reinforces root, very consonant)
+            if (counts.other > 8) {
+                chord.push(baseFreq * 2.0); // Octave
             }
             
-            // Add octave if other > 10
-            if (counts.other > 10) {
-                chord.push(baseFreq * 2.0);
-            } else if (counts.other > 5) {
-                // Add seventh (1.78 ratio)
-                chord.push(baseFreq * 1.78);
-            }
+            // Only add 7th sparingly for color (no minor 7ths, they can clash)
+            // Skip the 7th entirely for simpler, more consonant chords
             
             return chord;
         }
@@ -675,11 +673,11 @@
             reverb.wet.value = reverbWet;
             reverb.decay = reverbDecay;
             
-            // Set filter brightness (token diversity)
-            filter.frequency.value = filterFreq;
+            // Set filter brightness (token diversity) - ramp for smooth transitions
+            filter.frequency.rampTo(filterFreq, 0.1);
             
-            // Set vibrato depth (category balance)
-            vibrato.depth.value = vibratoDepth;
+            // Set vibrato depth (category balance) - ramp for smooth transitions
+            vibrato.depth.rampTo(vibratoDepth, 0.1);
             
             // Change delay time based on mode
             if (delayMode === 'analog') {
@@ -845,52 +843,38 @@
         function initVisualization() {
             const svg = d3.select('#visualization');
             const width = 1160;
-            const height = 580;
+            const height = 420;
             
             // Clear existing
             svg.selectAll('*').remove();
 
             // Define nodes
             const dataNodes = [
-                { id: 'color', label: 'Color Refs', x: 150, y: 60, type: 'data', value: 0 },
-                { id: 'typography', label: 'Typography', x: 150, y: 130, type: 'data', value: 0 },
-                { id: 'spacing', label: 'Spacing', x: 150, y: 200, type: 'data', value: 0 },
-                { id: 'other', label: 'Other', x: 150, y: 270, type: 'data', value: 0 },
-                { id: 'diversity', label: 'Token Diversity', x: 150, y: 340, type: 'data', value: 0 }
-            ];
-
-            const metaNodes = [
-                { id: 'balance', label: 'Category Balance', x: 580, y: 100, type: 'data', value: 0 },
-                { id: 'depth', label: 'Path Depth', x: 580, y: 300, type: 'data', value: 0 }
+                { id: 'color', label: 'Color Refs', x: 150, y: 80, type: 'data', value: 0 },
+                { id: 'typography', label: 'Typography', x: 150, y: 160, type: 'data', value: 0 },
+                { id: 'spacing', label: 'Spacing', x: 150, y: 240, type: 'data', value: 0 },
+                { id: 'other', label: 'Other', x: 150, y: 320, type: 'data', value: 0 }
             ];
 
             const audioNodes = [
-                { id: 'root', label: 'Root Note', x: 1010, y: 40, type: 'audio' },
-                { id: 'third', label: 'Chord 3rd', x: 1010, y: 100, type: 'audio' },
-                { id: 'fifth', label: 'Chord 5th', x: 1010, y: 160, type: 'audio' },
-                { id: 'seventh', label: '7th/Octave', x: 1010, y: 220, type: 'audio' },
-                { id: 'pan', label: 'Stereo Pan', x: 1010, y: 280, type: 'audio' },
-                { id: 'delay', label: 'Delay Time', x: 1010, y: 340, type: 'audio' },
-                { id: 'brightness', label: 'Brightness', x: 1010, y: 400, type: 'audio' },
-                { id: 'vibrato', label: 'Vibrato', x: 1010, y: 460, type: 'audio' },
-                { id: 'room', label: 'Room Size', x: 1010, y: 520, type: 'audio' }
+                { id: 'root', label: 'Root Note', x: 1010, y: 60, type: 'audio' },
+                { id: 'third', label: 'Chord 3rd', x: 1010, y: 120, type: 'audio' },
+                { id: 'fifth', label: 'Chord 5th', x: 1010, y: 180, type: 'audio' },
+                { id: 'seventh', label: '7th/Octave', x: 1010, y: 240, type: 'audio' },
+                { id: 'pan', label: 'Stereo Pan', x: 1010, y: 300, type: 'audio' },
+                { id: 'delay', label: 'Delay Time', x: 1010, y: 360, type: 'audio' }
             ];
 
-            const nodes = [...dataNodes, ...metaNodes, ...audioNodes];
+            const nodes = [...dataNodes, ...audioNodes];
 
             // Define connections
             const links = [
-                // Direct mappings
                 { source: 'color', target: 'root' },
                 { source: 'typography', target: 'third' },
                 { source: 'typography', target: 'delay' },
                 { source: 'spacing', target: 'fifth' },
                 { source: 'spacing', target: 'pan' },
-                { source: 'other', target: 'seventh' },
-                // New mappings
-                { source: 'diversity', target: 'brightness' },
-                { source: 'balance', target: 'vibrato' },
-                { source: 'depth', target: 'room' }
+                { source: 'other', target: 'seventh' }
             ];
 
             // Draw links
@@ -961,15 +945,12 @@
             const pathDepth = component.path.split('/').length;
             const vibratoDepth = mapCategoryBalanceToVibrato(component);
 
-            // Map data node IDs to their values
+            // Map data node IDs to their values (only the 4 category refs)
             const dataValues = {
                 'color': counts.color,
                 'typography': counts.typography,
                 'spacing': counts.spacing,
-                'other': counts.other,
-                'diversity': diversity,
-                'balance': Math.round(vibratoDepth * 100), // Show as percentage
-                'depth': pathDepth
+                'other': counts.other
             };
 
             // Update all data nodes - dim inactive ones
@@ -995,20 +976,13 @@
             // Update audio nodes - dim if not receiving input
             const activeTargets = new Set();
             if (counts.color > 0) activeTargets.add('root');
-            if (counts.typography > 0) {
-                activeTargets.add('third');
-                activeTargets.add('delay');
-            }
+            if (counts.typography > 3) activeTargets.add('third'); // Only active if > 3
+            if (counts.typography > 0) activeTargets.add('delay');
             if (counts.spacing > 0) {
                 activeTargets.add('fifth');
                 activeTargets.add('pan');
             }
-            if (counts.other > 0) activeTargets.add('seventh');
-            
-            // New parameters are always active
-            if (diversity > 0) activeTargets.add('brightness');
-            if (vibratoDepth > 0) activeTargets.add('vibrato');
-            if (pathDepth > 0) activeTargets.add('room');
+            if (counts.other > 8) activeTargets.add('seventh'); // Only active if > 8
 
             svg.selectAll('.node').filter(d => d.type === 'audio').each(function(d) {
                 const nodeGroup = d3.select(this);
