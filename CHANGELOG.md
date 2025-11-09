@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2025-11-09
+- created p5.js live coding terminal version with fullscreen generative visuals - classic green-on-black CRT aesthetic with scanlines, expanding particle system triggered by data values, waveform visualization, keyboard controls (SPACE=pause, R=restart, arrows=tempo), terminal text overlay showing component info in real-time
 - reduced dissonance by simplifying chord generation to only consonant intervals (root, major 3rd, perfect 5th, octave), removed 7th chords that were creating tension
 - lowered vibrato depth from 30% to 8% max for subtler modulation that doesn't clash
 - reduced delay feedback from 93% to 65% and wet mix from 40% to 35% to prevent excessive buildup of dissonant echoes
