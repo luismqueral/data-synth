@@ -250,11 +250,21 @@
             fill: #fff;
             stroke: #000;
             stroke-width: 2px;
+            transition: all 0.2s;
+        }
+        .node-data-inactive {
+            fill: #f5f5f5;
+            stroke: #ddd;
         }
         .node-audio {
             fill: #000;
             stroke: #000;
             stroke-width: 2px;
+            transition: all 0.2s;
+        }
+        .node-audio-inactive {
+            fill: #ddd;
+            stroke: #ddd;
         }
         .node-text {
             font-family: 'IBM Plex Mono', monospace;
@@ -264,17 +274,25 @@
             pointer-events: none;
             text-anchor: middle;
             dominant-baseline: middle;
+            transition: all 0.2s;
         }
         .node-text-data {
             fill: #000;
         }
+        .node-text-data-inactive {
+            fill: #ccc;
+        }
         .node-text-audio {
             fill: #fff;
         }
+        .node-text-audio-inactive {
+            fill: #999;
+        }
         .link {
             fill: none;
-            stroke: #ccc;
+            stroke: #eee;
             stroke-width: 1px;
+            transition: all 0.2s;
         }
         .link-active {
             stroke: #000;
@@ -287,6 +305,10 @@
             fill: #000;
             text-anchor: middle;
             pointer-events: none;
+            transition: all 0.2s;
+        }
+        .node-value-inactive {
+            fill: #ddd;
         }
     </style>
 </head>
@@ -681,10 +703,17 @@
             document.getElementById('currentDelay').textContent = '—';
             document.getElementById('currentReverb').textContent = '—';
             
-            // Reset visualization
+            // Reset visualization - dim everything
             const svg = d3.select('#visualization');
-            svg.selectAll('.node-value').text('—');
-            svg.selectAll('.link').classed('link-active', false).attr('stroke-width', 1);
+            svg.selectAll('.node-value').text('—').classed('node-value-inactive', true);
+            svg.selectAll('.link')
+                .classed('link-active', false)
+                .attr('stroke-width', 1)
+                .attr('stroke-opacity', 0.1);
+            svg.selectAll('.node-data').classed('node-data-inactive', true);
+            svg.selectAll('.node-audio').classed('node-audio-inactive', true);
+            svg.selectAll('.node-text-data').classed('node-text-data-inactive', true);
+            svg.selectAll('.node-text-audio').classed('node-text-audio-inactive', true);
         }
 
         // Toggle delay mode
@@ -782,9 +811,16 @@
             // Value display for data nodes (will update during playback)
             nodeGroups.filter(d => d.type === 'data')
                 .append('text')
-                .attr('class', 'node-value')
+                .attr('class', 'node-value node-value-inactive')
                 .attr('y', 35)
                 .text('—');
+
+            // Start everything in dimmed state
+            svg.selectAll('.node-data').classed('node-data-inactive', true);
+            svg.selectAll('.node-audio').classed('node-audio-inactive', true);
+            svg.selectAll('.node-text-data').classed('node-text-data-inactive', true);
+            svg.selectAll('.node-text-audio').classed('node-text-audio-inactive', true);
+            svg.selectAll('.link').attr('stroke-opacity', 0.1);
 
             console.log('Visualization initialized');
         }
@@ -796,19 +832,51 @@
             const counts = component.categoryRefCounts;
             const svg = d3.select('#visualization');
 
-            // Update data node values
-            svg.selectAll('.node')
-                .filter(d => d.type === 'data')
-                .select('.node-value')
-                .text(d => {
-                    if (d.id === 'color') return counts.color;
-                    if (d.id === 'typography') return counts.typography;
-                    if (d.id === 'spacing') return counts.spacing;
-                    if (d.id === 'other') return counts.other;
-                    return '—';
-                });
+            // Update data nodes - dim inactive ones
+            svg.selectAll('.node').filter(d => d.type === 'data').each(function(d) {
+                const nodeGroup = d3.select(this);
+                const value = counts[d.id] || 0;
+                const isActive = value > 0;
 
-            // Highlight active links based on values
+                // Update rectangle
+                nodeGroup.select('rect')
+                    .classed('node-data-inactive', !isActive);
+
+                // Update text
+                nodeGroup.select('.node-text')
+                    .classed('node-text-data-inactive', !isActive);
+
+                // Update value display
+                nodeGroup.select('.node-value')
+                    .text(isActive ? value : '—')
+                    .classed('node-value-inactive', !isActive);
+            });
+
+            // Update audio nodes - dim if not receiving input
+            const activeTargets = new Set();
+            if (counts.color > 0) activeTargets.add('root');
+            if (counts.typography > 0) {
+                activeTargets.add('third');
+                activeTargets.add('delay');
+            }
+            if (counts.spacing > 0) {
+                activeTargets.add('fifth');
+                activeTargets.add('pan');
+            }
+            if (counts.other > 0) activeTargets.add('seventh');
+
+            svg.selectAll('.node').filter(d => d.type === 'audio').each(function(d) {
+                const nodeGroup = d3.select(this);
+                const isActive = activeTargets.has(d.id);
+
+                nodeGroup.select('rect')
+                    .classed('node-audio-inactive', !isActive);
+
+                nodeGroup.select('.node-text')
+                    .classed('node-text-audio-inactive', !isActive);
+            });
+
+            // Update links - only show active connections
             svg.selectAll('.link')
                 .classed('link-active', function(d) {
                     if (d.source === 'color' && counts.color > 0) return true;
@@ -823,7 +891,15 @@
                     if (d.source === 'typography') value = counts.typography;
                     if (d.source === 'spacing') value = counts.spacing;
                     if (d.source === 'other') value = counts.other;
-                    return value > 0 ? 1 + (value / 10) : 1; // Scale line thickness
+                    return value > 0 ? Math.max(2, 1 + (value / 5)) : 1;
+                })
+                .attr('stroke-opacity', function(d) {
+                    let value = 0;
+                    if (d.source === 'color') value = counts.color;
+                    if (d.source === 'typography') value = counts.typography;
+                    if (d.source === 'spacing') value = counts.spacing;
+                    if (d.source === 'other') value = counts.other;
+                    return value > 0 ? 1 : 0.1; // Nearly invisible when inactive
                 });
         }
 
