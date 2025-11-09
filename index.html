@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>newsreader.json</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -236,6 +237,57 @@
         .mapping-list .value {
             color: #000;
         }
+        #visualization {
+            border: 2px solid #000;
+            margin: 30px 0;
+            background: #fafafa;
+            overflow: hidden;
+        }
+        .node {
+            cursor: pointer;
+        }
+        .node-data {
+            fill: #fff;
+            stroke: #000;
+            stroke-width: 2px;
+        }
+        .node-audio {
+            fill: #000;
+            stroke: #000;
+            stroke-width: 2px;
+        }
+        .node-text {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            pointer-events: none;
+            text-anchor: middle;
+            dominant-baseline: middle;
+        }
+        .node-text-data {
+            fill: #000;
+        }
+        .node-text-audio {
+            fill: #fff;
+        }
+        .link {
+            fill: none;
+            stroke: #ccc;
+            stroke-width: 1px;
+        }
+        .link-active {
+            stroke: #000;
+            stroke-width: 3px;
+        }
+        .node-value {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            fill: #000;
+            text-anchor: middle;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -265,6 +317,8 @@
         <div class="progress">
             <div class="progress-bar" id="progressBar" style="width: 0%"></div>
         </div>
+
+        <svg id="visualization" width="1160" height="400"></svg>
 
         <div class="component-display">
             <div class="component-name" id="currentName">—</div>
@@ -306,14 +360,6 @@
             </div>
         </div>
 
-        <div class="mapping-list">
-            <div><span class="label">Color refs</span><span class="value">Root note (D Mixolydian)</span></div>
-            <div><span class="label">Typography refs</span><span class="value">Chord 3rd</span></div>
-            <div><span class="label">Spacing refs</span><span class="value">Chord 5th + Stereo</span></div>
-            <div><span class="label">Other refs</span><span class="value">Chord 7th/Octave + Reverb</span></div>
-            <div><span class="label">Total refs</span><span class="value">Volume</span></div>
-            <div><span class="label">Dominant category</span><span class="value">Instrument</span></div>
-        </div>
     </div>
 
     <script>
@@ -568,6 +614,9 @@
             
             const progress = ((currentIndex + 1) / components.length) * 100;
             document.getElementById('progressBar').style.width = `${progress}%`;
+            
+            // Update visualization
+            updateVisualization(component);
         }
 
         // Main playback loop
@@ -631,6 +680,11 @@
             document.getElementById('currentPan').textContent = '—';
             document.getElementById('currentDelay').textContent = '—';
             document.getElementById('currentReverb').textContent = '—';
+            
+            // Reset visualization
+            const svg = d3.select('#visualization');
+            svg.selectAll('.node-value').text('—');
+            svg.selectAll('.link').classed('link-active', false).attr('stroke-width', 1);
         }
 
         // Toggle delay mode
@@ -654,11 +708,133 @@
             document.getElementById('tempoValue').textContent = `${tempo}ms (${bpm} BPM)`;
         }
 
+        // D3 Visualization
+        function initVisualization() {
+            const svg = d3.select('#visualization');
+            const width = 1160;
+            const height = 400;
+            
+            // Clear existing
+            svg.selectAll('*').remove();
+
+            // Define nodes
+            const dataNodes = [
+                { id: 'color', label: 'Color Refs', x: 150, y: 80, type: 'data', value: 0 },
+                { id: 'typography', label: 'Typography', x: 150, y: 160, type: 'data', value: 0 },
+                { id: 'spacing', label: 'Spacing', x: 150, y: 240, type: 'data', value: 0 },
+                { id: 'other', label: 'Other', x: 150, y: 320, type: 'data', value: 0 }
+            ];
+
+            const audioNodes = [
+                { id: 'root', label: 'Root Note', x: 1010, y: 50, type: 'audio' },
+                { id: 'third', label: 'Chord 3rd', x: 1010, y: 110, type: 'audio' },
+                { id: 'fifth', label: 'Chord 5th', x: 1010, y: 170, type: 'audio' },
+                { id: 'seventh', label: '7th/Octave', x: 1010, y: 230, type: 'audio' },
+                { id: 'pan', label: 'Stereo Pan', x: 1010, y: 290, type: 'audio' },
+                { id: 'delay', label: 'Delay Time', x: 1010, y: 350, type: 'audio' }
+            ];
+
+            const nodes = [...dataNodes, ...audioNodes];
+
+            // Define connections
+            const links = [
+                { source: 'color', target: 'root' },
+                { source: 'typography', target: 'third' },
+                { source: 'typography', target: 'delay' },
+                { source: 'spacing', target: 'fifth' },
+                { source: 'spacing', target: 'pan' },
+                { source: 'other', target: 'seventh' }
+            ];
+
+            // Draw links
+            svg.selectAll('.link')
+                .data(links)
+                .enter()
+                .append('line')
+                .attr('class', 'link')
+                .attr('x1', d => nodes.find(n => n.id === d.source).x + 60)
+                .attr('y1', d => nodes.find(n => n.id === d.source).y)
+                .attr('x2', d => nodes.find(n => n.id === d.target).x - 60)
+                .attr('y2', d => nodes.find(n => n.id === d.target).y);
+
+            // Draw nodes
+            const nodeGroups = svg.selectAll('.node')
+                .data(nodes)
+                .enter()
+                .append('g')
+                .attr('class', 'node')
+                .attr('transform', d => `translate(${d.x}, ${d.y})`);
+
+            // Node rectangles
+            nodeGroups.append('rect')
+                .attr('class', d => d.type === 'data' ? 'node-data' : 'node-audio')
+                .attr('x', -60)
+                .attr('y', -20)
+                .attr('width', 120)
+                .attr('height', 40)
+                .attr('rx', 0);
+
+            // Node labels
+            nodeGroups.append('text')
+                .attr('class', d => d.type === 'data' ? 'node-text node-text-data' : 'node-text node-text-audio')
+                .text(d => d.label);
+
+            // Value display for data nodes (will update during playback)
+            nodeGroups.filter(d => d.type === 'data')
+                .append('text')
+                .attr('class', 'node-value')
+                .attr('y', 35)
+                .text('—');
+
+            console.log('Visualization initialized');
+        }
+
+        // Update visualization with current component values
+        function updateVisualization(component) {
+            if (!component) return;
+
+            const counts = component.categoryRefCounts;
+            const svg = d3.select('#visualization');
+
+            // Update data node values
+            svg.selectAll('.node')
+                .filter(d => d.type === 'data')
+                .select('.node-value')
+                .text(d => {
+                    if (d.id === 'color') return counts.color;
+                    if (d.id === 'typography') return counts.typography;
+                    if (d.id === 'spacing') return counts.spacing;
+                    if (d.id === 'other') return counts.other;
+                    return '—';
+                });
+
+            // Highlight active links based on values
+            svg.selectAll('.link')
+                .classed('link-active', function(d) {
+                    if (d.source === 'color' && counts.color > 0) return true;
+                    if (d.source === 'typography' && counts.typography > 0) return true;
+                    if (d.source === 'spacing' && counts.spacing > 0) return true;
+                    if (d.source === 'other' && counts.other > 0) return true;
+                    return false;
+                })
+                .attr('stroke-width', function(d) {
+                    let value = 0;
+                    if (d.source === 'color') value = counts.color;
+                    if (d.source === 'typography') value = counts.typography;
+                    if (d.source === 'spacing') value = counts.spacing;
+                    if (d.source === 'other') value = counts.other;
+                    return value > 0 ? 1 + (value / 10) : 1; // Scale line thickness
+                });
+        }
+
         // Load data on page load
         loadData();
         
         // Initialize tempo display
         updateTempo();
+        
+        // Initialize D3 visualization
+        initVisualization();
     </script>
 </body>
 </html>
