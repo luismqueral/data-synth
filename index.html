@@ -3,288 +3,316 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JSON to Sound - Simple Example</title>
+    <title>newsreader.json</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 20px;
-            background: #f5f5f5;
+            font-family: 'IBM Plex Mono', monospace;
+            background: #000;
+            color: #fff;
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
         }
         .container {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
         }
         h1 {
-            margin-top: 0;
-            color: #333;
+            font-size: 48px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            letter-spacing: -2px;
+        }
+        .subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
         .controls {
             display: flex;
-            gap: 10px;
-            margin: 20px 0;
-            align-items: center;
+            gap: 0;
+            margin: 30px 0;
+            border: 2px solid #fff;
         }
         button {
-            padding: 12px 24px;
-            font-size: 16px;
+            font-family: 'IBM Plex Mono', monospace;
+            padding: 15px 30px;
+            font-size: 14px;
+            font-weight: 600;
             border: none;
-            border-radius: 6px;
             cursor: pointer;
-            background: #007bff;
-            color: white;
-            transition: background 0.2s;
+            background: #000;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-right: 2px solid #fff;
+            transition: background 0.1s;
         }
-        button:hover {
-            background: #0056b3;
+        button:last-child {
+            border-right: none;
+        }
+        button:hover:not(:disabled) {
+            background: #fff;
+            color: #000;
         }
         button:disabled {
-            background: #ccc;
+            color: #333;
             cursor: not-allowed;
         }
-        .toggle-group {
+        .mode-toggle {
             display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-left: auto;
-            background: #f8f9fa;
-            padding: 8px 12px;
-            border-radius: 6px;
+            gap: 0;
+            margin: 20px 0;
+            border: 2px solid #fff;
         }
         .toggle-btn {
-            padding: 8px 16px;
-            font-size: 14px;
-            border: 2px solid #007bff;
-            background: white;
-            color: #007bff;
+            flex: 1;
+            font-family: 'IBM Plex Mono', monospace;
+            padding: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            border: none;
+            background: #000;
+            color: #666;
             cursor: pointer;
-            border-radius: 4px;
-            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-right: 2px solid #fff;
+        }
+        .toggle-btn:last-child {
+            border-right: none;
         }
         .toggle-btn.active {
-            background: #007bff;
-            color: white;
+            background: #fff;
+            color: #000;
         }
         .toggle-btn:hover:not(.active) {
-            background: #e7f3ff;
+            color: #999;
         }
-        .stats {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 20px 0;
-            font-size: 14px;
-        }
-        .current-component {
-            background: #e7f3ff;
-            border-left: 4px solid #007bff;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-            min-height: 80px;
-        }
-        .current-component h3 {
-            margin: 0 0 8px 0;
-            color: #007bff;
-        }
-        .current-component p {
-            margin: 4px 0;
-            color: #666;
-        }
-        .progress {
-            width: 100%;
-            height: 8px;
-            background: #e0e0e0;
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 15px 0;
-        }
-        .progress-bar {
-            height: 100%;
-            background: #007bff;
-            transition: width 0.1s linear;
-        }
-        .info {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-        code {
-            background: #f4f4f4;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 13px;
-        }
-        .mapping-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin: 15px 0;
-            font-size: 13px;
-        }
-        .mapping-item {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 4px;
-            border-left: 3px solid #007bff;
-        }
-        .mapping-item strong {
-            color: #007bff;
-        }
-        .category-indicator {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 3px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-left: 8px;
-        }
-        .cat-typography { background: #e3f2fd; color: #1976d2; }
-        .cat-color { background: #f3e5f5; color: #7b1fa2; }
-        .cat-spacing { background: #e8f5e9; color: #388e3c; }
-        .cat-other { background: #fff3e0; color: #f57c00; }
         .slider-control {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 15px 0;
+            margin: 30px 0;
+            border: 2px solid #fff;
+            padding: 20px;
         }
         .slider-control label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+        .slider-row {
             display: flex;
             align-items: center;
-            gap: 15px;
-            font-weight: bold;
-            font-size: 14px;
+            gap: 20px;
         }
         .slider-control input[type="range"] {
             flex: 1;
-            height: 6px;
-            border-radius: 3px;
-            background: #ddd;
+            height: 2px;
+            background: #333;
             outline: none;
             -webkit-appearance: none;
+            border: none;
         }
         .slider-control input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #007bff;
+            width: 20px;
+            height: 20px;
+            background: #fff;
             cursor: pointer;
+            border: none;
         }
         .slider-control input[type="range"]::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #007bff;
+            width: 20px;
+            height: 20px;
+            background: #fff;
             cursor: pointer;
             border: none;
         }
         .slider-value {
-            min-width: 80px;
+            font-size: 16px;
+            font-weight: 600;
+            min-width: 140px;
             text-align: right;
-            color: #007bff;
-            font-weight: bold;
+        }
+        .progress {
+            width: 100%;
+            height: 4px;
+            background: #222;
+            margin: 30px 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background: #fff;
+            transition: width 0.1s linear;
+        }
+        .component-display {
+            border: 2px solid #fff;
+            padding: 25px;
+            margin: 30px 0;
+            min-height: 200px;
+            font-size: 13px;
+        }
+        .component-name {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            word-break: break-all;
+        }
+        .component-path {
+            color: #666;
+            font-size: 11px;
+            margin-bottom: 20px;
+            word-break: break-all;
+        }
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+        }
+        .data-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .data-label {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .data-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .cat-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #fff;
+            color: #000;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-left: 15px;
+        }
+        .mapping-list {
+            border: 2px solid #333;
+            padding: 20px;
+            margin: 20px 0;
+            font-size: 11px;
+            line-height: 1.8;
+        }
+        .mapping-list div {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #222;
+        }
+        .mapping-list div:last-child {
+            border-bottom: none;
+        }
+        .mapping-list .label {
+            color: #666;
+            text-transform: uppercase;
+        }
+        .mapping-list .value {
+            color: #fff;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎵 JSON to Sound - Simple Example</h1>
+        <h1>newsreader.json</h1>
+        <div class="subtitle">Data sonification</div>
         
-        <div class="info">
-            <strong>How it works:</strong> Each component plays as a chord with multiple sound parameters mapped to different data values. 
-            <br><br>
-            <strong>🎹 Chord Building (D Mixolydian):</strong> Color refs = root note, Typography adds 3rd, Spacing adds 5th, Other adds 7th/octave. More data = richer harmonies!
-            <br>
-            <strong>📼 Analog mode:</strong> Delay time changes cause pitch-shifting (like tape speed changing) - creates warbling, nostalgic effects.
-            <br>
-            <strong>💿 Digital mode:</strong> Delay time changes are instant and clean - no pitch artifacts.
-        </div>
-
-        <div class="stats">
-            <strong>Data loaded:</strong> <span id="componentCount">0</span> components
-        </div>
-
-        <div class="mapping-grid">
-            <div class="mapping-item">
-                <strong>Color Refs</strong> → Root Note<br>
-                <small>D Mixolydian (D-E-F#-G-A-B-C), more colors = higher</small>
-            </div>
-            <div class="mapping-item">
-                <strong>Typography Refs</strong> → Add 3rd to Chord<br>
-                <small>>5 = major third, 1-5 = minor third</small>
-            </div>
-            <div class="mapping-item">
-                <strong>Spacing Refs</strong> → Add 5th + Pan<br>
-                <small>>3 adds perfect fifth, also pans stereo</small>
-            </div>
-            <div class="mapping-item">
-                <strong>Other Refs</strong> → Add 7th/Octave<br>
-                <small>>10 = octave, 5-10 = seventh</small>
-            </div>
-            <div class="mapping-item">
-                <strong>Total Refs</strong> → Volume<br>
-                <small>More usage = louder chords</small>
-            </div>
-            <div class="mapping-item">
-                <strong>Dominant Category</strong> → Instrument<br>
-                <small>Triangle/Sine/Metal/Square wave</small>
-            </div>
-        </div>
-
         <div class="controls">
-            <button id="playBtn" onclick="play()">▶ Play</button>
-            <button id="pauseBtn" onclick="pause()" disabled>⏸ Pause</button>
-            <button id="stopBtn" onclick="stop()" disabled>⏹ Stop</button>
-            
-            <div class="toggle-group">
-                <span style="font-weight: bold; font-size: 14px;">Delay Type:</span>
-                <button class="toggle-btn active" id="analogBtn" onclick="setDelayMode('analog')">📼 Analog</button>
-                <button class="toggle-btn" id="digitalBtn" onclick="setDelayMode('digital')">💿 Digital</button>
-            </div>
+            <button id="playBtn" onclick="play()">Play</button>
+            <button id="pauseBtn" onclick="pause()" disabled>Pause</button>
+            <button id="stopBtn" onclick="stop()" disabled>Stop</button>
+        </div>
+
+        <div class="mode-toggle">
+            <button class="toggle-btn active" id="analogBtn" onclick="setDelayMode('analog')">Analog Delay</button>
+            <button class="toggle-btn" id="digitalBtn" onclick="setDelayMode('digital')">Digital Delay</button>
         </div>
 
         <div class="slider-control">
-            <label>
-                <span>⏱️ Tempo:</span>
+            <label>Tempo</label>
+            <div class="slider-row">
                 <input type="range" id="tempoSlider" min="50" max="3000" value="400" step="50" oninput="updateTempo()">
                 <span class="slider-value" id="tempoValue">400ms</span>
-            </label>
-            <small style="color: #666; margin-top: 5px; display: block;">
-                Controls how fast notes play (50ms = very fast, 3000ms = very slow). Change while playing!
-            </small>
+            </div>
         </div>
 
         <div class="progress">
             <div class="progress-bar" id="progressBar" style="width: 0%"></div>
         </div>
 
-        <div class="current-component">
-            <h3 id="currentName">Ready to play...</h3>
-            <p><strong>Path:</strong> <span id="currentPath">-</span></p>
-            <p>
-                <strong>Typography:</strong> <span id="currentTypo">-</span> | 
-                <strong>Color:</strong> <span id="currentColor">-</span> | 
-                <strong>Spacing:</strong> <span id="currentSpacing">-</span> | 
-                <strong>Other:</strong> <span id="currentOther">-</span>
-            </p>
-            <p>
-                <strong>Chord:</strong> <span id="currentChord">-</span>
-            </p>
-            <p>
-                <strong>Pan:</strong> <span id="currentPan">-</span> | 
-                <strong>Delay:</strong> <span id="currentDelay">-</span> | 
-                <strong>Reverb:</strong> <span id="currentReverb">-</span>
-            </p>
+        <div class="component-display">
+            <div class="component-name" id="currentName">—</div>
+            <div class="component-path" id="currentPath">Ready to play</div>
+            
+            <div class="data-grid">
+                <div class="data-item">
+                    <div class="data-label">Typography</div>
+                    <div class="data-value" id="currentTypo">—</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Color</div>
+                    <div class="data-value" id="currentColor">—</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Spacing</div>
+                    <div class="data-value" id="currentSpacing">—</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Other</div>
+                    <div class="data-value" id="currentOther">—</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Chord</div>
+                    <div class="data-value" id="currentChord">—</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Pan</div>
+                    <div class="data-value" id="currentPan">—</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Delay</div>
+                    <div class="data-value" id="currentDelay">—</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Reverb</div>
+                    <div class="data-value" id="currentReverb">—</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mapping-list">
+            <div><span class="label">Color refs</span><span class="value">Root note (D Mixolydian)</span></div>
+            <div><span class="label">Typography refs</span><span class="value">Chord 3rd</span></div>
+            <div><span class="label">Spacing refs</span><span class="value">Chord 5th + Stereo</span></div>
+            <div><span class="label">Other refs</span><span class="value">Chord 7th/Octave + Reverb</span></div>
+            <div><span class="label">Total refs</span><span class="value">Volume</span></div>
+            <div><span class="label">Dominant category</span><span class="value">Instrument</span></div>
         </div>
     </div>
 
@@ -511,8 +539,7 @@
             }
 
             // Update UI
-            const categoryClass = `cat-${category}`;
-            const categoryBadge = `<span class="category-indicator ${categoryClass}">${category.toUpperCase()}</span>`;
+            const categoryBadge = `<span class="cat-badge">${category}</span>`;
             
             document.getElementById('currentName').innerHTML = component.name + categoryBadge;
             document.getElementById('currentPath').textContent = component.path;
@@ -521,11 +548,8 @@
             document.getElementById('currentSpacing').textContent = counts.spacing;
             document.getElementById('currentOther').textContent = counts.other;
             
-            // Display chord notes
-            const chordDisplay = Array.isArray(chord) && typeof chord[0] === 'number' 
-                ? chord.map(f => `${Math.round(f)}Hz`).join(', ') 
-                : chord;
-            document.getElementById('currentChord').textContent = `${chordDisplay} (${chord.length} notes)`;
+            // Display chord notes count
+            document.getElementById('currentChord').textContent = `${chord.length} notes`;
             
             document.getElementById('currentPan').textContent = pan.toFixed(2);
             document.getElementById('currentDelay').textContent = `${Math.round(delayTime * 1000)}ms`;
@@ -586,16 +610,16 @@
             document.getElementById('stopBtn').disabled = true;
             document.getElementById('progressBar').style.width = '0%';
             
-            document.getElementById('currentName').textContent = 'Ready to play...';
-            document.getElementById('currentPath').textContent = '-';
-            document.getElementById('currentTypo').textContent = '-';
-            document.getElementById('currentColor').textContent = '-';
-            document.getElementById('currentSpacing').textContent = '-';
-            document.getElementById('currentOther').textContent = '-';
-            document.getElementById('currentChord').textContent = '-';
-            document.getElementById('currentPan').textContent = '-';
-            document.getElementById('currentDelay').textContent = '-';
-            document.getElementById('currentReverb').textContent = '-';
+            document.getElementById('currentName').textContent = '—';
+            document.getElementById('currentPath').textContent = 'Ready to play';
+            document.getElementById('currentTypo').textContent = '—';
+            document.getElementById('currentColor').textContent = '—';
+            document.getElementById('currentSpacing').textContent = '—';
+            document.getElementById('currentOther').textContent = '—';
+            document.getElementById('currentChord').textContent = '—';
+            document.getElementById('currentPan').textContent = '—';
+            document.getElementById('currentDelay').textContent = '—';
+            document.getElementById('currentReverb').textContent = '—';
         }
 
         // Toggle delay mode
