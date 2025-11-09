@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON to Sound - Simple Example</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            margin-top: 0;
+            color: #333;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            align-items: center;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .toggle-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-left: auto;
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+        .toggle-btn {
+            padding: 8px 16px;
+            font-size: 14px;
+            border: 2px solid #007bff;
+            background: white;
+            color: #007bff;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .toggle-btn.active {
+            background: #007bff;
+            color: white;
+        }
+        .toggle-btn:hover:not(.active) {
+            background: #e7f3ff;
+        }
+        .stats {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        .current-component {
+            background: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            min-height: 80px;
+        }
+        .current-component h3 {
+            margin: 0 0 8px 0;
+            color: #007bff;
+        }
+        .current-component p {
+            margin: 4px 0;
+            color: #666;
+        }
+        .progress {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background: #007bff;
+            transition: width 0.1s linear;
+        }
+        .info {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+        .mapping-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 15px 0;
+            font-size: 13px;
+        }
+        .mapping-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 3px solid #007bff;
+        }
+        .mapping-item strong {
+            color: #007bff;
+        }
+        .category-indicator {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        .cat-typography { background: #e3f2fd; color: #1976d2; }
+        .cat-color { background: #f3e5f5; color: #7b1fa2; }
+        .cat-spacing { background: #e8f5e9; color: #388e3c; }
+        .cat-other { background: #fff3e0; color: #f57c00; }
+        .slider-control {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .slider-control label {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .slider-control input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .slider-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+        }
+        .slider-control input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+            border: none;
+        }
+        .slider-value {
+            min-width: 80px;
+            text-align: right;
+            color: #007bff;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 JSON to Sound - Simple Example</h1>
+        
+        <div class="info">
+            <strong>How it works:</strong> Each component plays as a chord with multiple sound parameters mapped to different data values. 
+            <br><br>
+            <strong>🎹 Chord Building (D Mixolydian):</strong> Color refs = root note, Typography adds 3rd, Spacing adds 5th, Other adds 7th/octave. More data = richer harmonies!
+            <br>
+            <strong>📼 Analog mode:</strong> Delay time changes cause pitch-shifting (like tape speed changing) - creates warbling, nostalgic effects.
+            <br>
+            <strong>💿 Digital mode:</strong> Delay time changes are instant and clean - no pitch artifacts.
+        </div>
+
+        <div class="stats">
+            <strong>Data loaded:</strong> <span id="componentCount">0</span> components
+        </div>
+
+        <div class="mapping-grid">
+            <div class="mapping-item">
+                <strong>Color Refs</strong> → Root Note<br>
+                <small>D Mixolydian (D-E-F#-G-A-B-C), more colors = higher</small>
+            </div>
+            <div class="mapping-item">
+                <strong>Typography Refs</strong> → Add 3rd to Chord<br>
+                <small>>5 = major third, 1-5 = minor third</small>
+            </div>
+            <div class="mapping-item">
+                <strong>Spacing Refs</strong> → Add 5th + Pan<br>
+                <small>>3 adds perfect fifth, also pans stereo</small>
+            </div>
+            <div class="mapping-item">
+                <strong>Other Refs</strong> → Add 7th/Octave<br>
+                <small>>10 = octave, 5-10 = seventh</small>
+            </div>
+            <div class="mapping-item">
+                <strong>Total Refs</strong> → Volume<br>
+                <small>More usage = louder chords</small>
+            </div>
+            <div class="mapping-item">
+                <strong>Dominant Category</strong> → Instrument<br>
+                <small>Triangle/Sine/Metal/Square wave</small>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="playBtn" onclick="play()">▶ Play</button>
+            <button id="pauseBtn" onclick="pause()" disabled>⏸ Pause</button>
+            <button id="stopBtn" onclick="stop()" disabled>⏹ Stop</button>
+            
+            <div class="toggle-group">
+                <span style="font-weight: bold; font-size: 14px;">Delay Type:</span>
+                <button class="toggle-btn active" id="analogBtn" onclick="setDelayMode('analog')">📼 Analog</button>
+                <button class="toggle-btn" id="digitalBtn" onclick="setDelayMode('digital')">💿 Digital</button>
+            </div>
+        </div>
+
+        <div class="slider-control">
+            <label>
+                <span>⏱️ Tempo:</span>
+                <input type="range" id="tempoSlider" min="50" max="3000" value="400" step="50" oninput="updateTempo()">
+                <span class="slider-value" id="tempoValue">400ms</span>
+            </label>
+            <small style="color: #666; margin-top: 5px; display: block;">
+                Controls how fast notes play (50ms = very fast, 3000ms = very slow). Change while playing!
+            </small>
+        </div>
+
+        <div class="progress">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="current-component">
+            <h3 id="currentName">Ready to play...</h3>
+            <p><strong>Path:</strong> <span id="currentPath">-</span></p>
+            <p>
+                <strong>Typography:</strong> <span id="currentTypo">-</span> | 
+                <strong>Color:</strong> <span id="currentColor">-</span> | 
+                <strong>Spacing:</strong> <span id="currentSpacing">-</span> | 
+                <strong>Other:</strong> <span id="currentOther">-</span>
+            </p>
+            <p>
+                <strong>Chord:</strong> <span id="currentChord">-</span>
+            </p>
+            <p>
+                <strong>Pan:</strong> <span id="currentPan">-</span> | 
+                <strong>Delay:</strong> <span id="currentDelay">-</span> | 
+                <strong>Reverb:</strong> <span id="currentReverb">-</span>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let components = [];
+        let currentIndex = 0;
+        let isPlaying = false;
+        let instruments = {};
+        let reverb = null;
+        let delay = null;
+        let panner = null;
+        let filter = null;
+        let loopId = null;
+        let delayMode = 'analog'; // 'analog' or 'digital'
+        let tempo = 400; // milliseconds between notes
+
+        // Initialize Tone.js instruments and effects
+        function initAudio() {
+            if (Object.keys(instruments).length > 0) return;
+
+            // Create reverb effect
+            reverb = new Tone.Reverb({
+                decay: 2,
+                wet: 0
+            }).toDestination();
+
+            // Create delay effect (this will bleed over the entire track!)
+            delay = new Tone.FeedbackDelay({
+                delayTime: 0.15,  // Starting delay time in seconds
+                feedback: 0.93,   // 93% feedback - near-infinite echoes that build up massively!
+                wet: 0.4          // Always on at 40% mix
+            }).connect(reverb);
+
+            // Create panner
+            panner = new Tone.Panner(0).connect(delay);
+
+            // Create filter
+            filter = new Tone.Filter({
+                type: 'lowpass',
+                frequency: 2000,
+                Q: 1
+            }).connect(panner);
+
+            // Create polyphonic instruments for chord playback
+            instruments.typography = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: 'triangle' },
+                envelope: { attack: 0.02, decay: 0.1, sustain: 0.3, release: 0.4 }
+            }).connect(filter);
+
+            instruments.color = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: 'sine' },
+                envelope: { attack: 0.05, decay: 0.2, sustain: 0.4, release: 0.5 }
+            }).connect(filter);
+
+            instruments.spacing = new Tone.MetalSynth({
+                envelope: { attack: 0.001, decay: 0.2, release: 0.3 },
+                harmonicity: 5.1,
+                modulationIndex: 32,
+                resonance: 4000,
+                octaves: 1.5
+            }).connect(filter);
+
+            instruments.other = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: 'square' },
+                envelope: { attack: 0.05, decay: 0.15, sustain: 0.2, release: 0.4 }
+            }).connect(filter);
+
+            console.log('Audio initialized');
+        }
+
+        // Load and parse the metrics.json
+        async function loadData() {
+            try {
+                const response = await fetch('metrics.json');
+                const data = await response.json();
+                
+                // Filter to only components with TPL refs for cleaner sound
+                components = data.components.filter(c => c.totalTplRefs > 0);
+                
+                document.getElementById('componentCount').textContent = components.length;
+                console.log(`Loaded ${components.length} components with token usage`);
+            } catch (error) {
+                console.error('Error loading metrics.json:', error);
+                alert('Error loading metrics.json - make sure it\'s in the same directory as index.html');
+            }
+        }
+
+        // Determine dominant category
+        function getDominantCategory(component) {
+            const counts = component.categoryRefCounts;
+            const categories = [
+                { name: 'typography', count: counts.typography },
+                { name: 'color', count: counts.color },
+                { name: 'spacing', count: counts.spacing },
+                { name: 'other', count: counts.other }
+            ];
+            
+            categories.sort((a, b) => b.count - a.count);
+            return categories[0].count > 0 ? categories[0].name : 'color';
+        }
+
+        // D Mixolydian scale (D E F# G A B C - has that characteristic flat 7th!)
+        // Full scale across 3 octaves for richer harmonic possibilities
+        const pentatonicScale = [
+            // Octave 3
+            146.83, 164.81, 185.00, 196.00, 220.00, 246.94, 261.63,
+            // Octave 4
+            293.66, 329.63, 369.99, 392.00, 440.00, 493.88, 523.25,
+            // Octave 5
+            587.33, 659.25, 739.99, 783.99, 880.00, 987.77, 1046.50
+        ];
+
+        // Map color refs to frequency (more colors = higher pitch)
+        function mapToFrequency(colorRefs) {
+            // Map color refs (0-90) to scale index (0-20 for 21 notes in Mixolydian)
+            const maxColorRefs = 90; // Observed max in data
+            const scaleIndex = Math.min(Math.floor((colorRefs / maxColorRefs) * (pentatonicScale.length - 1)), pentatonicScale.length - 1);
+            return pentatonicScale[scaleIndex];
+        }
+
+        // Map totalTplRefs to volume (with better normalization)
+        function mapToVolume(totalRefs) {
+            const minVol = -18; // dB - raised floor more
+            const maxVol = -14;  // dB - tighter ceiling for consistent levels
+            
+            // Strong compression for very even loudness
+            const normalized = Math.min(totalRefs / 99, 1);
+            const compressed = Math.pow(normalized, 0.3); // Cube root compression - much gentler dynamics
+            
+            return minVol + (compressed * (maxVol - minVol));
+        }
+
+        // Map spacing refs to stereo pan (-1 = left, 0 = center, 1 = right)
+        function mapToPan(spacingRefs) {
+            const normalized = Math.min(spacingRefs / 22, 1); // Max ~22 in data
+            return -0.5 + normalized; // Range: -0.5 to 0.5
+        }
+
+        // Map typography refs to delay time (creates analog tape effect!)
+        function mapToDelayTime(typographyRefs) {
+            const min = 0.08;  // 80ms - fast
+            const max = 0.4;   // 400ms - slow
+            const normalized = Math.min(typographyRefs / 20, 1);
+            return min + (normalized * (max - min));
+        }
+
+        // Map other refs to reverb wetness
+        function mapToReverb(otherRefs) {
+            return Math.min(otherRefs / 20, 0.5); // Max 50% wet
+        }
+
+        // Generate chord from component data
+        function generateChord(component) {
+            const counts = component.categoryRefCounts;
+            const baseFreq = mapToFrequency(counts.color);
+            
+            // Start with root note
+            const chord = [baseFreq];
+            
+            // Add third if typography > 5 (major third = 1.26 ratio)
+            if (counts.typography > 5) {
+                chord.push(baseFreq * 1.26); // Major third
+            } else if (counts.typography > 0) {
+                chord.push(baseFreq * 1.189); // Minor third
+            }
+            
+            // Add fifth if spacing > 3 (perfect fifth = 1.5 ratio)
+            if (counts.spacing > 3) {
+                chord.push(baseFreq * 1.5);
+            }
+            
+            // Add octave if other > 10
+            if (counts.other > 10) {
+                chord.push(baseFreq * 2.0);
+            } else if (counts.other > 5) {
+                // Add seventh (1.78 ratio)
+                chord.push(baseFreq * 1.78);
+            }
+            
+            return chord;
+        }
+
+        // Play a single component as a note
+        function playComponent(component) {
+            if (!component || !instruments.color) return;
+
+            const counts = component.categoryRefCounts;
+            
+            // Get dominant category and select instrument
+            const category = getDominantCategory(component);
+            const synth = instruments[category];
+
+            // Map parameters
+            const freq = mapToFrequency(counts.color);
+            const volume = mapToVolume(component.totalTplRefs);
+            const pan = mapToPan(counts.spacing);
+            const delayTime = mapToDelayTime(counts.typography);
+            const reverbWet = mapToReverb(counts.other);
+
+            // Apply effects
+            synth.volume.value = volume;
+            panner.pan.value = pan;
+            reverb.wet.value = reverbWet;
+            
+            // Change delay time based on mode
+            if (delayMode === 'analog') {
+                // Analog: ramp creates pitch-shifting (tape speed change effect)
+                delay.delayTime.rampTo(delayTime, 0.2);
+            } else {
+                // Digital: instant change, no pitch shift
+                delay.delayTime.value = delayTime;
+            }
+
+            // Generate and play chord
+            let chord;
+            if (category === 'spacing') {
+                // MetalSynth doesn't support chords, just trigger single note
+                synth.triggerAttackRelease('0.3s');
+                chord = ['Metallic'];
+            } else {
+                // Generate chord based on all category values
+                chord = generateChord(component);
+                synth.triggerAttackRelease(chord, '0.4s');
+            }
+
+            // Update UI
+            const categoryClass = `cat-${category}`;
+            const categoryBadge = `<span class="category-indicator ${categoryClass}">${category.toUpperCase()}</span>`;
+            
+            document.getElementById('currentName').innerHTML = component.name + categoryBadge;
+            document.getElementById('currentPath').textContent = component.path;
+            document.getElementById('currentTypo').textContent = counts.typography;
+            document.getElementById('currentColor').textContent = counts.color;
+            document.getElementById('currentSpacing').textContent = counts.spacing;
+            document.getElementById('currentOther').textContent = counts.other;
+            
+            // Display chord notes
+            const chordDisplay = Array.isArray(chord) && typeof chord[0] === 'number' 
+                ? chord.map(f => `${Math.round(f)}Hz`).join(', ') 
+                : chord;
+            document.getElementById('currentChord').textContent = `${chordDisplay} (${chord.length} notes)`;
+            
+            document.getElementById('currentPan').textContent = pan.toFixed(2);
+            document.getElementById('currentDelay').textContent = `${Math.round(delayTime * 1000)}ms`;
+            document.getElementById('currentReverb').textContent = `${Math.round(reverbWet * 100)}%`;
+            
+            const progress = ((currentIndex + 1) / components.length) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+        }
+
+        // Main playback loop
+        async function playSequence() {
+            if (!isPlaying || currentIndex >= components.length) {
+                stop();
+                return;
+            }
+
+            playComponent(components[currentIndex]);
+            currentIndex++;
+
+            // Play next note after tempo interval
+            loopId = setTimeout(playSequence, tempo);
+        }
+
+        // Control functions
+        async function play() {
+            if (components.length === 0) {
+                alert('No data loaded yet');
+                return;
+            }
+
+            await Tone.start(); // Required for browser autoplay policy
+            initAudio();
+            
+            isPlaying = true;
+            
+            document.getElementById('playBtn').disabled = true;
+            document.getElementById('pauseBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = false;
+
+            playSequence();
+        }
+
+        function pause() {
+            isPlaying = false;
+            if (loopId) clearTimeout(loopId);
+            
+            document.getElementById('playBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+        }
+
+        function stop() {
+            isPlaying = false;
+            if (loopId) clearTimeout(loopId);
+            currentIndex = 0;
+            
+            document.getElementById('playBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('progressBar').style.width = '0%';
+            
+            document.getElementById('currentName').textContent = 'Ready to play...';
+            document.getElementById('currentPath').textContent = '-';
+            document.getElementById('currentTypo').textContent = '-';
+            document.getElementById('currentColor').textContent = '-';
+            document.getElementById('currentSpacing').textContent = '-';
+            document.getElementById('currentOther').textContent = '-';
+            document.getElementById('currentChord').textContent = '-';
+            document.getElementById('currentPan').textContent = '-';
+            document.getElementById('currentDelay').textContent = '-';
+            document.getElementById('currentReverb').textContent = '-';
+        }
+
+        // Toggle delay mode
+        function setDelayMode(mode) {
+            delayMode = mode;
+            
+            // Update button states
+            document.getElementById('analogBtn').classList.toggle('active', mode === 'analog');
+            document.getElementById('digitalBtn').classList.toggle('active', mode === 'digital');
+            
+            console.log(`Delay mode set to: ${mode}`);
+        }
+
+        // Update tempo from slider
+        function updateTempo() {
+            tempo = parseInt(document.getElementById('tempoSlider').value);
+            document.getElementById('tempoValue').textContent = `${tempo}ms`;
+            
+            // Also update the BPM display
+            const bpm = Math.round(60000 / tempo);
+            document.getElementById('tempoValue').textContent = `${tempo}ms (${bpm} BPM)`;
+        }
+
+        // Load data on page load
+        loadData();
+        
+        // Initialize tempo display
+        updateTempo();
+    </script>
+</body>
+</html>
+
