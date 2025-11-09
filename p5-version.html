@@ -141,7 +141,6 @@
         let components = [];
         let currentIndex = 0;
         let isPlaying = false;
-        let synth;
         let osc = [];
         let particles = [];
         let tempo = 400;
@@ -159,21 +158,32 @@
             .then(data => {
                 components = data.components.filter(c => c.totalTplRefs > 0);
                 console.log(`Loaded ${components.length} components`);
+            })
+            .catch(err => {
+                console.error('Error loading data:', err);
             });
 
         function startExperience() {
             document.getElementById('startScreen').classList.add('hidden');
             document.getElementById('componentInfo').style.display = 'block';
             document.getElementById('status').textContent = 'RUNNING';
+            
+            // Start audio context (required for browser autoplay policy)
+            userStartAudio();
+            
             isPlaying = true;
         }
 
         function setup() {
             createCanvas(windowWidth, windowHeight);
             
-            // Setup p5.sound
-            synth = new p5.PolySynth();
-            synth.setADSR(0.05, 0.2, 0.4, 0.5);
+            // Setup p5.sound oscillators (more reliable than PolySynth)
+            for (let i = 0; i < 4; i++) {
+                osc[i] = new p5.Oscillator();
+                osc[i].setType('sine');
+                osc[i].amp(0);
+                osc[i].start();
+            }
         }
 
         function draw() {
@@ -233,12 +243,17 @@
             if (counts.typography > 3) chord.push(rootFreq * 1.26); // Third
             if (counts.other > 8) chord.push(rootFreq * 2.0); // Octave
 
-            // Play chord
-            synth.play(rootFreq, 0.3, 0, 0.4);
+            // Play chord using oscillators with envelope
+            const vol = map(component.totalTplRefs, 0, 99, 0.08, 0.18);
+            
             chord.forEach((freq, i) => {
-                setTimeout(() => {
-                    synth.play(freq, 0.2, 0, 0.3);
-                }, i * 30); // Slight arpeggio
+                if (i < osc.length && osc[i]) {
+                    osc[i].freq(freq, 0.05);
+                    osc[i].amp(vol, 0.05); // Fade in
+                    setTimeout(() => {
+                        osc[i].amp(0, 0.3); // Fade out
+                    }, 300);
+                }
             });
 
             // Create visual particles based on data
