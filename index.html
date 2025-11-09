@@ -182,8 +182,8 @@
         }
         .data-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
             margin-top: 20px;
             padding-top: 20px;
             border-top: 1px solid #ddd;
@@ -340,7 +340,7 @@
             <div class="progress-bar" id="progressBar" style="width: 0%"></div>
         </div>
 
-        <svg id="visualization" width="1160" height="400"></svg>
+        <svg id="visualization" width="1160" height="580"></svg>
 
         <div class="component-display">
             <div class="component-name" id="currentName">—</div>
@@ -379,6 +379,22 @@
                     <div class="data-label">Reverb</div>
                     <div class="data-value" id="currentReverb">—</div>
                 </div>
+                <div class="data-item">
+                    <div class="data-label">Diversity</div>
+                    <div class="data-value" id="currentDiversity">—</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Balance</div>
+                    <div class="data-value" id="currentBalance">—</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Depth</div>
+                    <div class="data-value" id="currentDepth">—</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Brightness</div>
+                    <div class="data-value" id="currentBrightness">—</div>
+                </div>
             </div>
         </div>
 
@@ -393,6 +409,7 @@
         let delay = null;
         let panner = null;
         let filter = null;
+        let vibrato = null;
         let loopId = null;
         let delayMode = 'analog'; // 'analog' or 'digital'
         let tempo = 400; // milliseconds between notes
@@ -401,10 +418,10 @@
         function initAudio() {
             if (Object.keys(instruments).length > 0) return;
 
-            // Create reverb effect
+            // Create reverb effect (decay will vary by path depth)
             reverb = new Tone.Reverb({
                 decay: 2,
-                wet: 0
+                wet: 0.3
             }).toDestination();
 
             // Create delay effect (this will bleed over the entire track!)
@@ -414,10 +431,16 @@
                 wet: 0.4          // Always on at 40% mix
             }).connect(reverb);
 
-            // Create panner
-            panner = new Tone.Panner(0).connect(delay);
+            // Create vibrato (controlled by category balance)
+            vibrato = new Tone.Vibrato({
+                frequency: 5,     // 5 Hz vibrato
+                depth: 0          // Start with no vibrato
+            }).connect(delay);
 
-            // Create filter
+            // Create panner
+            panner = new Tone.Panner(0).connect(vibrato);
+
+            // Create filter (brightness controlled by token diversity)
             filter = new Tone.Filter({
                 type: 'lowpass',
                 frequency: 2000,
@@ -543,6 +566,54 @@
             return Math.min(otherRefs / 20, 0.5); // Max 50% wet
         }
 
+        // NEW: Map token diversity to filter brightness
+        function mapTokenDiversityToFilter(component) {
+            // Count total unique tokens across all categories
+            const allTokens = [
+                ...component.tokenUsage.typography,
+                ...component.tokenUsage.color,
+                ...component.tokenUsage.spacing,
+                ...component.tokenUsage.other
+            ];
+            const diversity = allTokens.length;
+            
+            // More diverse = brighter sound (higher filter cutoff)
+            const min = 800;   // Hz - dark/muffled
+            const max = 8000;  // Hz - bright/sparkly
+            const normalized = Math.min(diversity / 30, 1); // Max ~30 unique tokens
+            
+            return min + (normalized * (max - min));
+        }
+
+        // NEW: Map category balance to vibrato depth
+        function mapCategoryBalanceToVibrato(component) {
+            const counts = component.categoryRefCounts;
+            const total = component.totalTplRefs;
+            
+            if (total === 0) return 0;
+            
+            // Calculate how balanced vs imbalanced the categories are
+            const maxCount = Math.max(counts.typography, counts.color, counts.spacing, counts.other);
+            const dominance = maxCount / total; // 1.0 = one category has everything, 0.25 = perfectly balanced
+            
+            // More imbalanced = more vibrato (imbalanced components get wobbly)
+            // Balanced components = steady tone
+            const imbalance = (dominance - 0.25) / 0.75; // Normalize to 0-1
+            return Math.max(0, imbalance) * 0.3; // Max 30% vibrato depth
+        }
+
+        // NEW: Map path depth to reverb room size
+        function mapPathDepthToReverbDecay(component) {
+            const depth = component.path.split('/').length;
+            
+            // Deeper nesting = larger reverb space
+            const min = 0.5;  // Small room
+            const max = 4.0;  // Cathedral
+            const normalized = Math.min((depth - 2) / 4, 1); // 2 levels = min, 6+ = max
+            
+            return min + (normalized * (max - min));
+        }
+
         // Generate chord from component data
         function generateChord(component) {
             const counts = component.categoryRefCounts;
@@ -584,17 +655,31 @@
             const category = getDominantCategory(component);
             const synth = instruments[category];
 
-            // Map parameters
+            // Map parameters (existing)
             const freq = mapToFrequency(counts.color);
             const volume = mapToVolume(component.totalTplRefs);
             const pan = mapToPan(counts.spacing);
             const delayTime = mapToDelayTime(counts.typography);
             const reverbWet = mapToReverb(counts.other);
 
+            // Map NEW parameters
+            const filterFreq = mapTokenDiversityToFilter(component);
+            const vibratoDepth = mapCategoryBalanceToVibrato(component);
+            const reverbDecay = mapPathDepthToReverbDecay(component);
+
             // Apply effects
             synth.volume.value = volume;
             panner.pan.value = pan;
+            
+            // Set reverb with dynamic room size
             reverb.wet.value = reverbWet;
+            reverb.decay = reverbDecay;
+            
+            // Set filter brightness (token diversity)
+            filter.frequency.value = filterFreq;
+            
+            // Set vibrato depth (category balance)
+            vibrato.depth.value = vibratoDepth;
             
             // Change delay time based on mode
             if (delayMode === 'analog') {
@@ -633,6 +718,21 @@
             document.getElementById('currentPan').textContent = pan.toFixed(2);
             document.getElementById('currentDelay').textContent = `${Math.round(delayTime * 1000)}ms`;
             document.getElementById('currentReverb').textContent = `${Math.round(reverbWet * 100)}%`;
+            
+            // Display NEW parameters
+            const allTokens = [
+                ...component.tokenUsage.typography,
+                ...component.tokenUsage.color,
+                ...component.tokenUsage.spacing,
+                ...component.tokenUsage.other
+            ];
+            const diversity = allTokens.length;
+            const pathDepth = component.path.split('/').length;
+            
+            document.getElementById('currentDiversity').textContent = diversity;
+            document.getElementById('currentBalance').textContent = `${Math.round(vibratoDepth * 100)}%`;
+            document.getElementById('currentDepth').textContent = pathDepth;
+            document.getElementById('currentBrightness').textContent = `${Math.round(filterFreq)}Hz`;
             
             const progress = ((currentIndex + 1) / components.length) * 100;
             document.getElementById('progressBar').style.width = `${progress}%`;
@@ -702,6 +802,10 @@
             document.getElementById('currentPan').textContent = '—';
             document.getElementById('currentDelay').textContent = '—';
             document.getElementById('currentReverb').textContent = '—';
+            document.getElementById('currentDiversity').textContent = '—';
+            document.getElementById('currentBalance').textContent = '—';
+            document.getElementById('currentDepth').textContent = '—';
+            document.getElementById('currentBrightness').textContent = '—';
             
             // Reset visualization - dim everything
             const svg = d3.select('#visualization');
@@ -741,38 +845,52 @@
         function initVisualization() {
             const svg = d3.select('#visualization');
             const width = 1160;
-            const height = 400;
+            const height = 580;
             
             // Clear existing
             svg.selectAll('*').remove();
 
             // Define nodes
             const dataNodes = [
-                { id: 'color', label: 'Color Refs', x: 150, y: 80, type: 'data', value: 0 },
-                { id: 'typography', label: 'Typography', x: 150, y: 160, type: 'data', value: 0 },
-                { id: 'spacing', label: 'Spacing', x: 150, y: 240, type: 'data', value: 0 },
-                { id: 'other', label: 'Other', x: 150, y: 320, type: 'data', value: 0 }
+                { id: 'color', label: 'Color Refs', x: 150, y: 60, type: 'data', value: 0 },
+                { id: 'typography', label: 'Typography', x: 150, y: 130, type: 'data', value: 0 },
+                { id: 'spacing', label: 'Spacing', x: 150, y: 200, type: 'data', value: 0 },
+                { id: 'other', label: 'Other', x: 150, y: 270, type: 'data', value: 0 },
+                { id: 'diversity', label: 'Token Diversity', x: 150, y: 340, type: 'data', value: 0 }
+            ];
+
+            const metaNodes = [
+                { id: 'balance', label: 'Category Balance', x: 580, y: 100, type: 'data', value: 0 },
+                { id: 'depth', label: 'Path Depth', x: 580, y: 300, type: 'data', value: 0 }
             ];
 
             const audioNodes = [
-                { id: 'root', label: 'Root Note', x: 1010, y: 50, type: 'audio' },
-                { id: 'third', label: 'Chord 3rd', x: 1010, y: 110, type: 'audio' },
-                { id: 'fifth', label: 'Chord 5th', x: 1010, y: 170, type: 'audio' },
-                { id: 'seventh', label: '7th/Octave', x: 1010, y: 230, type: 'audio' },
-                { id: 'pan', label: 'Stereo Pan', x: 1010, y: 290, type: 'audio' },
-                { id: 'delay', label: 'Delay Time', x: 1010, y: 350, type: 'audio' }
+                { id: 'root', label: 'Root Note', x: 1010, y: 40, type: 'audio' },
+                { id: 'third', label: 'Chord 3rd', x: 1010, y: 100, type: 'audio' },
+                { id: 'fifth', label: 'Chord 5th', x: 1010, y: 160, type: 'audio' },
+                { id: 'seventh', label: '7th/Octave', x: 1010, y: 220, type: 'audio' },
+                { id: 'pan', label: 'Stereo Pan', x: 1010, y: 280, type: 'audio' },
+                { id: 'delay', label: 'Delay Time', x: 1010, y: 340, type: 'audio' },
+                { id: 'brightness', label: 'Brightness', x: 1010, y: 400, type: 'audio' },
+                { id: 'vibrato', label: 'Vibrato', x: 1010, y: 460, type: 'audio' },
+                { id: 'room', label: 'Room Size', x: 1010, y: 520, type: 'audio' }
             ];
 
-            const nodes = [...dataNodes, ...audioNodes];
+            const nodes = [...dataNodes, ...metaNodes, ...audioNodes];
 
             // Define connections
             const links = [
+                // Direct mappings
                 { source: 'color', target: 'root' },
                 { source: 'typography', target: 'third' },
                 { source: 'typography', target: 'delay' },
                 { source: 'spacing', target: 'fifth' },
                 { source: 'spacing', target: 'pan' },
-                { source: 'other', target: 'seventh' }
+                { source: 'other', target: 'seventh' },
+                // New mappings
+                { source: 'diversity', target: 'brightness' },
+                { source: 'balance', target: 'vibrato' },
+                { source: 'depth', target: 'room' }
             ];
 
             // Draw links
@@ -832,10 +950,32 @@
             const counts = component.categoryRefCounts;
             const svg = d3.select('#visualization');
 
-            // Update data nodes - dim inactive ones
+            // Calculate derived values
+            const allTokens = [
+                ...component.tokenUsage.typography,
+                ...component.tokenUsage.color,
+                ...component.tokenUsage.spacing,
+                ...component.tokenUsage.other
+            ];
+            const diversity = allTokens.length;
+            const pathDepth = component.path.split('/').length;
+            const vibratoDepth = mapCategoryBalanceToVibrato(component);
+
+            // Map data node IDs to their values
+            const dataValues = {
+                'color': counts.color,
+                'typography': counts.typography,
+                'spacing': counts.spacing,
+                'other': counts.other,
+                'diversity': diversity,
+                'balance': Math.round(vibratoDepth * 100), // Show as percentage
+                'depth': pathDepth
+            };
+
+            // Update all data nodes - dim inactive ones
             svg.selectAll('.node').filter(d => d.type === 'data').each(function(d) {
                 const nodeGroup = d3.select(this);
-                const value = counts[d.id] || 0;
+                const value = dataValues[d.id] || 0;
                 const isActive = value > 0;
 
                 // Update rectangle
@@ -864,6 +1004,11 @@
                 activeTargets.add('pan');
             }
             if (counts.other > 0) activeTargets.add('seventh');
+            
+            // New parameters are always active
+            if (diversity > 0) activeTargets.add('brightness');
+            if (vibratoDepth > 0) activeTargets.add('vibrato');
+            if (pathDepth > 0) activeTargets.add('room');
 
             svg.selectAll('.node').filter(d => d.type === 'audio').each(function(d) {
                 const nodeGroup = d3.select(this);
@@ -879,26 +1024,16 @@
             // Update links - only show active connections
             svg.selectAll('.link')
                 .classed('link-active', function(d) {
-                    if (d.source === 'color' && counts.color > 0) return true;
-                    if (d.source === 'typography' && counts.typography > 0) return true;
-                    if (d.source === 'spacing' && counts.spacing > 0) return true;
-                    if (d.source === 'other' && counts.other > 0) return true;
-                    return false;
+                    // Get source value
+                    const value = dataValues[d.source] || 0;
+                    return value > 0;
                 })
                 .attr('stroke-width', function(d) {
-                    let value = 0;
-                    if (d.source === 'color') value = counts.color;
-                    if (d.source === 'typography') value = counts.typography;
-                    if (d.source === 'spacing') value = counts.spacing;
-                    if (d.source === 'other') value = counts.other;
+                    const value = dataValues[d.source] || 0;
                     return value > 0 ? Math.max(2, 1 + (value / 5)) : 1;
                 })
                 .attr('stroke-opacity', function(d) {
-                    let value = 0;
-                    if (d.source === 'color') value = counts.color;
-                    if (d.source === 'typography') value = counts.typography;
-                    if (d.source === 'spacing') value = counts.spacing;
-                    if (d.source === 'other') value = counts.other;
+                    const value = dataValues[d.source] || 0;
                     return value > 0 ? 1 : 0.1; // Nearly invisible when inactive
                 });
         }
