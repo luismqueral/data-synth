@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2025-11-09
+- added dimming for inactive/null values in visualization - nodes and connections fade to gray when not in use, making it easy to focus on only the active sound parameters being generated at each moment
 - added D3.js node-based visualization showing real-time data-to-audio parameter flow - left side shows data inputs (color/typography/spacing/other refs), right side shows audio outputs (root/3rd/5th/7th, pan, delay), connections highlight and thicken based on current component values
 - inverted color scheme to white background with black text for better readability while maintaining brutalist aesthetic
 - redesigned interface with minimal brutalist aesthetic using IBM Plex Mono font - black background, white borders, tight spacing for raw data-focused presentation
