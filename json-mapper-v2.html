@@ -358,43 +358,21 @@
                 <select id="templateSelector" class="pa2 ba b--black f6" style="width: 600px; max-width: 90%;">
                     <option value="">-- Select Dataset --</option>
                     
-                    <optgroup label="🌍 Earth Science">
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson">USGS: Earthquakes - Past Week (Live)</option>
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson">USGS: Earthquakes - Past Day (Live)</option>
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson">USGS: Significant Earthquakes - Month (Live)</option>
-                        <option value="datasets/earthquakes-week.geojson">Earthquakes - Weekly Archive (1600+ events)</option>
+                    <optgroup label="🌍 Earthquakes (Live)">
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson">USGS: Past Week</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson">USGS: Past Day</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson">USGS: Significant - Month</option>
+                        <option value="datasets/earthquakes-week.geojson">Archive: Weekly (1600+ events)</option>
                     </optgroup>
                     
-                    <optgroup label="☁️ Weather & Climate">
-                        <option value="https://api.open-meteo.com/v1/forecast?latitude=40.7128&longitude=-74.0060&hourly=temperature_2m,precipitation,windspeed_10m,cloudcover&temperature_unit=fahrenheit&forecast_days=7">NYC Weather Forecast - 7 Days (Live)</option>
-                        <option value="https://api.open-meteo.com/v1/forecast?latitude=51.5074&longitude=-0.1278&hourly=temperature_2m,precipitation,windspeed_10m,pressure_msl&temperature_unit=fahrenheit&forecast_days=3">London Weather Forecast - 3 Days (Live)</option>
-                        <option value="https://api.open-meteo.com/v1/forecast?latitude=34.0522&longitude=-118.2437&hourly=temperature_2m,relativehumidity_2m,windspeed_10m,cloudcover&temperature_unit=fahrenheit&forecast_days=5">LA Weather Forecast - 5 Days (Live)</option>
-                        <option value="https://api.open-meteo.com/v1/forecast?latitude=35.6762&longitude=139.6503&hourly=temperature_2m,precipitation,windspeed_10m&temperature_unit=celsius&forecast_days=3">Tokyo Weather Forecast - 3 Days (Live)</option>
+                    <optgroup label="🏗️ Urban Development">
+                        <option value="datasets/Housing_and_Building_Permits_2019-Present.geojson">Baltimore Housing Permits (265K+ records)</option>
                     </optgroup>
                     
-                    <optgroup label="🌌 Space & Astronomy">
-                        <option value="datasets/exoplanets.csv">NASA Exoplanets Database (6000+ planets)</option>
-                        <option value="http://api.open-notify.org/iss-now.json">ISS Current Location (Live)</option>
-                        <option value="http://api.open-notify.org/astros.json">Astronauts in Space Right Now (Live)</option>
-                        <option value="https://api.le-systeme-solaire.net/rest/bodies/">Solar System Bodies Database (All planets, moons, asteroids)</option>
-                    </optgroup>
-                    
-                    <optgroup label="🏗️ Urban Data">
-                        <option value="datasets/Housing_and_Building_Permits_2019-Present.geojson">Baltimore Housing Permits 2019-Present (265K+ records)</option>
-                    </optgroup>
-                    
-                    <optgroup label="📊 Demographics & Social">
-                        <option value="https://restcountries.com/v3.1/all">REST Countries: All Countries (250+ with detailed stats)</option>
-                        <option value="https://restcountries.com/v3.1/region/europe">REST Countries: European Countries</option>
-                        <option value="https://restcountries.com/v3.1/region/americas">REST Countries: Americas</option>
-                        <option value="https://restcountries.com/v3.1/region/asia">REST Countries: Asian Countries</option>
-                        <option value="https://restcountries.com/v3.1/region/africa">REST Countries: African Countries</option>
-                    </optgroup>
-                    
-                    <optgroup label="🌐 Internet & Fun">
-                        <option value="https://pokeapi.co/api/v2/pokemon?limit=150">PokéAPI: First 150 Pokémon</option>
-                        <option value="https://randomuser.me/api/?results=100">Random User Generator (100 people)</option>
-                        <option value="https://dog.ceo/api/breeds/list/all">Dog Breeds Database (All breeds)</option>
+                    <optgroup label="🌌 Space">
+                        <option value="datasets/exoplanets.csv">NASA Exoplanets (6000+ planets)</option>
+                        <option value="http://api.open-notify.org/iss-now.json">ISS Location (Live)</option>
+                        <option value="http://api.open-notify.org/astros.json">Astronauts in Space (Live)</option>
                     </optgroup>
                 </select>
             </div>
