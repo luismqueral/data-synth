@@ -357,18 +357,70 @@
             <div class="tc mb2">
                 <select id="templateSelector" class="pa2 ba b--black f6" style="width: 600px; max-width: 90%;">
                     <option value="">-- Select Dataset --</option>
+                    
                     <optgroup label="🌍 Earth Science">
                         <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson">USGS: Earthquakes - Past Week (Real-time)</option>
                         <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson">USGS: Earthquakes - Past Day (Real-time)</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson">USGS: Significant Earthquakes - Month (Real-time)</option>
                         <option value="datasets/earthquakes-week.geojson">Earthquakes - Weekly Archive (1600+ events)</option>
                     </optgroup>
-                    <optgroup label="🏗️ Urban Data">
-                        <option value="datasets/Housing_and_Building_Permits_2019-Present.geojson">Baltimore Housing Permits 2019-Present (Full dataset)</option>
+                    
+                    <optgroup label="☁️ Weather & Climate">
+                        <option value="https://api.weather.gov/alerts/active">NOAA: Active Weather Alerts USA (Real-time)</option>
+                        <option value="https://api.open-meteo.com/v1/forecast?latitude=40.7128&longitude=-74.0060&hourly=temperature_2m,precipitation,windspeed_10m,cloudcover&temperature_unit=fahrenheit&forecast_days=7">NYC Weather Forecast - 7 Days (Real-time)</option>
+                        <option value="https://api.open-meteo.com/v1/forecast?latitude=51.5074&longitude=-0.1278&hourly=temperature_2m,precipitation,windspeed_10m,pressure_msl&temperature_unit=fahrenheit&forecast_days=3">London Weather Forecast - 3 Days (Real-time)</option>
                     </optgroup>
+                    
+                    <optgroup label="💰 Finance & Markets">
+                        <option value="https://api.coinbase.com/v2/exchange-rates?currency=USD">Coinbase: Cryptocurrency Exchange Rates (Real-time)</option>
+                        <option value="https://api.blockchain.com/pools">Bitcoin Mining Pools Distribution (Real-time)</option>
+                    </optgroup>
+                    
                     <optgroup label="🌌 Space & Astronomy">
                         <option value="datasets/exoplanets.csv">NASA Exoplanets Database (6000+ planets)</option>
-                        <option value="https://api.nasa.gov/neo/rest/v1/feed?start_date=2024-11-11&end_date=2024-11-11&api_key=DEMO_KEY">NASA: Near Earth Objects - Today (Real-time)</option>
+                        <option value="https://api.nasa.gov/neo/rest/v1/feed?start_date=2025-11-11&end_date=2025-11-11&api_key=DEMO_KEY">NASA: Near Earth Objects - Today (Real-time)</option>
                         <option value="http://api.open-notify.org/iss-now.json">ISS Current Location (Real-time)</option>
+                        <option value="http://api.open-notify.org/astros.json">Astronauts in Space Right Now (Real-time)</option>
+                        <option value="https://api.le-systeme-solaire.net/rest/bodies/">Solar System Bodies Database (All planets, moons, asteroids)</option>
+                    </optgroup>
+                    
+                    <optgroup label="🏗️ Urban & Transportation">
+                        <option value="datasets/Housing_and_Building_Permits_2019-Present.geojson">Baltimore Housing Permits 2019-Present (265K+ records)</option>
+                        <option value="https://gbfs.citibikenyc.com/gbfs/en/station_status.json">NYC Citi Bike: Live Station Status (Real-time)</option>
+                        <option value="https://gbfs.citibikenyc.com/gbfs/en/station_information.json">NYC Citi Bike: Station Information</option>
+                    </optgroup>
+                    
+                    <optgroup label="🌊 Ocean & Marine">
+                        <option value="https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?station=8518750&product=water_level&date=latest&datum=MLLW&units=metric&time_zone=gmt&application=web_services&format=json">NOAA: NYC Tide Levels - Latest (Real-time)</option>
+                        <option value="https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?station=9414290&product=water_level&date=latest&datum=MLLW&units=metric&time_zone=gmt&application=web_services&format=json">NOAA: San Francisco Tide Levels (Real-time)</option>
+                    </optgroup>
+                    
+                    <optgroup label="🔬 Science & Research">
+                        <option value="https://api.github.com/search/repositories?q=stars:>10000&sort=stars&per_page=100">GitHub: Top 100 Starred Repositories (Real-time)</option>
+                        <option value="https://api.github.com/events">GitHub: Public Events Feed (Real-time)</option>
+                    </optgroup>
+                    
+                    <optgroup label="🎵 Music & Media">
+                        <option value="https://itunes.apple.com/search?term=Beatles&entity=song&limit=100">iTunes: Beatles Songs (100 tracks)</option>
+                        <option value="https://itunes.apple.com/search?term=jazz&entity=song&limit=200">iTunes: Jazz Music Search (200 tracks)</option>
+                    </optgroup>
+                    
+                    <optgroup label="📊 Demographics & Social">
+                        <option value="https://restcountries.com/v3.1/all">REST Countries: All Countries (250+ with detailed stats)</option>
+                        <option value="https://restcountries.com/v3.1/region/europe">REST Countries: European Countries</option>
+                        <option value="https://restcountries.com/v3.1/region/americas">REST Countries: Americas</option>
+                    </optgroup>
+                    
+                    <optgroup label="🌐 Internet & Tech">
+                        <option value="https://api.chucknorris.io/jokes/categories">Chuck Norris Jokes: Categories</option>
+                        <option value="https://official-joke-api.appspot.com/jokes/programming/random/50">Programming Jokes (50 random)</option>
+                        <option value="https://pokeapi.co/api/v2/pokemon?limit=100">PokéAPI: First 100 Pokémon</option>
+                    </optgroup>
+                    
+                    <optgroup label="🎲 Random & Fun">
+                        <option value="https://randomuser.me/api/?results=100">Random User Generator (100 people)</option>
+                        <option value="https://dog.ceo/api/breeds/list/all">Dog Breeds Database (All breeds)</option>
+                        <option value="https://www.boredapi.com/api/activity">Random Activity Suggestion (Real-time)</option>
                     </optgroup>
                 </select>
             </div>
@@ -1701,6 +1753,15 @@
             if (filterEl) filterEl.checked = true;
             
             console.log(`Set waveform: ${randomWaveform}, filter: ${randomFilter}`);
+            
+            // Verify noteSpacing is mapped for rhythmic variation
+            if (!mappings['noteSpacing']?.path) {
+                console.warn('⚠️ NOTE SPACING NOT MAPPED - Will use automatic variation (±20% random)');
+                console.warn('   For best results, map noteSpacing to a data field for rhythmic patterns');
+            } else {
+                console.log('✅ Note spacing mapped to data - rhythmic variation enabled');
+            }
+            
             console.log('=== Smart Mapping Complete ===');
             
             updatePatchVisualization();
@@ -2656,13 +2717,25 @@
                         oscillator._modulator.stop(now + durationTime);
                     }
                     
-                    // Calculate note spacing: use mapped value if available, otherwise use speed slider
+                    // Calculate note spacing: use mapped value if available, otherwise use speed slider WITH VARIATION
                     let noteSpacing;
                     if (audioParams.noteSpacing !== null && audioParams.noteSpacing !== undefined) {
+                        // Mapped to data: use the value directly
                         noteSpacing = audioParams.noteSpacing;
                     } else {
+                        // Not mapped: add automatic rhythmic variation for more musical feel
                         const speed = document.getElementById('speedControl')?.value || 1;
-                        noteSpacing = 500 / speed;
+                        const baseSpacing = 500 / speed;
+                        
+                        // Add subtle random variation (±20%) to create natural rhythm
+                        const variation = 0.2; // 20% variation
+                        const randomFactor = 1 + (Math.random() * variation * 2 - variation); // 0.8 to 1.2
+                        noteSpacing = baseSpacing * randomFactor;
+                        
+                        // Alternative: use item index for pattern-based variation
+                        // Creates accelerando/ritardando effects instead of random
+                        // const phase = (i / dataArray.length) * Math.PI * 2;
+                        // noteSpacing = baseSpacing * (1 + Math.sin(phase) * 0.3);
                     }
                     
                     // Apply rhythmic quantization if enabled
