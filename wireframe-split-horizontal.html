@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wireframe: Split Horizontal Layout</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css">
+</head>
+<body class="sans-serif">
+    <!-- Header -->
+    <header class="bg-dark-gray white pv3 ph4">
+        <h1 class="ma0 f3">JSON to Sound Mapper</h1>
+    </header>
+
+    <!-- Main Content: Two Columns -->
+    <div class="flex vh-100">
+        <!-- Left Panel: JSON Input & Tree -->
+        <div class="w-50 pa3 bg-light-gray ba b--moon-gray overflow-auto">
+            <div class="mb3">
+                <h2 class="f4 mb2">JSON Input</h2>
+                <div class="ba b--silver bg-white pa3 h4 mb3">
+                    <p class="gray ma0 f6">[JSON textarea placeholder]</p>
+                </div>
+                <button class="bg-blue white bn pa2 br2">Load JSON</button>
+            </div>
+            
+            <div class="mt4">
+                <h2 class="f4 mb2">Data Structure</h2>
+                <div class="ba b--silver bg-white pa3 overflow-auto" style="height: 300px;">
+                    <ul class="list pl0">
+                        <li class="pv1">▸ root</li>
+                        <li class="pv1 pl3">▸ property1</li>
+                        <li class="pv1 pl3">▸ property2</li>
+                        <li class="pv1 pl3">▸ nested</li>
+                        <li class="pv1 pl4">▸ child1</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Mapping & Controls -->
+        <div class="w-50 pa3 overflow-auto">
+            <h2 class="f4 mb2">Sound Mappings</h2>
+            
+            <!-- Mapping Cards -->
+            <div class="mb3 ba b--silver pa3 bg-near-white">
+                <div class="flex items-center justify-between mb2">
+                    <span class="f5 b">property1 → Frequency</span>
+                    <button class="bg-red white bn pa1 f6 br2">Remove</button>
+                </div>
+                <div class="ba b--silver bg-white pa2">
+                    <p class="f6 gray ma0">Range: 200-800 Hz</p>
+                </div>
+            </div>
+
+            <div class="mb3 ba b--silver pa3 bg-near-white">
+                <div class="flex items-center justify-between mb2">
+                    <span class="f5 b">property2 → Volume</span>
+                    <button class="bg-red white bn pa1 f6 br2">Remove</button>
+                </div>
+                <div class="ba b--silver bg-white pa2">
+                    <p class="f6 gray ma0">Range: 0-1</p>
+                </div>
+            </div>
+
+            <button class="bg-green white bn pa2 br2 mb4">+ Add Mapping</button>
+
+            <!-- Playback Controls -->
+            <div class="mt4 bt b--silver pt3">
+                <h2 class="f4 mb3">Playback</h2>
+                <div class="flex items-center gap2">
+                    <button class="bg-blue white bn pa3 br2 mr2">▶ Play</button>
+                    <button class="bg-gray white bn pa3 br2 mr2">⏸ Pause</button>
+                    <button class="bg-gray white bn pa3 br2">⏹ Stop</button>
+                </div>
+                <div class="mt3">
+                    <div class="ba b--silver bg-white pa2 h3">
+                        <p class="gray f6 ma0">[Waveform visualization]</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

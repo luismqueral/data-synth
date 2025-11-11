@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wireframe: Three Column Layout</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css">
+</head>
+<body class="sans-serif">
+    <!-- Header -->
+    <header class="bg-dark-gray white pv3 ph4 flex items-center justify-between">
+        <h1 class="ma0 f3">JSON to Sound</h1>
+        <div>
+            <button class="bg-blue white bn pa2 br2 mr2">Import</button>
+            <button class="bg-green white bn pa2 br2">Export</button>
+        </div>
+    </header>
+
+    <!-- Three Column Layout -->
+    <div class="flex vh-100">
+        <!-- Column 1: Source Data -->
+        <div class="w-third pa3 bg-near-white ba b--moon-gray overflow-auto">
+            <h2 class="f4 mb3 bb b--silver pb2">Source Data</h2>
+            
+            <div class="mb3">
+                <label class="db f6 b mb1">Data Source</label>
+                <select class="w-100 pa2 ba b--silver br2">
+                    <option>File Upload</option>
+                    <option>URL</option>
+                    <option>Paste JSON</option>
+                </select>
+            </div>
+
+            <div class="ba b--silver bg-white pa2 h5 mb3 overflow-auto">
+                <pre class="f7 gray ma0">{
+  "data": [...],
+  "metrics": {...}
+}</pre>
+            </div>
+
+            <button class="w-100 bg-blue white bn pa2 br2 mb3">Parse Data</button>
+
+            <div class="mt3">
+                <h3 class="f5 mb2">Detected Fields</h3>
+                <div class="ba b--silver bg-white pa2">
+                    <div class="pv1 bb b--light-gray">□ field1 (number)</div>
+                    <div class="pv1 bb b--light-gray">□ field2 (string)</div>
+                    <div class="pv1 bb b--light-gray">□ field3 (array)</div>
+                    <div class="pv1">□ timestamp (date)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 2: Mapping Configuration -->
+        <div class="w-third pa3 bg-white overflow-auto">
+            <h2 class="f4 mb3 bb b--silver pb2">Mapping Rules</h2>
+            
+            <!-- Mapping Rule 1 -->
+            <div class="mb3 pa3 ba b--silver br2 bg-near-white">
+                <div class="mb2 flex items-center justify-between">
+                    <span class="f5 b">Mapping 1</span>
+                    <button class="bg-red white bn pa1 f7 br1">×</button>
+                </div>
+                <div class="mb2">
+                    <label class="db f6 mb1">Source Field</label>
+                    <select class="w-100 pa1 ba b--silver br1 f6">
+                        <option>field1</option>
+                    </select>
+                </div>
+                <div class="mb2">
+                    <label class="db f6 mb1">Target Parameter</label>
+                    <select class="w-100 pa1 ba b--silver br1 f6">
+                        <option>Frequency</option>
+                        <option>Volume</option>
+                        <option>Pan</option>
+                        <option>Duration</option>
+                    </select>
+                </div>
+                <div class="flex gap2">
+                    <div class="w-50">
+                        <label class="db f6 mb1">Min</label>
+                        <input type="text" class="w-100 pa1 ba b--silver br1 f6" value="0">
+                    </div>
+                    <div class="w-50">
+                        <label class="db f6 mb1">Max</label>
+                        <input type="text" class="w-100 pa1 ba b--silver br1 f6" value="100">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mapping Rule 2 -->
+            <div class="mb3 pa3 ba b--silver br2 bg-near-white">
+                <div class="mb2 flex items-center justify-between">
+                    <span class="f5 b">Mapping 2</span>
+                    <button class="bg-red white bn pa1 f7 br1">×</button>
+                </div>
+                <div class="mb2">
+                    <label class="db f6 mb1">Source Field</label>
+                    <select class="w-100 pa1 ba b--silver br1 f6">
+                        <option>field2</option>
+                    </select>
+                </div>
+                <div class="mb2">
+                    <label class="db f6 mb1">Target Parameter</label>
+                    <select class="w-100 pa1 ba b--silver br1 f6">
+                        <option>Volume</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="w-100 bg-green white bn pa2 br2 mb3">+ New Mapping</button>
+
+            <div class="mt4 bt b--silver pt3">
+                <h3 class="f5 mb2">Presets</h3>
+                <button class="w-100 bg-gray white bn pa2 br2 mb2">Load Preset</button>
+                <button class="w-100 bg-gray white bn pa2 br2">Save Preset</button>
+            </div>
+        </div>
+
+        <!-- Column 3: Output & Preview -->
+        <div class="w-third pa3 bg-near-white ba b--moon-gray overflow-auto">
+            <h2 class="f4 mb3 bb b--silver pb2">Output & Preview</h2>
+            
+            <div class="mb4">
+                <h3 class="f5 mb2">Visualization</h3>
+                <div class="ba b--silver bg-white pa4 tc" style="height: 250px;">
+                    <p class="gray f6">[Real-time audio visualization canvas]</p>
+                </div>
+            </div>
+
+            <div class="mb4">
+                <h3 class="f5 mb2">Controls</h3>
+                <div class="flex items-center mb3">
+                    <button class="flex-auto bg-blue white bn pa3 br2 mr2 b">▶ Play</button>
+                    <button class="flex-auto bg-gray white bn pa3 br2 b">⏹ Stop</button>
+                </div>
+                <div class="mb2">
+                    <label class="db f6 mb1">Playback Speed</label>
+                    <input type="range" class="w-100" min="0" max="100" value="50">
+                </div>
+                <div>
+                    <label class="db f6 mb1">Master Volume</label>
+                    <input type="range" class="w-100" min="0" max="100" value="75">
+                </div>
+            </div>
+
+            <div class="mt4 bt b--silver pt3">
+                <h3 class="f5 mb2">Export</h3>
+                <button class="w-100 bg-green white bn pa2 br2 mb2">Download Audio</button>
+                <button class="w-100 bg-blue white bn pa2 br2">Export Config</button>
+            </div>
+
+            <div class="mt4 ba b--silver pa2 bg-white">
+                <h4 class="f6 b ma0 mb2">Stats</h4>
+                <p class="f7 ma0 mb1">Data Points: 1,234</p>
+                <p class="f7 ma0 mb1">Duration: 2m 15s</p>
+                <p class="f7 ma0">Active Mappings: 2</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

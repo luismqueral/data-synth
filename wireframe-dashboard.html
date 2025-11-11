@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wireframe: Dashboard Layout</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css">
+</head>
+<body class="sans-serif bg-near-white">
+    <!-- Top Nav -->
+    <nav class="bg-dark-gray white pv3 ph4 flex items-center justify-between">
+        <div>
+            <h1 class="ma0 f3 dib mr4">JSON→Sound</h1>
+            <span class="f6 gray">Dashboard View</span>
+        </div>
+        <div>
+            <button class="bg-blue white bn pa2 br2 mr2 f6">New Project</button>
+            <button class="bg-transparent white ba b--white pa2 br2 f6">Settings</button>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard Grid -->
+    <div class="pa4">
+        <!-- Top Row: Large Cards -->
+        <div class="flex mb3">
+            <!-- Data Input Card -->
+            <div class="w-50 mr3 bg-white pa3 ba b--silver br2 shadow-4">
+                <h2 class="f4 mb3 bb b--silver pb2">Data Input</h2>
+                <div class="mb3">
+                    <div class="ba b--dashed b--gray pa4 tc br2 bg-near-white">
+                        <p class="f5 gray mb2">Drop JSON file here</p>
+                        <button class="bg-blue white bn pa2 br2 f6">or Browse Files</button>
+                    </div>
+                </div>
+                <div class="flex gap2">
+                    <button class="flex-auto bg-gray white bn pa2 br2 f6">Sample Data</button>
+                    <button class="flex-auto bg-gray white bn pa2 br2 f6">From URL</button>
+                </div>
+                <div class="mt3 ba b--silver bg-near-white pa2 br2">
+                    <p class="f6 ma0 b">Recent Files</p>
+                    <ul class="list pl0 ma0 mt2">
+                        <li class="f7 pv1">housing_data.json</li>
+                        <li class="f7 pv1">permits_2023.json</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Visualization Card -->
+            <div class="w-50 bg-white pa3 ba b--silver br2 shadow-4">
+                <h2 class="f4 mb3 bb b--silver pb2">Live Preview</h2>
+                <div class="ba b--silver bg-black pa4 tc br2" style="height: 250px;">
+                    <p class="white f6">[Audio Waveform Canvas]</p>
+                </div>
+                <div class="mt3 flex items-center justify-between">
+                    <div class="flex gap2">
+                        <button class="bg-blue white bn pa2 br-pill">▶</button>
+                        <button class="bg-gray white bn pa2 br-pill">⏸</button>
+                        <button class="bg-gray white bn pa2 br-pill">⏹</button>
+                    </div>
+                    <span class="f6 gray">0:45 / 2:15</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Middle Row: Mapping Cards Grid -->
+        <div class="mb3">
+            <div class="flex items-center justify-between mb3">
+                <h2 class="f4 ma0">Active Mappings</h2>
+                <button class="bg-green white bn pa2 br2 f6">+ Add Mapping</button>
+            </div>
+            
+            <div class="flex">
+                <!-- Mapping Card 1 -->
+                <div class="w-25 mr3 bg-white pa3 ba b--blue br2 shadow-4">
+                    <div class="flex items-center justify-between mb2">
+                        <span class="f6 b blue">FREQUENCY</span>
+                        <button class="bg-transparent bn gray f5">⚙</button>
+                    </div>
+                    <div class="mb2">
+                        <span class="f7 db gray mb1">Source</span>
+                        <span class="f6 b">permit_value</span>
+                    </div>
+                    <div class="ba b--silver bg-near-white pa2 br1">
+                        <div class="f7 mb1">Range: 200-1200 Hz</div>
+                        <div class="bg-blue h1 br1" style="width: 60%"></div>
+                    </div>
+                </div>
+
+                <!-- Mapping Card 2 -->
+                <div class="w-25 mr3 bg-white pa3 ba b--green br2 shadow-4">
+                    <div class="flex items-center justify-between mb2">
+                        <span class="f6 b green">VOLUME</span>
+                        <button class="bg-transparent bn gray f5">⚙</button>
+                    </div>
+                    <div class="mb2">
+                        <span class="f7 db gray mb1">Source</span>
+                        <span class="f6 b">num_units</span>
+                    </div>
+                    <div class="ba b--silver bg-near-white pa2 br1">
+                        <div class="f7 mb1">Range: 0.0-1.0</div>
+                        <div class="bg-green h1 br1" style="width: 80%"></div>
+                    </div>
+                </div>
+
+                <!-- Mapping Card 3 -->
+                <div class="w-25 mr3 bg-white pa3 ba b--orange br2 shadow-4">
+                    <div class="flex items-center justify-between mb2">
+                        <span class="f6 b orange">DURATION</span>
+                        <button class="bg-transparent bn gray f5">⚙</button>
+                    </div>
+                    <div class="mb2">
+                        <span class="f7 db gray mb1">Source</span>
+                        <span class="f6 b">days_to_complete</span>
+                    </div>
+                    <div class="ba b--silver bg-near-white pa2 br1">
+                        <div class="f7 mb1">Range: 0.1-2.0 sec</div>
+                        <div class="bg-orange h1 br1" style="width: 45%"></div>
+                    </div>
+                </div>
+
+                <!-- Empty Card Placeholder -->
+                <div class="w-25 bg-white pa3 ba b--dashed b--silver br2">
+                    <div class="flex items-center justify-center h-100">
+                        <button class="bg-transparent bn gray f3">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Row: Info Panels -->
+        <div class="flex">
+            <!-- Data Stats -->
+            <div class="w-third mr3 bg-white pa3 ba b--silver br2 shadow-4">
+                <h3 class="f5 mb3 bb b--silver pb2">Data Statistics</h3>
+                <div class="mb2 flex justify-between">
+                    <span class="f6 gray">Total Records</span>
+                    <span class="f6 b">9,631</span>
+                </div>
+                <div class="mb2 flex justify-between">
+                    <span class="f6 gray">Mapped Fields</span>
+                    <span class="f6 b">3 / 12</span>
+                </div>
+                <div class="mb2 flex justify-between">
+                    <span class="f6 gray">Duration</span>
+                    <span class="f6 b">2m 15s</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="f6 gray">Sample Rate</span>
+                    <span class="f6 b">44.1 kHz</span>
+                </div>
+            </div>
+
+            <!-- Field Browser -->
+            <div class="w-third mr3 bg-white pa3 ba b--silver br2 shadow-4">
+                <h3 class="f5 mb3 bb b--silver pb2">Available Fields</h3>
+                <div class="overflow-auto" style="max-height: 150px;">
+                    <div class="f6 pv2 bb b--near-white flex items-center justify-between hover-bg-near-white">
+                        <span>permit_value</span>
+                        <span class="f7 gray">number</span>
+                    </div>
+                    <div class="f6 pv2 bb b--near-white flex items-center justify-between hover-bg-near-white">
+                        <span>num_units</span>
+                        <span class="f7 gray">number</span>
+                    </div>
+                    <div class="f6 pv2 bb b--near-white flex items-center justify-between hover-bg-near-white">
+                        <span>issue_date</span>
+                        <span class="f7 gray">date</span>
+                    </div>
+                    <div class="f6 pv2 bb b--near-white flex items-center justify-between hover-bg-near-white">
+                        <span>location</span>
+                        <span class="f7 gray">string</span>
+                    </div>
+                    <div class="f6 pv2 flex items-center justify-between hover-bg-near-white">
+                        <span>category</span>
+                        <span class="f7 gray">string</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="w-third bg-white pa3 ba b--silver br2 shadow-4">
+                <h3 class="f5 mb3 bb b--silver pb2">Quick Actions</h3>
+                <button class="w-100 bg-blue white bn pa2 br2 mb2 f6 tl">▶ Play from Start</button>
+                <button class="w-100 bg-green white bn pa2 br2 mb2 f6 tl">💾 Save Project</button>
+                <button class="w-100 bg-purple white bn pa2 br2 mb2 f6 tl">⬇ Export Audio</button>
+                <button class="w-100 bg-gray white bn pa2 br2 f6 tl">📋 Copy Config</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
