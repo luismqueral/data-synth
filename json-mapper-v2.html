@@ -432,6 +432,14 @@
             <div class="settings-drawer-content" id="settingsDrawerContent">
                     
                     <div class="mb3">
+                        <label class="db mb2">
+                            <span class="db mb1 f6 b">Master Volume:</span>
+                            <input type="range" id="masterVolume" min="0" max="1" step="0.05" value="0.2" class="w-100">
+                            <span id="masterVolumeValue" class="f6">0.2 (20%)</span>
+                        </label>
+                    </div>
+                    
+                    <div class="mb3">
                         <div class="b mb2 f6">Smart Processing</div>
                         <label class="db mb2 f6">
                             <input type="checkbox" id="adaptiveNormalization" checked class="mr2">
@@ -461,18 +469,45 @@
                     
                     <div class="mb3">
                         <div class="b mb2 f6">Waveform</div>
-                        <label class="db mb1 f6">
-                            <input type="radio" name="waveform" value="sine" checked class="mr1"> Sine
-                        </label>
-                        <label class="db mb1 f6">
-                            <input type="radio" name="waveform" value="square" class="mr1"> Square
-                        </label>
-                        <label class="db mb1 f6">
-                            <input type="radio" name="waveform" value="sawtooth" class="mr1"> Sawtooth
-                        </label>
-                        <label class="db mb1 f6">
-                            <input type="radio" name="waveform" value="triangle" class="mr1"> Triangle
-                        </label>
+                        <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #ddd;">
+                            <div class="f7 mb1" style="color: #666;">Classic</div>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="sine" checked class="mr1"> Sine
+                            </label>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="square" class="mr1"> Square
+                            </label>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="sawtooth" class="mr1"> Sawtooth
+                            </label>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="triangle" class="mr1"> Triangle
+                            </label>
+                        </div>
+                        <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #ddd;">
+                            <div class="f7 mb1" style="color: #666;">Noise</div>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="white-noise" class="mr1"> White Noise
+                            </label>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="pink-noise" class="mr1"> Pink Noise
+                            </label>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="brown-noise" class="mr1"> Brown Noise
+                            </label>
+                        </div>
+                        <div>
+                            <div class="f7 mb1" style="color: #666;">Synthesis</div>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="fm" class="mr1"> FM Synthesis
+                            </label>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="additive" class="mr1"> Additive (Harmonics)
+                            </label>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="pwm" class="mr1"> Pulse Width Mod
+                            </label>
+                        </div>
                     </div>
                     
                     <div class="mb3">
@@ -1049,6 +1084,12 @@
         let reverbNode, reverbWetGain, reverbDryGain;                   // Reverb nodes
         let previousDelayTime = null;  // Track for analog pitch shifting
 
+        // Master Volume control
+        document.getElementById('masterVolume').addEventListener('input', (e) => {
+            const vol = parseFloat(e.target.value);
+            document.getElementById('masterVolumeValue').textContent = `${vol.toFixed(2)} (${(vol * 100).toFixed(0)}%)`;
+        });
+        
         // Speed control
         document.getElementById('speedControl').addEventListener('input', (e) => {
             document.getElementById('speedValue').textContent = `${e.target.value}x`;
@@ -1061,6 +1102,97 @@
             document.getElementById('pitchValue').textContent = `${sign}${semitones} semitones`;
         });
 
+        // Custom sound generation functions
+        function createNoiseBuffer(audioContext, type, duration) {
+            const bufferSize = audioContext.sampleRate * (duration / 1000);
+            const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            if (type === 'white-noise') {
+                // White noise: equal power across all frequencies
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+            } else if (type === 'pink-noise') {
+                // Pink noise: 1/f power spectrum (more bass)
+                let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+                for (let i = 0; i < bufferSize; i++) {
+                    const white = Math.random() * 2 - 1;
+                    b0 = 0.99886 * b0 + white * 0.0555179;
+                    b1 = 0.99332 * b1 + white * 0.0750759;
+                    b2 = 0.96900 * b2 + white * 0.1538520;
+                    b3 = 0.86650 * b3 + white * 0.3104856;
+                    b4 = 0.55000 * b4 + white * 0.5329522;
+                    b5 = -0.7616 * b5 - white * 0.0168980;
+                    data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+                    b6 = white * 0.115926;
+                }
+            } else if (type === 'brown-noise') {
+                // Brown noise: 1/f² power spectrum (even more bass)
+                let lastOut = 0;
+                for (let i = 0; i < bufferSize; i++) {
+                    const white = Math.random() * 2 - 1;
+                    data[i] = (lastOut + (0.02 * white)) / 1.02;
+                    lastOut = data[i];
+                    data[i] *= 3.5; // Compensate for volume loss
+                }
+            }
+            
+            return buffer;
+        }
+        
+        function createCustomOscillator(audioContext, frequency, type, duration) {
+            if (type === 'white-noise' || type === 'pink-noise' || type === 'brown-noise') {
+                // Use buffer source for noise
+                const source = audioContext.createBufferSource();
+                source.buffer = createNoiseBuffer(audioContext, type, duration);
+                source.loop = false;
+                return source;
+            } else if (type === 'fm') {
+                // FM synthesis: carrier modulated by modulator
+                const carrier = audioContext.createOscillator();
+                const modulator = audioContext.createOscillator();
+                const modulatorGain = audioContext.createGain();
+                
+                carrier.frequency.value = frequency;
+                modulator.frequency.value = frequency * 2.5; // Harmonic ratio
+                modulatorGain.gain.value = frequency * 0.8; // Modulation depth
+                
+                modulator.connect(modulatorGain);
+                modulatorGain.connect(carrier.frequency);
+                
+                carrier.type = 'sine';
+                modulator.type = 'sine';
+                
+                // Store modulator to start/stop together
+                carrier._modulator = modulator;
+                carrier._modulatorGain = modulatorGain;
+                
+                return carrier;
+            } else if (type === 'additive') {
+                // Additive synthesis: multiple harmonics
+                // We'll return the fundamental and mix harmonics in manually
+                const osc = audioContext.createOscillator();
+                osc.frequency.value = frequency;
+                osc.type = 'sine';
+                osc._isAdditive = true;
+                return osc;
+            } else if (type === 'pwm') {
+                // Pulse width modulation using square wave
+                const osc = audioContext.createOscillator();
+                osc.frequency.value = frequency;
+                osc.type = 'square';
+                osc._isPWM = true;
+                return osc;
+            } else {
+                // Standard waveforms
+                const osc = audioContext.createOscillator();
+                osc.frequency.value = frequency;
+                osc.type = type; // sine, square, sawtooth, triangle
+                return osc;
+            }
+        }
+        
         // Extract all paths from JSON - samples multiple items to find common paths
         function extractPaths(obj, prefix = '', depth = 0) {
             const paths = [];
@@ -2353,7 +2485,7 @@
                     updateNodeValues(item, audioParams);
                     
                     // Get all audio parameters (use defaults if not mapped)
-                    const volume = 0.2; // Fixed safe volume
+                    const volume = parseFloat(document.getElementById('masterVolume')?.value || 0.2);
                     const duration = audioParams.duration || 200;
                     const pan = audioParams.pan || 0;
                     const filterFreq = audioParams.filterFreq || 2000;
@@ -2439,7 +2571,6 @@
                     }
                     
                     // Play tone with full effects chain
-                    const oscillator = audioContext.createOscillator();
                     const filter = audioContext.createBiquadFilter();
                     const panner = audioContext.createStereoPanner();
                     const envelope = audioContext.createGain();
@@ -2453,9 +2584,11 @@
                         transposedFrequency = quantizePitch(transposedFrequency);
                     }
                     
-                    // Configure oscillator
-                    oscillator.frequency.value = transposedFrequency;
-                    oscillator.type = document.querySelector('input[name="waveform"]:checked')?.value || 'sine';
+                    // Get selected waveform type
+                    const waveformType = document.querySelector('input[name="waveform"]:checked')?.value || 'sine';
+                    
+                    // Create oscillator (could be standard oscillator, noise buffer, or FM synth)
+                    const oscillator = createCustomOscillator(audioContext, transposedFrequency, waveformType, duration);
                     
                     // Configure filter
                     filter.type = document.querySelector('input[name="filterType"]:checked')?.value || 'lowpass';
@@ -2476,16 +2609,52 @@
                     envelope.gain.setValueAtTime(volume, now + Math.max(attackTime, durationTime - releaseTime));
                     envelope.gain.linearRampToValueAtTime(0, now + durationTime);
                     
-                    // Connect audio chain: oscillator → filter → panner → envelope → delay/reverb
-                    oscillator.connect(filter);
+                    // Handle additive synthesis (create harmonics)
+                    if (oscillator._isAdditive) {
+                        // Create harmonic series (1x, 2x, 3x, 4x frequencies with decreasing amplitude)
+                        const harmonicGain = audioContext.createGain();
+                        harmonicGain.gain.value = 0.6; // Reduce fundamental
+                        oscillator.connect(harmonicGain);
+                        harmonicGain.connect(filter);
+                        
+                        // Add 3 harmonics
+                        for (let h = 2; h <= 4; h++) {
+                            const harmonic = audioContext.createOscillator();
+                            const hGain = audioContext.createGain();
+                            harmonic.frequency.value = transposedFrequency * h;
+                            harmonic.type = 'sine';
+                            hGain.gain.value = 0.3 / h; // Decreasing amplitude
+                            harmonic.connect(hGain);
+                            hGain.connect(filter);
+                            harmonic.start(now);
+                            harmonic.stop(now + durationTime);
+                        }
+                    } else {
+                        // Standard connection
+                        oscillator.connect(filter);
+                    }
+                    
+                    // Connect rest of chain
                     filter.connect(panner);
                     panner.connect(envelope);
                     envelope.connect(delayNode);
                     envelope.connect(delayDryGain);
                     
-                    // Start and stop
+                    // Start source
                     oscillator.start(now);
+                    
+                    // Start FM modulator if present
+                    if (oscillator._modulator) {
+                        oscillator._modulator.start(now);
+                    }
+                    
+                    // Stop source
                     oscillator.stop(now + durationTime);
+                    
+                    // Stop FM modulator if present
+                    if (oscillator._modulator) {
+                        oscillator._modulator.stop(now + durationTime);
+                    }
                     
                     // Calculate note spacing: use mapped value if available, otherwise use speed slider
                     let noteSpacing;
