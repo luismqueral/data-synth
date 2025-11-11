@@ -57,34 +57,12 @@
         }
         
         .settings-drawer-content {
-            padding: 0 20px;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+            padding: 20px;
+            display: none;
         }
         
         .settings-drawer-content.open {
-            padding: 20px;
-            max-height: 500px; /* Max height before scrolling kicks in */
-            overflow-y: auto;
-        }
-        
-        /* Custom scrollbar for settings drawer */
-        .settings-drawer-content::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .settings-drawer-content::-webkit-scrollbar-track {
-            background: #f0f0f0;
-        }
-        
-        .settings-drawer-content::-webkit-scrollbar-thumb {
-            background: #999;
-            border-radius: 4px;
-        }
-        
-        .settings-drawer-content::-webkit-scrollbar-thumb:hover {
-            background: #666;
+            display: block;
         }
         
         .drawer-toggle {
