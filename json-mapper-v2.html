@@ -989,18 +989,65 @@
             }
         }
 
-        // Data and state
-        let parsedData = null;
-        let detectedPaths = [];
-        let numericPaths = [];
-        let mappings = {};
-        let audioContext;
-        let isPlaying = false;
-        let isPaused = false;
-        let currentTimeout;
-        let delayNode, delayFeedbackGain, delayWetGain, delayDryGain;
-        let reverbNode, reverbWetGain, reverbDryGain;
-        let previousDelayTime = null; // Track for analog pitch shifting
+        // ============================================================================
+        // DATA FLOW DOCUMENTATION
+        // ============================================================================
+        // 
+        // 1. DATA LOADING & PARSING
+        //    - User selects dataset from dropdown OR drags/pastes data
+        //    - autoParseJSON() detects format (JSON/CSV/GeoJSON)
+        //    - For GeoJSON: extracts data.features array automatically
+        //    - For nested JSON: finds first array property and extracts it
+        //    - Result stored in: parsedData (always an array of objects)
+        //
+        // 2. PATH EXTRACTION & VALIDATION
+        //    - extractPaths() recursively walks first item to find all field paths
+        //    - Samples up to 20 items to verify field exists across dataset
+        //    - Calculates coverage % (how many items have each field)
+        //    - Filters out sparse fields (<10% coverage) to avoid null issues
+        //    - Separates numeric vs string paths
+        //    - Result stored in: detectedPaths, numericPaths
+        //
+        // 3. VISUALIZATION SETUP
+        //    - createNodes() builds node list from numericPaths
+        //    - Data nodes (left): one per numeric field with safeId(path)
+        //    - Audio nodes (right): one per audio parameter (13 total)
+        //    - drawNodes() renders SVG with D3, creates DOM elements
+        //    - Each node gets text element with ID: value_${safeId}
+        //
+        // 4. MAPPING (Smart or Manual)
+        //    - Smart mapping analyzes variance/uniqueness to rank "interestingness"
+        //    - Assigns best data paths to perceptually important audio params
+        //    - Stores in mappings object: { audioParam: { path, min, max, curve } }
+        //
+        // 5. PLAYBACK & SONIFICATION
+        //    - Loops through parsedData array, one item per iteration
+        //    - For each item: getValueByPath() extracts values using dot notation
+        //    - Values scaled from data range to audio parameter range
+        //    - Curve transformations applied (linear/exponential/cubic/log/inverse)
+        //    - Web Audio API generates sound with calculated parameters
+        //    - updateNodeValues() called to update D3 visualization
+        //
+        // 6. VISUALIZATION UPDATE (D3)
+        //    - For each node, looks up value using getValueByPath()
+        //    - Updates text content of DOM element via d3.select()
+        //    - Highlights active nodes (green border) if path is mapped
+        //    - Shows "--" if value is null/undefined for that item
+        //
+        // ============================================================================
+        
+        // Global state
+        let parsedData = null;         // Array of data items (after extraction from GeoJSON/nested structures)
+        let detectedPaths = [];        // All detected field paths with type info and coverage %
+        let numericPaths = [];         // Filtered list of only numeric paths
+        let mappings = {};             // Current data-to-audio mappings { audioParam: { path, min, max, curve } }
+        let audioContext;              // Web Audio API context
+        let isPlaying = false;         // Playback state
+        let isPaused = false;          // Pause state
+        let currentTimeout;            // For note timing
+        let delayNode, delayFeedbackGain, delayWetGain, delayDryGain;  // Audio effect nodes
+        let reverbNode, reverbWetGain, reverbDryGain;                   // Reverb nodes
+        let previousDelayTime = null;  // Track for analog pitch shifting
 
         // Speed control
         document.getElementById('speedControl').addEventListener('input', (e) => {
@@ -1090,7 +1137,7 @@
             return paths;
         }
 
-        // Get value from object using path
+        // Get value from object using path (dot notation like "properties.mag")
         function getValueByPath(obj, path) {
             if (!obj || !path) return undefined;
             try {
@@ -1102,6 +1149,13 @@
                 console.warn(`Error accessing path ${path}:`, e);
                 return undefined;
             }
+        }
+        
+        // Convert path to CSS-safe ID (dots cause issues in selectors)
+        // "properties.mag" → "properties_mag"
+        // "geometry.coordinates" → "geometry_coordinates"
+        function safeId(path) {
+            return path.replace(/\./g, '_').replace(/[^a-zA-Z0-9_-]/g, '_');
         }
 
         // Extract values from array data
@@ -1696,14 +1750,15 @@
             if (rightHeaderEl) rightHeaderEl.style.left = `${rightX}px`;
             
             // Data nodes (left side) - compact layout
+            // NOTE: Using safeId() to convert paths like "properties.mag" to CSS-safe IDs
             numericPaths.forEach((path, i) => {
                 nodes.push({
-                    id: `data_${path.path}`,
-                    label: path.path,
+                    id: `data_${safeId(path.path)}`,  // CSS-safe ID: properties.mag → data_properties_mag
+                    label: path.path,                  // Display original path with dots
                     x: leftX,
                     y: 30 + i * nodeSpacing,
                     type: 'data',
-                    dataPath: path.path
+                    dataPath: path.path                // Store original path for data lookup
                 });
             });
             
@@ -1716,7 +1771,7 @@
             
             audioParams.forEach((param, i) => {
                 nodes.push({
-                    id: `audio_${param}`,
+                    id: `audio_${param}`,              // Already CSS-safe (no dots)
                     label: param,
                     x: rightX,
                     y: 30 + i * nodeSpacing,
@@ -1750,16 +1805,17 @@
                 .attr('rx', 2)
                 .attr('data-node-id', d => d.id);
             
-            // Node label
+            // Node label (original path with dots for display)
             nodeGroups.append('text')
                 .attr('class', 'node-text')
                 .attr('y', 0)
                 .text(d => d.label);
             
             // Value display (below label)
+            // ID uses safe version: value_data_properties_mag (no dots)
             nodeGroups.append('text')
                 .attr('class', 'node-value')
-                .attr('id', d => `value_${d.id}`)
+                .attr('id', d => `value_${d.id}`)  // d.id already CSS-safe from createNodes()
                 .attr('y', 12)
                 .attr('text-anchor', 'middle')
                 .text('--');
@@ -1921,6 +1977,7 @@
         
         
         // Update node visualization during playback
+        // This function is called for each data item during sonification
         function updateNodeValues(currentItem, calculatedAudioParams) {
             // Clear previous highlights
             d3.selectAll('.node-rect').classed('playing', false);
@@ -1931,22 +1988,32 @@
                 console.log('=== Current Item Structure ===');
                 console.log('Item:', currentItem);
                 console.log('Item keys:', Object.keys(currentItem || {}));
+                console.log('=== Node IDs for debugging ===');
+                nodes.filter(n => n.type === 'data').slice(0, 3).forEach(n => {
+                    console.log(`  ${n.label} → ID: ${n.id} → Element: #value_${n.id}`);
+                });
                 window._loggedItemStructure = true;
             }
             
-            // Update data node values
+            // Update data node values (left side nodes)
             nodes.forEach(node => {
                 if (node.type === 'data') {
+                    // Get value from current item using original path (with dots)
                     const value = getValueByPath(currentItem, node.dataPath);
+                    
+                    // Select DOM element using CSS-safe ID (no dots)
+                    // node.id is already safe: "data_properties_mag" not "data_properties.mag"
+                    const selector = `#value_${node.id}`;
                     const valueEl = document.getElementById(`value_${node.id}`);
+                    
                     if (valueEl) {
                         if (value !== undefined && value !== null) {
                             const displayValue = typeof value === 'number' ? 
                                 (Math.abs(value) < 0.01 ? value.toExponential(1) : value.toFixed(2)) : 
                                 (String(value).length > 12 ? String(value).substring(0, 12) + '...' : value);
-                            d3.select(`#value_${node.id}`).text(displayValue);
+                            valueEl.textContent = displayValue;  // Direct DOM manipulation (faster than D3)
                         } else {
-                            d3.select(`#value_${node.id}`).text('--');
+                            valueEl.textContent = '--';
                             // Debug: log missing values
                             if (!window._loggedMissingPaths) {
                                 window._loggedMissingPaths = {};
@@ -1957,23 +2024,36 @@
                             }
                         }
                         
-                        // Check if this data path is being used
+                        // Highlight node if this data path is currently mapped
                         const isActive = Object.values(mappings).some(m => m.path === node.dataPath);
                         if (isActive) {
                             d3.select(`[data-node-id="${node.id}"]`).classed('playing', true);
+                        }
+                    } else {
+                        // This should never happen if nodes are created correctly
+                        if (!window._loggedMissingElements) {
+                            window._loggedMissingElements = {};
+                        }
+                        if (!window._loggedMissingElements[node.id]) {
+                            console.error(`Cannot find DOM element for node ID: ${node.id} (path: ${node.dataPath})`);
+                            window._loggedMissingElements[node.id] = true;
                         }
                     }
                 }
             });
             
-            // Update audio param values and highlight
+            // Update audio param values (right side nodes)
             Object.entries(calculatedAudioParams).forEach(([param, value]) => {
                 const node = nodes.find(n => n.audioParam === param);
                 if (node && value !== undefined && value !== null) {
                     const displayValue = typeof value === 'number' ? 
                         (Math.abs(value) < 0.01 ? value.toExponential(1) : value.toFixed(2)) : 
                         (String(value).length > 12 ? String(value).substring(0, 12) + '...' : value);
-                    d3.select(`#value_${node.id}`).text(displayValue);
+                    
+                    const valueEl = document.getElementById(`value_${node.id}`);
+                    if (valueEl) {
+                        valueEl.textContent = displayValue;  // Direct DOM manipulation
+                    }
                     
                     // Highlight if mapped
                     if (mappings[param]?.path) {
@@ -2160,6 +2240,7 @@
             // Reset debug flags for new playback
             window._loggedItemStructure = false;
             window._loggedMissingPaths = {};
+            window._loggedMissingElements = {};
             
             const dataArray = Array.isArray(parsedData) ? parsedData : [parsedData];
             
