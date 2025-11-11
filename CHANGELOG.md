@@ -1,6 +1,8 @@
 # Changelog
 
 ## 2025-11-11
+- improved path detection with coverage analysis - extractPaths now samples up to 20 items (was 1) to verify field existence across dataset, filters out sparse paths that exist in <10% of items to avoid displaying mostly-null fields, logs coverage percentage for each detected path showing data quality, added depth limit of 5 levels to prevent infinite recursion on circular references, logs filtered sparse paths to console for debugging
+- enhanced getValueByPath error handling - added null/undefined checks before accessing properties, wrapped in try/catch to prevent crashes on malformed data, logs warnings when path access fails with details about the error
 - fixed critical data loading bug causing visualization to show "--" instead of values - corrected adaptive normalization to use processedData instead of raw data (line 687), this was causing mismatch between detected paths and actual data structure especially for nested data like GeoJSON, added comprehensive console logging to debug data structure issues (logs first item sample, all numeric paths, item structure during playback), added warning logs for missing data paths to identify mismatch issues, reset debug flags on each playback start for clean logging
 - fixed Play Data button jitter when toggling between states - changed from min-width: 200px to fixed width: 240px so button maintains same size when text changes from "Play Data" to "Stop", prevents layout shift during playback
 - set consistent height for all control buttons - added explicit 64px height to Play Data button, ITEM counter, and Randomize Patch button to ensure uniform visual alignment, prevents different font sizes and content structures from creating uneven heights in the control bar

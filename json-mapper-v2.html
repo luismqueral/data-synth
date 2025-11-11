@@ -679,7 +679,7 @@
                 console.log('First item sample:', Array.isArray(processedData) ? processedData[0] : processedData);
                 
                 console.log('Numeric paths found:', numericPaths.length);
-                console.log('All numeric paths:', numericPaths.map(p => p.path));
+                console.log('All numeric paths with coverage:', numericPaths.map(p => `${p.path} (${(p.coverage * 100).toFixed(0)}%)`));
                 
                 // Apply adaptive normalization if enabled
                 const adaptiveCheckbox = document.getElementById('adaptiveNormalization');
@@ -1014,22 +1014,55 @@
             document.getElementById('pitchValue').textContent = `${sign}${semitones} semitones`;
         });
 
-        // Extract all paths from JSON (copy from original)
-        function extractPaths(obj, prefix = '') {
+        // Extract all paths from JSON - samples multiple items to find common paths
+        function extractPaths(obj, prefix = '', depth = 0) {
             const paths = [];
+            const maxDepth = 5; // Prevent infinite recursion
+            
+            if (depth > maxDepth) {
+                return paths;
+            }
             
             if (Array.isArray(obj)) {
                 if (obj.length > 0) {
+                    // Sample first item for structure
                     const sample = obj[0];
                     if (typeof sample === 'object' && sample !== null) {
-                        const subPaths = extractPaths(sample, prefix);
-                        paths.push(...subPaths);
+                        const subPaths = extractPaths(sample, prefix, depth + 1);
+                        
+                        // For arrays, verify paths exist in multiple items
+                        const verifiedPaths = subPaths.map(pathObj => {
+                            // Count how many items have this path with a non-null value
+                            let count = 0;
+                            const sampleSize = Math.min(20, obj.length); // Sample more items
+                            for (let i = 0; i < sampleSize; i++) {
+                                const val = getValueByPath(obj[i], pathObj.path);
+                                if (val !== undefined && val !== null) {
+                                    count++;
+                                }
+                            }
+                            
+                            return {
+                                ...pathObj,
+                                coverage: count / sampleSize // % of items that have this field
+                            };
+                        });
+                        
+                        // Log filtered paths
+                        const filtered = verifiedPaths.filter(p => p.coverage < 0.1);
+                        if (filtered.length > 0) {
+                            console.log('Filtered out sparse paths (<10% coverage):', filtered.map(p => `${p.path} (${(p.coverage * 100).toFixed(0)}%)`));
+                        }
+                        
+                        // Only include paths that exist in at least 10% of sampled items (reduced from 30%)
+                        paths.push(...verifiedPaths.filter(p => p.coverage >= 0.1));
                     } else {
                         paths.push({
                             path: prefix || 'root',
                             type: typeof sample,
                             isArray: true,
-                            sample: obj.slice(0, 3)
+                            sample: obj.slice(0, 3),
+                            coverage: 1.0
                         });
                     }
                 }
@@ -1039,15 +1072,16 @@
                     const value = obj[key];
                     
                     if (Array.isArray(value)) {
-                        paths.push(...extractPaths(value, fullPath));
+                        paths.push(...extractPaths(value, fullPath, depth + 1));
                     } else if (typeof value === 'object' && value !== null) {
-                        paths.push(...extractPaths(value, fullPath));
+                        paths.push(...extractPaths(value, fullPath, depth + 1));
                     } else {
                         paths.push({
                             path: fullPath,
                             type: typeof value,
                             isArray: false,
-                            sample: value
+                            sample: value,
+                            coverage: 1.0
                         });
                     }
                 }
@@ -1058,7 +1092,16 @@
 
         // Get value from object using path
         function getValueByPath(obj, path) {
-            return path.split('.').reduce((curr, key) => curr?.[key], obj);
+            if (!obj || !path) return undefined;
+            try {
+                return path.split('.').reduce((curr, key) => {
+                    if (curr === null || curr === undefined) return undefined;
+                    return curr[key];
+                }, obj);
+            } catch (e) {
+                console.warn(`Error accessing path ${path}:`, e);
+                return undefined;
+            }
         }
 
         // Extract values from array data
