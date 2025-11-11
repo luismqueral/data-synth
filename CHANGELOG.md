@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2025-11-11
+- fixed critical data loading bug causing visualization to show "--" instead of values - corrected adaptive normalization to use processedData instead of raw data (line 687), this was causing mismatch between detected paths and actual data structure especially for nested data like GeoJSON, added comprehensive console logging to debug data structure issues (logs first item sample, all numeric paths, item structure during playback), added warning logs for missing data paths to identify mismatch issues, reset debug flags on each playback start for clean logging
 - fixed Play Data button jitter when toggling between states - changed from min-width: 200px to fixed width: 240px so button maintains same size when text changes from "Play Data" to "Stop", prevents layout shift during playback
 - set consistent height for all control buttons - added explicit 64px height to Play Data button, ITEM counter, and Randomize Patch button to ensure uniform visual alignment, prevents different font sizes and content structures from creating uneven heights in the control bar
 - redesigned ITEM counter as card in center of controls - converted ITEM from simple text to card component with light gray background (#f5f5f5), light border, same 16px/24px padding as buttons for matching height, 120px min-width, moved to middle position between Play and Randomize buttons, stacked layout with "ITEM" label above value, increased value font to 16px for better readability

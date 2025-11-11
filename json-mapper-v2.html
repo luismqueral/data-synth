@@ -676,13 +676,15 @@
                 numericPaths = detectedPaths.filter(p => p.type === 'number');
                 
                 console.log(`Data structure: ${Array.isArray(processedData) ? processedData.length + ' items' : 'single object'}`);
+                console.log('First item sample:', Array.isArray(processedData) ? processedData[0] : processedData);
                 
                 console.log('Numeric paths found:', numericPaths.length);
+                console.log('All numeric paths:', numericPaths.map(p => p.path));
                 
                 // Apply adaptive normalization if enabled
                 const adaptiveCheckbox = document.getElementById('adaptiveNormalization');
                 if (adaptiveCheckbox && adaptiveCheckbox.checked) {
-                    const dataArray = Array.isArray(data) ? data : [data];
+                    const dataArray = Array.isArray(processedData) ? processedData : [processedData];
                     
                     numericPaths.forEach(pathObj => {
                         const values = extractValues(dataArray, pathObj.path);
@@ -1881,6 +1883,14 @@
             d3.selectAll('.node-rect').classed('playing', false);
             d3.selectAll('.connection-path').classed('active', false);
             
+            // Debug: log current item structure once
+            if (!window._loggedItemStructure) {
+                console.log('=== Current Item Structure ===');
+                console.log('Item:', currentItem);
+                console.log('Item keys:', Object.keys(currentItem || {}));
+                window._loggedItemStructure = true;
+            }
+            
             // Update data node values
             nodes.forEach(node => {
                 if (node.type === 'data') {
@@ -1894,6 +1904,14 @@
                             d3.select(`#value_${node.id}`).text(displayValue);
                         } else {
                             d3.select(`#value_${node.id}`).text('--');
+                            // Debug: log missing values
+                            if (!window._loggedMissingPaths) {
+                                window._loggedMissingPaths = {};
+                            }
+                            if (!window._loggedMissingPaths[node.dataPath]) {
+                                console.warn(`Cannot find value for path: ${node.dataPath} in item:`, currentItem);
+                                window._loggedMissingPaths[node.dataPath] = true;
+                            }
                         }
                         
                         // Check if this data path is being used
@@ -2096,7 +2114,15 @@
             
             drawVisualizer();
             
+            // Reset debug flags for new playback
+            window._loggedItemStructure = false;
+            window._loggedMissingPaths = {};
+            
             const dataArray = Array.isArray(parsedData) ? parsedData : [parsedData];
+            
+            console.log('=== Playback Starting ===');
+            console.log('Data array length:', dataArray.length);
+            console.log('First item in data array:', dataArray[0]);
             
             // Calculate data ranges for all mapped parameters ONCE
             const dataRanges = {};
