@@ -2981,7 +2981,7 @@ Or use audio software like Audacity (free).`;
                     envelope.gain.linearRampToValueAtTime(0, now + durationTime);
                     
                     // Handle additive synthesis (create harmonics) - synth mode only
-                    if (source._isAdditive) {
+                    if (!samplerMode && source._isAdditive) {
                         // Create harmonic series (1x, 2x, 3x, 4x frequencies with decreasing amplitude)
                         const harmonicGain = audioContext.createGain();
                         harmonicGain.gain.value = 0.6; // Reduce fundamental
@@ -2989,6 +2989,10 @@ Or use audio software like Audacity (free).`;
                         harmonicGain.connect(filter);
                         
                         // Add 3 harmonics
+                        const frequency = audioParams.frequency || 440;
+                        const pitchTranspose = parseFloat(document.getElementById('pitchControl')?.value || 0);
+                        const transposedFrequency = frequency * Math.pow(2, pitchTranspose / 12);
+                        
                         for (let h = 2; h <= 4; h++) {
                             const harmonic = audioContext.createOscillator();
                             const hGain = audioContext.createGain();
@@ -3001,7 +3005,7 @@ Or use audio software like Audacity (free).`;
                             harmonic.stop(now + durationTime);
                         }
                     } else {
-                        // Standard connection
+                        // Standard connection (both sampler and non-additive synth)
                         source.connect(filter);
                     }
                     
