@@ -202,3 +202,4 @@ curl -o earthquakes-month.geojson \
 - Gap > 180° means poor station coverage
 - Updates every minute on USGS servers
 
+

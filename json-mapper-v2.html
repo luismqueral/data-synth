@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>data 2 sound</title>
+    <title>DataSynth</title>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -180,10 +180,7 @@
         }
         
         #audioVisualizer {
-            flex: 1;
-            height: 60px;
-            border: 2px solid #000;
-            background: #fff;
+            background: #eee;
             display: none;
         }
         
@@ -213,8 +210,36 @@
             cursor: default;
         }
         
-        .node-rect:hover {
-            fill: #f0f0f0;
+        .node.unmapped {
+            opacity: 0.4;
+        }
+        
+        .node.unmapped rect {
+            fill: #f5f5f5;
+        }
+        
+        .node.hover-dimmed {
+            opacity: 0.2;
+            transition: opacity 0.2s;
+        }
+        
+        .node {
+            transition: opacity 0.2s;
+        }
+        
+        .connection-path.hover-dimmed,
+        .connection-path-yellow.hover-dimmed {
+            opacity: 0.2;
+            transition: opacity 0.2s;
+        }
+        
+        .connection-path,
+        .connection-path-yellow {
+            transition: opacity 0.2s;
+        }
+        
+        .param-bar-fill {
+            transition: width 0.15s ease-out;
         }
         
         .node-rect.selected {
@@ -230,7 +255,7 @@
         }
         
         .node-rect.playing {
-            fill: #d0ffd0;
+            fill: #d0e7ff;
         }
         
         .node-value {
@@ -243,39 +268,61 @@
         }
         
         .port {
-            fill: #000;
+            fill: #fff;
+            stroke: #000;
+            stroke-width: 2;
             cursor: pointer;
         }
         
         .port:hover {
             fill: #00f;
+            stroke: #000;
+            stroke-width: 2;
+        }
+        
+        .connection-path-yellow {
+            stroke: transparent;
+            stroke-width: 3;
+            fill: none;
+            pointer-events: none;
+            stroke-dasharray: 8, 8;
         }
         
         .connection-path {
-            stroke: #000;
-            stroke-width: 2;
+            stroke: #999;
+            stroke-width: 3;
             fill: none;
             cursor: pointer;
-            stroke-dasharray: 5, 5; /* MaxMSP-style alternating dashes */
+            stroke-dasharray: none;
         }
         
         .connection-path:hover {
-            stroke: #00f;
-            stroke-width: 3;
-            stroke-dasharray: 5, 5;
+            stroke: #666;
+            stroke-width: 4;
         }
         
-        .connection-path.active {
-            stroke: #0f0;
+        .connection-path:hover + .connection-path-yellow,
+        .connection-path-yellow.hover {
+            stroke-width: 4;
+        }
+        
+        /* Active state: yellow and black alternating dashed pattern */
+        .connection-path.active,
+        .connection-path.hover-active {
+            stroke: #000;
             stroke-width: 3;
-            stroke-dasharray: 5, 5;
-            animation: pulse 0.5s ease;
+            stroke-dasharray: 8, 8;
+            stroke-dashoffset: 8;
+        }
+        
+        .connection-path-yellow.active,
+        .connection-path-yellow.hover-active {
+            stroke: #FFD700;
         }
         
         .node-rect.playing {
-            fill: #d0ffd0;
-            stroke: #0f0;
-            stroke-width: 3;
+            fill: #fff;
+            stroke: none;
         }
         
         .node-value {
@@ -349,10 +396,9 @@
 </head>
 <body>
     <div class="pa3 content-wrapper" style="max-width: 1100px; margin: 0 auto;">
-        <h1 class="f1 mb2 mt0 tc" style="font-family: 'Lucida Blackletter', 'Blackletter686', serif; font-weight: normal;">data 2 sound</h1>
+        <h1 class="f1 mb2 mt0 tc" style="font-family: 'Lucida Blackletter', 'Blackletter686', serif; font-weight: normal;">DataSynth</h1>
         <p class="tc f6 gray mb3" style="max-width: 600px; margin-left: auto; margin-right: auto;">
-            Turn any dataset into sound. Map data fields to audio parameters and hear patterns emerge. 
-            <a href="https://github.com/luismqueral/data-2-sound" target="_blank" class="black underline">Learn more →</a>
+            Turn any dataset into sound. <a href="https://github.com/luismqueral/data-2-sound" target="_blank" class="black underline">Learn More</a>
         </p>
         
         <!-- Data Selection -->
@@ -411,9 +457,6 @@
             <div class="tc mb2">
                 <span id="parseStatus" class="f6 gray"></span>
             </div>
-            <div class="tc">
-                <a id="datasetSourceLink" href="#" target="_blank" class="f7 gray underline" style="display: none;">View dataset source →</a>
-            </div>
             
             <div id="dropZone" class="drop-zone" style="display: none;">
                 Drop JSON or CSV file here
@@ -459,6 +502,11 @@
             </button>
         </div>
         
+        <!-- Audio Visualizer -->
+        <div style="margin-bottom: 20px;">
+            <canvas id="audioVisualizer" style="width: 100%; height: 120px;"></canvas>
+        </div>
+        
         <!-- Global Settings Drawer -->
         <div class="settings-drawer">
             <div class="settings-drawer-header" id="settingsDrawerToggle">
@@ -467,11 +515,22 @@
             </div>
             <div class="settings-drawer-content" id="settingsDrawerContent">
                     
-                    <div class="mb3">
+                    <div class="mb3" style="padding-bottom: 12px; border-bottom: 2px solid #ddd;">
+                        <div class="b mb2 f6">Volume</div>
                         <label class="db mb2">
-                            <span class="db mb1 f6 b">Master Volume:</span>
+                            <span class="db mb1 f6">Master Volume:</span>
                             <input type="range" id="masterVolume" min="0" max="1" step="0.01" value="0.2" class="w-100">
                             <span id="masterVolumeValue" class="f6">0.2 (20%)</span>
+                        </label>
+                        <label class="db mb2">
+                            <span class="db mb1 f6">Master Pitch:</span>
+                            <input type="range" id="pitchControl" min="-24" max="24" step="0.1" value="0" class="w-100">
+                            <span id="pitchValue" class="f6">0 semitones</span>
+                        </label>
+                        <label class="db mb2">
+                            <span class="db mb1 f6">Speed:</span>
+                            <input type="range" id="speedControl" min="0.1" max="5" step="0.1" value="1" class="w-100">
+                            <span id="speedValue" class="f6">1x</span>
                         </label>
                     </div>
                     
@@ -513,7 +572,18 @@
                                         <span class="b">🎲 Random Chop Mode</span>
                                     </label>
                                     <div class="f7 mt1" style="color: #666; line-height: 1.3;">
-                                        Divides sample into 5s chunks, randomly picks from them (ignores sampleOffset mapping)
+                                        Plays 5-second chunks starting from random 1-second intervals throughout the sample (ignores sampleOffset mapping)
+                                    </div>
+                                </div>
+                                
+                                <!-- Full Note Duration Mode -->
+                                <div style="padding: 6px 0; border-top: 1px solid #ddd; margin-bottom: 8px;">
+                                    <label class="db f7 mt2">
+                                        <input type="checkbox" id="fullNoteDuration" class="mr1">
+                                        <span class="b">🎵 Full Note Duration</span>
+                                    </label>
+                                    <div class="f7 mt1" style="color: #666; line-height: 1.3;">
+                                        Sample plays for entire note duration instead of being cut by duration parameter (prevents early cutoffs)
                                     </div>
                                 </div>
                                 
@@ -528,19 +598,28 @@
                     </div>
                     
                     <div class="mb3">
-                        <div class="b mb2 f6">Smart Processing</div>
+                        <div class="b mb2 f6">Processing</div>
                         <label class="db mb2 f6">
                             <input type="checkbox" id="adaptiveNormalization" checked class="mr2">
                             <span>Adaptive Normalization</span>
                         </label>
+                        <div class="f7 ml4 mb2" style="color: #666; line-height: 1.3; margin-top: -6px;">
+                            Automatically balances data ranges for more consistent sound levels
+                        </div>
                         <label class="db mb2 f6">
                             <input type="checkbox" id="rhythmicQuantization" class="mr2">
                             <span>Rhythmic Quantization</span>
                         </label>
+                        <div class="f7 ml4 mb2" style="color: #666; line-height: 1.3; margin-top: -6px;">
+                            Snaps note timings to a grid for tighter rhythms
+                        </div>
                         <label class="db mb2 f6">
                             <input type="checkbox" id="pitchQuantization" checked class="mr2">
                             <span>Pitch Quantization (Scale)</span>
                         </label>
+                        <div class="f7 ml4 mb2" style="color: #666; line-height: 1.3; margin-top: -6px;">
+                            Constrains pitches to selected musical scale
+                        </div>
                     </div>
                     
                     <div class="mb3" id="scaleContainer" style="display: none;">
@@ -555,7 +634,7 @@
                         </select>
                     </div>
                     
-                    <div class="mb3">
+                    <div class="mb3" id="waveformSection">
                         <div class="b mb2 f6">Waveform</div>
                         <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #ddd;">
                             <div class="f7 mb1" style="color: #666;">Classic</div>
@@ -598,7 +677,7 @@
                         </div>
                     </div>
                     
-                    <div class="mb3">
+                    <div class="mb3" id="filterSection">
                         <div class="b mb2 f6">Filter</div>
                         <label class="db mb1 f6">
                             <input type="radio" name="filterType" value="lowpass" checked class="mr1"> Lowpass
@@ -613,25 +692,11 @@
                             <input type="radio" name="filterType" value="notch" class="mr1"> Notch
                         </label>
                     </div>
-                    
-                    <h3 class="f5 mb2 mt3">Playback</h3>
-                    <div class="mb3">
-                        <label class="db mb2">
-                            <span class="db mb1 f6">Master Pitch:</span>
-                            <input type="range" id="pitchControl" min="-24" max="24" step="0.1" value="0" class="w-100">
-                            <span id="pitchValue" class="f6">0 semitones</span>
-                        </label>
-                        <label class="db mb2">
-                            <span class="db mb1 f6">Speed:</span>
-                            <input type="range" id="speedControl" min="0.1" max="5" step="0.1" value="1" class="w-100">
-                            <span id="speedValue" class="f6">1x</span>
-                        </label>
-                    </div>
             </div>
         </div>
         
         <!-- Patch View (Full Width) -->
-        <div style="background: #fffef0; padding: 20px; border: 1px solid #e0e0e0; margin-bottom: 20px;">
+        <div class="bg-light-gray" style="padding: 20px; border: 1px solid #e0e0e0; margin-bottom: 20px;">
             <h3 class="f5 mt0 mb3">Patch View</h3>
             
             <div id="nodeView">
@@ -655,17 +720,11 @@
             </div>
         </div>
         
-        <!-- Audio Visualizer Section - Fixed to Bottom -->
-        <div id="audioOutputSection" style="position: fixed; bottom: 0; left: 0; right: 0; background: #f5f5f5; padding: 20px; border-top: 2px solid #000; z-index: 1000;">
-            <h3 class="f5 mt0 mb3">Audio Output</h3>
-            <div style="width: 100%; overflow: hidden;">
-                <canvas id="audioVisualizer" style="width: 100%; height: 60px;"></canvas>
-            </div>
+        <!-- Dataset Source Link -->
+        <div class="tc mb4">
+            <a id="datasetSourceLink" href="#" target="_blank" class="f7 gray underline" style="display: none;">View dataset source →</a>
         </div>
     </div>
-    
-    <!-- Add padding to bottom of content to prevent overlap with fixed audio output -->
-    <div style="height: 140px;"></div>
     
     
     <!-- Connection Editor Modal -->
@@ -1217,15 +1276,20 @@
             radio.addEventListener('change', (e) => {
                 samplerMode = e.target.value === 'sampler';
                 const uploadSection = document.getElementById('sampleUploadSection');
+                const waveformSection = document.getElementById('waveformSection');
+                const filterSection = document.getElementById('filterSection');
+                
                 uploadSection.style.display = samplerMode ? 'block' : 'none';
+                // Hide waveform and filter controls in sampler mode (not applicable)
+                waveformSection.style.display = samplerMode ? 'none' : 'block';
+                filterSection.style.display = samplerMode ? 'none' : 'block';
                 
                 console.log(`🎛️ Switched to ${samplerMode ? 'SAMPLER' : 'SYNTHESIZER'} mode`);
                 
                 // Rebuild parameter UI and patch visualization with new parameter set
                 if (numericPaths.length > 0) {
                     createMappingControls(numericPaths);
-                    const nodes = createNodes(numericPaths);
-                    drawNodes(document.getElementById('patchViz'));
+                    updatePatchVisualization();
                     console.log('✅ UI rebuilt for new mode');
                 }
             });
@@ -2102,10 +2166,7 @@ Or use audio software like Audacity (free).`;
 
         // Node-based patch visualization
         let nodes = [];
-        let selectedSourceNode = null;
         let currentEditingConnection = null;
-        let zoomBehavior;
-        let currentTransform = d3.zoomIdentity;
         
         function updatePatchVisualization() {
             const svg = d3.select('#patchViz');
@@ -2140,7 +2201,7 @@ Or use audio software like Audacity (free).`;
             const dataNodeCount = nodes.filter(n => n.type === 'data').length;
             const audioNodeCount = nodes.filter(n => n.type === 'audio').length;
             const maxNodes = Math.max(dataNodeCount, audioNodeCount);
-            const dynamicHeight = 30 + (maxNodes * nodeSpacing) + 30; // Top padding + nodes + bottom padding
+            const dynamicHeight = 50 + (maxNodes * nodeSpacing) + 50; // More top/bottom padding to prevent cutoff
             
             svg.attr('height', dynamicHeight);
             console.log(`SVG height set to ${dynamicHeight}px for ${maxNodes} nodes`);
@@ -2211,9 +2272,9 @@ Or use audio software like Audacity (free).`;
             // Responsive node sizing - DATA NODES ARE WIDER
             const svg = d3.select('#patchViz');
             const svgWidth = parseInt(svg.style('width')) || 600;
-            const audioNodeWidth = svgWidth < 600 ? 90 : 110; // Audio params stay compact
-            const dataNodeWidth = svgWidth < 600 ? 120 : 160; // Data fields are wider
-            const nodeHeight = svgWidth < 600 ? 32 : 36;
+            const audioNodeWidth = svgWidth < 600 ? 110 : 140; // Audio params stay compact
+            const dataNodeWidth = svgWidth < 600 ? 150 : 200; // Data fields are wider
+            const nodeHeight = svgWidth < 600 ? 36 : 40; // Increased for better legibility
             
             // Helper function to truncate text
             const truncateText = (text, maxLength) => {
@@ -2247,7 +2308,7 @@ Or use audio software like Audacity (free).`;
                 .attr('y', 0)
                 .text(d => {
                     // Truncate data field labels to fit in wider boxes
-                    const maxChars = d.type === 'data' ? 22 : 15;
+                    const maxChars = d.type === 'data' ? 28 : 20;
                     return truncateText(d.label, maxChars);
                 });
             
@@ -2268,46 +2329,146 @@ Or use audio software like Audacity (free).`;
                     return d.type === 'data' ? width/2 : -width/2;
                 })
                 .attr('cy', 0)
-                .attr('r', 4)
-                .on('click', function(event, d) {
-                    event.stopPropagation();
-                    handlePortClick(d);
-                });
-        }
-        
-        
-        function handlePortClick(node) {
-            if (node.type === 'data') {
-                // Select as source
-                if (selectedSourceNode) {
-                    // Deselect previous
-                    d3.selectAll('.node-rect').classed('selected', false);
-                }
-                selectedSourceNode = node;
-                d3.select(`[data-node-id="${node.id}"]`).classed('selected', true);
-            } else if (node.type === 'audio' && selectedSourceNode) {
-                // Create connection
-                const audioParam = node.audioParam;
-                const dataPath = selectedSourceNode.dataPath;
+                .attr('r', 4);
+            
+            // Add progress bars for audio parameters only
+            nodeGroups.filter(d => d.type === 'audio').each(function(d) {
+                const nodeGroup = d3.select(this);
+                const width = audioNodeWidth;
+                const barHeight = 4;
+                const barY = nodeHeight/2 - barHeight;
                 
-                // Update mappings
-                if (mappings[audioParam]) {
-                    mappings[audioParam].path = dataPath;
-                    
-                    // Update form if in form view
-                    const selectEl = document.getElementById(`map_${audioParam}`);
-                    if (selectEl) {
-                        selectEl.value = dataPath;
+                // Background bar (light gray)
+                nodeGroup.append('rect')
+                    .attr('class', 'param-bar-bg')
+                    .attr('x', -width/2)
+                    .attr('y', barY)
+                    .attr('width', width)
+                    .attr('height', barHeight)
+                    .attr('rx', 0)
+                    .attr('fill', '#e0e0e0');
+                
+                // Progress bar (filled portion)
+                nodeGroup.append('rect')
+                    .attr('class', 'param-bar-fill')
+                    .attr('id', `bar_${d.id}`)
+                    .attr('x', -width/2)
+                    .attr('y', barY)
+                    .attr('width', 0)
+                    .attr('height', barHeight)
+                    .attr('rx', 0)
+                    .attr('fill', '#007bff');
+            });
+            
+            // Apply unmapped dimming and hover functionality
+            nodeGroups.each(function(d) {
+                const nodeGroup = d3.select(this);
+                
+                // Check if node is connected
+                let isConnected = false;
+                let connectedNodeIds = []; // Store IDs of connected nodes
+                
+                if (d.type === 'data') {
+                    // Check if any audio param uses this data path
+                    Object.entries(mappings).forEach(([param, mapping]) => {
+                        if (mapping && mapping.path === d.dataPath) {
+                            connectedNodeIds.push(`audio_${param}`);
+                            isConnected = true;
+                        }
+                    });
+                } else if (d.type === 'audio') {
+                    // Check if this audio param has a mapping
+                    const mapping = mappings[d.audioParam];
+                    if (mapping && mapping.path) {
+                        // Find the data node with this path
+                        const dataNode = nodes.find(n => n.type === 'data' && n.dataPath === mapping.path);
+                        if (dataNode) {
+                            connectedNodeIds.push(dataNode.id);
+                            isConnected = true;
+                        }
                     }
                 }
                 
-                // Deselect
-                d3.selectAll('.node-rect').classed('selected', false);
-                selectedSourceNode = null;
+                // Apply unmapped class for permanent dimming
+                if (!isConnected) {
+                    nodeGroup.classed('unmapped', true);
+                }
                 
-                // Redraw
-                updateConnections(d3.select('.connections'));
-            }
+                // Add hover handlers to temporarily dim non-connected nodes and connections
+                nodeGroup
+                    .on('mouseenter', function() {
+                        // Highlight this node
+                        d3.select(this).classed('hover-highlight', true);
+                        
+                        // Dim all nodes except this one and its connections, highlight connected ones
+                        d3.selectAll('.node').each(function(otherNode) {
+                            const otherId = otherNode.id;
+                            const isThisNode = otherId === d.id;
+                            const isConnectedToThis = connectedNodeIds.includes(otherId);
+                            
+                            if (!isThisNode && !isConnectedToThis) {
+                                d3.select(this).classed('hover-dimmed', true);
+                            } else if (isConnectedToThis) {
+                                // Highlight connected nodes too
+                                d3.select(this).classed('hover-highlight', true);
+                            }
+                        });
+                        
+                        // Handle connection line styling based on playback state
+                        const relatedParams = [];
+                        if (d.type === 'data') {
+                            // This is a data node - find which audio params it connects to
+                            Object.entries(mappings).forEach(([param, mapping]) => {
+                                if (mapping && mapping.path === d.dataPath) {
+                                    relatedParams.push(param);
+                                }
+                            });
+                        } else if (d.type === 'audio') {
+                            // This is an audio node - it connects to one data field
+                            const mapping = mappings[d.audioParam];
+                            if (mapping && mapping.path) {
+                                relatedParams.push(d.audioParam);
+                            }
+                        }
+                        
+                        // Style connections based on whether we're playing
+                        d3.selectAll('[data-target]').each(function() {
+                            const target = d3.select(this).attr('data-target');
+                            const isRelated = relatedParams.includes(target);
+                            
+                            if (!isPlaying) {
+                                // NOT PLAYING: Show hover-active style (yellow/black) for connected lines
+                                if (isRelated) {
+                                    d3.select(this).classed('hover-active', true);
+                                } else {
+                                    d3.select(this).classed('hover-dimmed', true);
+                                }
+                            } else {
+                                // PLAYING: Make unconnected lines inactive (remove active class) and dim
+                                if (!isRelated) {
+                                    d3.select(this).classed('active', false).classed('hover-dimmed', true);
+                                }
+                            }
+                        });
+                    })
+                    .on('mouseleave', function() {
+                        // Remove all hover effects
+                        d3.selectAll('.node').classed('hover-dimmed', false);
+                        d3.selectAll('.node').classed('hover-highlight', false);
+                        d3.selectAll('[data-target]').classed('hover-dimmed', false);
+                        d3.selectAll('[data-target]').classed('hover-active', false);
+                        
+                        // When playing, restore active class to all playing connections
+                        if (isPlaying) {
+                            // Re-add active to connections that should be active
+                            Object.entries(mappings).forEach(([param, mapping]) => {
+                                if (mapping && mapping.path) {
+                                    d3.selectAll(`[data-target="${param}"]`).classed('active', true);
+                                }
+                            });
+                        }
+                    });
+            });
         }
         
         function updateConnections(container) {
@@ -2320,8 +2481,8 @@ Or use audio software like Audacity (free).`;
             // Get SVG width for responsive node sizing
             const svg = d3.select('#patchViz');
             const svgWidth = parseInt(svg.style('width')) || 600;
-            const audioNodeWidth = svgWidth < 600 ? 90 : 110;
-            const dataNodeWidth = svgWidth < 600 ? 120 : 160;
+            const audioNodeWidth = svgWidth < 600 ? 110 : 140;
+            const dataNodeWidth = svgWidth < 600 ? 150 : 200;
             let connectionCount = 0;
             
             // Draw each active mapping
@@ -2337,14 +2498,29 @@ Or use audio software like Audacity (free).`;
                         const targetX = targetNode.x - audioNodeWidth/2;
                         const targetY = targetNode.y;
                         const midX = (sourceX + targetX) / 2;
+                        const pathData = `M ${sourceX},${sourceY} C ${midX},${sourceY} ${midX},${targetY} ${targetX},${targetY}`;
                         
+                        // Draw yellow background path (for alternating effect)
+                        const yellowPath = container.append('path')
+                            .attr('class', 'connection-path-yellow')
+                            .attr('d', pathData)
+                            .attr('data-target', audioParam);
+                        
+                        // Draw black foreground path (offset for alternating effect)
                         const path = container.append('path')
                             .attr('class', 'connection-path')
-                            .attr('d', `M ${sourceX},${sourceY} C ${midX},${sourceY} ${midX},${targetY} ${targetX},${targetY}`)
+                            .attr('d', pathData)
+                            .attr('data-target', audioParam)
                             .datum({ source: mapping.path, target: audioParam })
                             .on('click', function(event) {
                                 event.stopPropagation();
                                 openConnectionEditor(audioParam, mapping);
+                            })
+                            .on('mouseenter', function() {
+                                yellowPath.classed('hover', true);
+                            })
+                            .on('mouseleave', function() {
+                                yellowPath.classed('hover', false);
                             });
                         
                         connectionCount++;
@@ -2430,6 +2606,7 @@ Or use audio software like Audacity (free).`;
             // Clear previous highlights
             d3.selectAll('.node-rect').classed('playing', false);
             d3.selectAll('.connection-path').classed('active', false);
+            d3.selectAll('.connection-path-yellow').classed('active', false);
             
             // Debug: log current item structure once
             if (!window._loggedItemStructure) {
@@ -2503,16 +2680,40 @@ Or use audio software like Audacity (free).`;
                         valueEl.textContent = displayValue;  // Direct DOM manipulation
                     }
                     
+                    // Update progress bar
+                    const barEl = d3.select(`#bar_${node.id}`);
+                    if (!barEl.empty() && typeof value === 'number') {
+                        const mapping = mappings[param];
+                        if (mapping) {
+                            const min = mapping.min;
+                            const max = mapping.max;
+                            // Calculate node width based on SVG width
+                            const svg = d3.select('#patchViz');
+                            const svgWidth = parseInt(svg.style('width')) || 600;
+                            const nodeWidth = svgWidth < 600 ? 110 : 140;
+                            const barMaxWidth = nodeWidth;
+                            
+                            if (param === 'pan') {
+                                // Pan is special: center at 0, goes left (-1) to right (+1)
+                                // Normalize to 0-1 where 0.5 is center
+                                const normalizedPan = (value + 1) / 2; // Convert -1..1 to 0..1
+                                const fillWidth = normalizedPan * barMaxWidth;
+                                barEl.attr('width', fillWidth);
+                            } else {
+                                // Normal parameters: left to right 0-100%
+                                const normalized = (value - min) / (max - min);
+                                const fillWidth = Math.max(0, Math.min(1, normalized)) * barMaxWidth;
+                                barEl.attr('width', fillWidth);
+                            }
+                        }
+                    }
+                    
                     // Highlight if mapped
                     if (mappings[param]?.path) {
                         d3.select(`[data-node-id="${node.id}"]`).classed('playing', true);
                         
-                        // Highlight connection
-                        const connPath = d3.selectAll('.connection-path')
-                            .filter(function() {
-                                return this.__data__?.target === param;
-                            });
-                        connPath.classed('active', true);
+                        // Highlight connection (both yellow and black paths)
+                        d3.selectAll(`[data-target="${param}"]`).classed('active', true);
                     }
                 }
             });
@@ -2523,6 +2724,8 @@ Or use audio software like Audacity (free).`;
             d3.selectAll('.node-value').text('--');
             d3.selectAll('.node-rect').classed('playing', false);
             d3.selectAll('.connection-path').classed('active', false);
+            d3.selectAll('.connection-path-yellow').classed('active', false);
+            d3.selectAll('.param-bar-fill').attr('width', 0);
         }
 
         // Create impulse response for reverb
@@ -2566,12 +2769,12 @@ Or use audio software like Audacity (free).`;
             
             reverbNode.connect(reverbWetGain);
             
-            // Connect effects chain to destination
-            delayWetGain.connect(reverbNode);
-            delayWetGain.connect(reverbDryGain);
-            delayDryGain.connect(reverbNode);
-            delayDryGain.connect(audioContext.destination);
-            reverbWetGain.connect(audioContext.destination);
+            // Connect effects chain to destination (Reverb → Delay)
+            reverbWetGain.connect(delayNode);
+            reverbWetGain.connect(delayDryGain);
+            reverbDryGain.connect(delayNode);
+            reverbDryGain.connect(audioContext.destination);
+            delayWetGain.connect(audioContext.destination);
         }
         
         // Audio visualizer
@@ -2596,11 +2799,14 @@ Or use audio software like Audacity (free).`;
             reverbWetGain.connect(analyser);
             analyser.connect(audioContext.destination);
             
-            // Set canvas size - make it taller for more visual impact
-            visualizerCanvas.width = visualizerCanvas.offsetWidth;
-            visualizerCanvas.height = 60; // Increased from 40 for more amplitude
+            // Set canvas resolution to match display size for crisp rendering
+            const dpr = window.devicePixelRatio || 1;
+            const rect = visualizerCanvas.getBoundingClientRect();
+            visualizerCanvas.width = rect.width * dpr;
+            visualizerCanvas.height = rect.height * dpr;
+            visualizerCtx.scale(dpr, dpr);
             
-            console.log('✅ Canvas:', visualizerCanvas.width, 'x', visualizerCanvas.height, 'px');
+            console.log('✅ Canvas:', rect.width, 'x', rect.height, 'px at', dpr + 'x DPR');
         }
 
         function drawVisualizer() {
@@ -2616,9 +2822,14 @@ Or use audio software like Audacity (free).`;
             
             analyser.getByteFrequencyData(dataArray);
             
-            // Clear with white background
-            visualizerCtx.fillStyle = '#fff';
-            visualizerCtx.fillRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
+            // Get logical dimensions (after DPR scaling)
+            const rect = visualizerCanvas.getBoundingClientRect();
+            const width = rect.width;
+            const height = rect.height;
+            
+            // Clear with light gray background
+            visualizerCtx.fillStyle = '#eee';
+            visualizerCtx.fillRect(0, 0, width, height);
             
             // ZOOM IN: Only show first 60% of spectrum (where musical content is)
             const relevantBins = Math.floor(dataArray.length * 0.6);
@@ -2630,16 +2841,16 @@ Or use audio software like Audacity (free).`;
             visualizerCtx.lineJoin = 'round';
             visualizerCtx.beginPath();
             
-            const sliceWidth = visualizerCanvas.width / relevantBins;
+            const sliceWidth = width / relevantBins;
             let x = 0;
             
-            // AMPLIFICATION: Multiply by 1.5x for more dramatic visual movement
-            const amplification = 1.5;
+            // AMPLIFICATION: Multiply by 2x for more dramatic visual movement
+            const amplification = 2.0;
             
             for (let i = 0; i < relevantBins; i++) {
                 let v = dataArray[i] / 255.0;
                 v = Math.min(1, v * amplification); // Amplify but clamp to 1.0
-                const y = visualizerCanvas.height - (v * visualizerCanvas.height);
+                const y = height - (v * height);
                 
                 if (i === 0) {
                     visualizerCtx.moveTo(x, y);
@@ -2681,10 +2892,13 @@ Or use audio software like Audacity (free).`;
                 setupVisualizer();
             } else {
                 // Reconnect visualizer if canvas was resized
-                if (visualizerCanvas.width !== visualizerCanvas.offsetWidth) {
-                    visualizerCanvas.width = visualizerCanvas.offsetWidth;
-                    visualizerCanvas.height = 60;
-                    console.log('Canvas resized to:', visualizerCanvas.width, 'x', visualizerCanvas.height);
+                const rect = visualizerCanvas.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+                if (visualizerCanvas.width !== rect.width * dpr) {
+                    visualizerCanvas.width = rect.width * dpr;
+                    visualizerCanvas.height = rect.height * dpr;
+                    visualizerCtx.scale(dpr, dpr);
+                    console.log('Canvas resized to:', rect.width, 'x', rect.height, 'at', dpr + 'x DPR');
                 }
             }
             
@@ -2952,14 +3166,20 @@ Or use audio software like Audacity (free).`;
                         const randomChopMode = document.getElementById('randomChopMode')?.checked || false;
                         
                         if (randomChopMode) {
-                            // Random Chop Mode: Divide sample into 5-second chunks and pick randomly
-                            const chunkSize = 5.0; // 5 seconds
-                            const numChunks = Math.floor(sampleBuffer.duration / chunkSize);
+                            // Random Chop Mode: Pick random start point at 1-second increments, play 5 seconds
+                            const chunkDuration = 5.0; // Play 5 seconds from selected point
+                            const startIncrement = 1.0; // Start points at 1-second intervals
                             
-                            if (numChunks > 0) {
-                                // Pick a random chunk
-                                const randomChunk = Math.floor(Math.random() * numChunks);
-                                sampleOffsetSeconds = randomChunk * chunkSize;
+                            // Calculate max start time (leave room for the 5-second duration)
+                            const maxStartTime = Math.max(0, sampleBuffer.duration - chunkDuration);
+                            
+                            if (maxStartTime > 0) {
+                                // Calculate number of possible start positions
+                                const numPositions = Math.floor(maxStartTime / startIncrement) + 1;
+                                
+                                // Pick a random position
+                                const randomPosition = Math.floor(Math.random() * numPositions);
+                                sampleOffsetSeconds = randomPosition * startIncrement;
                                 sampleOffsetNorm = sampleOffsetSeconds / sampleBuffer.duration;
                             } else {
                                 // Sample shorter than 5 seconds - use beginning
@@ -2973,7 +3193,20 @@ Or use audio software like Audacity (free).`;
                         }
                         
                         // Crop duration: how long to play from offset point (in seconds)
-                        const cropDurationSeconds = duration / 1000;
+                        const fullNoteDuration = document.getElementById('fullNoteDuration')?.checked || false;
+                        let cropDurationSeconds;
+                        
+                        if (randomChopMode) {
+                            // Random chop mode: always 5 seconds
+                            cropDurationSeconds = 5.0;
+                        } else if (fullNoteDuration) {
+                            // Full note duration: play until next note starts (use noteSpacing)
+                            const noteSpacing = audioParams.noteSpacing || 300; // Default 300ms
+                            cropDurationSeconds = noteSpacing / 1000;
+                        } else {
+                            // Normal mode: use duration parameter (can be shorter than noteSpacing)
+                            cropDurationSeconds = duration / 1000;
+                        }
                         
                         // Store for starting/stopping later
                         source._offsetSeconds = sampleOffsetSeconds;
@@ -3057,11 +3290,11 @@ Or use audio software like Audacity (free).`;
                         source.connect(filter);
                     }
                     
-                    // Connect rest of chain
+                    // Connect rest of chain (Filter → Pan → Envelope → Reverb → Delay)
                     filter.connect(panner);
                     panner.connect(envelope);
-                    envelope.connect(delayNode);
-                    envelope.connect(delayDryGain);
+                    envelope.connect(reverbNode);
+                    envelope.connect(reverbDryGain);
                     
                     // Start and stop source
                     if (samplerMode && source._offsetSeconds !== undefined) {
@@ -3149,6 +3382,39 @@ Or use audio software like Audacity (free).`;
                 updatePatchVisualization();
             }, 250); // Debounce resize events
         });
+
+        // Initialize page with clean defaults (runs immediately since script is at end of body)
+        function initializeDefaults() {
+            // Ensure synthesizer mode is selected
+            document.getElementById('synthesizerMode').checked = true;
+            samplerMode = false;
+            
+            // Clear sample state
+            sampleBuffer = null;
+            sampleFileName = '';
+            sampleDuration = 0;
+            
+            // Hide sample upload section
+            document.getElementById('sampleUploadSection').style.display = 'none';
+            document.getElementById('sampleInfo').style.display = 'none';
+            
+            // Show waveform and filter sections (synthesizer settings)
+            document.getElementById('waveformSection').style.display = 'block';
+            document.getElementById('filterSection').style.display = 'block';
+            
+            // Clear file input
+            const fileInput = document.getElementById('sampleFileInput');
+            if (fileInput) fileInput.value = '';
+            
+            console.log('✅ Initialized to synthesizer mode with clean defaults');
+        }
+        
+        // Run immediately if DOM is ready, otherwise wait for DOMContentLoaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeDefaults);
+        } else {
+            initializeDefaults();
+        }
 
         console.log('🎵 data 2 sound loaded and ready');
     </script>
