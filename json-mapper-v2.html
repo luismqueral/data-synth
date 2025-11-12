@@ -2971,16 +2971,20 @@ Or use audio software like Audacity (free).`;
                     // Configure panner
                     panner.pan.value = Math.max(-1, Math.min(1, pan));
                     
-                    // Configure envelope
+                    // Configure envelope with anti-click protection
                     const now = audioContext.currentTime;
-                    const attackTime = attack / 1000;
-                    const releaseTime = release / 1000;
+                    
+                    // For samples, ensure minimum attack/release times to prevent clicks
+                    const minSmoothTime = samplerMode ? 0.003 : 0; // 3ms minimum for samples
+                    const attackTime = Math.max(minSmoothTime, attack / 1000);
+                    const releaseTime = Math.max(minSmoothTime, release / 1000);
                     const durationTime = duration / 1000;
                     
-                    envelope.gain.setValueAtTime(0, now);
-                    envelope.gain.linearRampToValueAtTime(volume, now + attackTime);
+                    // Use exponential ramps for smoother, more natural-sounding envelopes
+                    envelope.gain.setValueAtTime(0.001, now); // Start near zero (exponential can't start at 0)
+                    envelope.gain.exponentialRampToValueAtTime(volume, now + attackTime);
                     envelope.gain.setValueAtTime(volume, now + Math.max(attackTime, durationTime - releaseTime));
-                    envelope.gain.linearRampToValueAtTime(0, now + durationTime);
+                    envelope.gain.exponentialRampToValueAtTime(0.001, now + durationTime);
                     
                     // Handle additive synthesis (create harmonics) - synth mode only
                     if (!samplerMode && source._isAdditive) {
