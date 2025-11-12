@@ -490,7 +490,8 @@
                         <div id="sampleUploadSection" style="display: none; margin-top: 12px; padding: 12px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px;">
                             <div class="mb2">
                                 <label class="db mb1 f7 b">Load Audio Sample:</label>
-                                <input type="file" id="sampleFileInput" accept="audio/*" class="f6 w-100" style="padding: 4px;">
+                                <input type="file" id="sampleFileInput" accept="audio/wav,audio/mpeg,audio/mp3,audio/ogg,audio/webm,audio/x-m4a,audio/mp4,.wav,.mp3,.ogg,.webm,.m4a" class="f6 w-100" style="padding: 4px;">
+                                <div class="f7 mt1" style="color: #666;">Best: WAV, MP3, OGG | M4A may need conversion</div>
                             </div>
                             
                             <!-- Sample Info Display -->
@@ -509,7 +510,7 @@
                                 </button>
                             </div>
                             
-                            <div id="sampleLoadError" style="display: none; margin-top: 8px; padding: 8px; background: #ffe6e6; border: 1px solid #cc0000; border-radius: 3px; color: #cc0000;" class="f7">
+                            <div id="sampleLoadError" style="display: none; margin-top: 8px; padding: 8px; background: #ffe6e6; border: 1px solid #cc0000; border-radius: 3px; color: #cc0000; white-space: pre-line;" class="f7">
                             </div>
                         </div>
                     </div>
@@ -1223,10 +1224,19 @@
             const file = e.target.files[0];
             if (!file) return;
             
-            console.log(`📂 Loading sample: ${file.name}`);
+            console.log(`📂 Loading sample: ${file.name} (${file.type || 'unknown type'})`);
             
             // Hide error, show loading state
             document.getElementById('sampleLoadError').style.display = 'none';
+            document.getElementById('sampleInfo').style.display = 'none';
+            
+            // Check file extension for M4A warning
+            const fileExt = file.name.split('.').pop().toLowerCase();
+            const isM4A = fileExt === 'm4a' || file.type === 'audio/x-m4a' || file.type === 'audio/mp4';
+            
+            if (isM4A) {
+                console.warn('⚠️ M4A format detected - browser support varies. If loading fails, please convert to WAV, MP3, or OGG.');
+            }
             
             try {
                 // Read file as ArrayBuffer
@@ -1253,8 +1263,25 @@
                 
             } catch (error) {
                 console.error('❌ Error loading sample:', error);
-                document.getElementById('sampleLoadError').textContent = 
-                    `Error loading sample: ${error.message}. Please try a different audio file (WAV, MP3, OGG).`;
+                
+                // Provide specific error message for M4A files
+                let errorMsg = `Error loading sample: ${error.message}. `;
+                
+                if (isM4A) {
+                    errorMsg = `⚠️ M4A format not supported by your browser's audio decoder. 
+
+Please convert your audio file to one of these formats:
+• WAV (best compatibility, lossless)
+• MP3 (widely supported, smaller files)
+• OGG (good compression, open format)
+
+Free online converters: CloudConvert.com, FreeConvert.com
+Or use audio software like Audacity (free).`;
+                } else {
+                    errorMsg += `Please try WAV, MP3, or OGG format.`;
+                }
+                
+                document.getElementById('sampleLoadError').textContent = errorMsg;
                 document.getElementById('sampleLoadError').style.display = 'block';
                 sampleBuffer = null;
             }
