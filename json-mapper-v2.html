@@ -2671,8 +2671,13 @@ Or use audio software like Audacity (free).`;
             document.getElementById('playText').textContent = 'Stop';
             visualizerCanvas.classList.add('active');
             
-            if (!audioContext) {
+            // Initialize effects if not already set up (may have audioContext from sample loading)
+            if (!delayNode) {
                 initEffects();
+            }
+            
+            // Setup or reconnect visualizer
+            if (!analyser) {
                 setupVisualizer();
             } else {
                 // Reconnect visualizer if canvas was resized
