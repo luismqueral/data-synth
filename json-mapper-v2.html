@@ -502,10 +502,22 @@
                                 <div class="f7 mb1">
                                     <span class="b">⏱ Duration:</span> <span id="sampleDuration">--</span>
                                 </div>
-                                <div class="f7">
+                                <div class="f7 mb2">
                                     <span class="b">📊 Format:</span> <span id="sampleFormat">--</span>
                                 </div>
-                                <button id="clearSampleBtn" class="mt2 pa1 f7 ba b--black bg-white pointer hover-bg-black hover-white" style="width: 100%;">
+                                
+                                <!-- Random Chop Mode -->
+                                <div style="padding: 6px 0; border-top: 1px solid #ddd; margin-bottom: 8px;">
+                                    <label class="db f7 mt2">
+                                        <input type="checkbox" id="randomChopMode" class="mr1">
+                                        <span class="b">🎲 Random Chop Mode</span>
+                                    </label>
+                                    <div class="f7 mt1" style="color: #666; line-height: 1.3;">
+                                        Divides sample into 5s chunks, randomly picks from them (ignores sampleOffset mapping)
+                                    </div>
+                                </div>
+                                
+                                <button id="clearSampleBtn" class="mt1 pa1 f7 ba b--black bg-white pointer hover-bg-black hover-white" style="width: 100%;">
                                     Clear Sample
                                 </button>
                             </div>
@@ -2927,9 +2939,33 @@ Or use audio software like Audacity (free).`;
                         const transposeSemitones = Math.pow(2, pitchTranspose / 12);
                         source.playbackRate.value = pitchRate * transposeSemitones;
                         
-                        // Get sample offset parameter (0-1, normalized position in sample)
-                        const sampleOffsetNorm = audioParams.sampleOffset !== null && audioParams.sampleOffset !== undefined ? audioParams.sampleOffset : 0;
-                        const sampleOffsetSeconds = sampleOffsetNorm * sampleBuffer.duration;
+                        // Get sample offset parameter
+                        let sampleOffsetSeconds;
+                        let sampleOffsetNorm;
+                        
+                        // Check if Random Chop Mode is enabled
+                        const randomChopMode = document.getElementById('randomChopMode')?.checked || false;
+                        
+                        if (randomChopMode) {
+                            // Random Chop Mode: Divide sample into 5-second chunks and pick randomly
+                            const chunkSize = 5.0; // 5 seconds
+                            const numChunks = Math.floor(sampleBuffer.duration / chunkSize);
+                            
+                            if (numChunks > 0) {
+                                // Pick a random chunk
+                                const randomChunk = Math.floor(Math.random() * numChunks);
+                                sampleOffsetSeconds = randomChunk * chunkSize;
+                                sampleOffsetNorm = sampleOffsetSeconds / sampleBuffer.duration;
+                            } else {
+                                // Sample shorter than 5 seconds - use beginning
+                                sampleOffsetSeconds = 0;
+                                sampleOffsetNorm = 0;
+                            }
+                        } else {
+                            // Normal mode: use data-driven sampleOffset parameter
+                            sampleOffsetNorm = audioParams.sampleOffset !== null && audioParams.sampleOffset !== undefined ? audioParams.sampleOffset : 0;
+                            sampleOffsetSeconds = sampleOffsetNorm * sampleBuffer.duration;
+                        }
                         
                         // Crop duration: how long to play from offset point (in seconds)
                         const cropDurationSeconds = duration / 1000;
@@ -2940,7 +2976,8 @@ Or use audio software like Audacity (free).`;
                         
                         // Log first note for debugging
                         if (i === 0) {
-                            console.log(`🎵 Sampler: rate=${source.playbackRate.value.toFixed(2)}, offset=${sampleOffsetSeconds.toFixed(2)}s (${(sampleOffsetNorm*100).toFixed(0)}%), crop=${cropDurationSeconds.toFixed(2)}s`);
+                            const modeLabel = randomChopMode ? 'Random Chop' : 'Data-driven';
+                            console.log(`🎵 Sampler (${modeLabel}): rate=${source.playbackRate.value.toFixed(2)}, offset=${sampleOffsetSeconds.toFixed(2)}s (${(sampleOffsetNorm*100).toFixed(0)}%), crop=${cropDurationSeconds.toFixed(2)}s`);
                         }
                         
                     } else {
