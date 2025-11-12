@@ -2945,6 +2945,8 @@ Or use audio software like Audacity (free).`;
                         
                     } else {
                         // SYNTHESIZER MODE: Create oscillator
+                        const frequency = audioParams.frequency || 440;
+                        
                         // Apply master pitch transpose
                         const pitchTranspose = parseFloat(document.getElementById('pitchControl')?.value || 0);
                         let transposedFrequency = frequency * Math.pow(2, pitchTranspose / 12);
