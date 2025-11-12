@@ -475,6 +475,45 @@
                         </label>
                     </div>
                     
+                    <div class="mb3" style="padding-bottom: 12px; border-bottom: 2px solid #ddd;">
+                        <div class="b mb2 f6">Sound Source</div>
+                        <label class="db mb2 f6">
+                            <input type="radio" name="soundSource" value="synthesizer" checked class="mr2" id="synthesizerMode">
+                            <span>🎹 Synthesizer (Oscillators)</span>
+                        </label>
+                        <label class="db mb2 f6">
+                            <input type="radio" name="soundSource" value="sampler" class="mr2" id="samplerMode">
+                            <span>🎵 Sampler (Audio Files)</span>
+                        </label>
+                        
+                        <!-- Sample Upload Section (hidden by default) -->
+                        <div id="sampleUploadSection" style="display: none; margin-top: 12px; padding: 12px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px;">
+                            <div class="mb2">
+                                <label class="db mb1 f7 b">Load Audio Sample:</label>
+                                <input type="file" id="sampleFileInput" accept="audio/*" class="f6 w-100" style="padding: 4px;">
+                            </div>
+                            
+                            <!-- Sample Info Display -->
+                            <div id="sampleInfo" style="display: none; margin-top: 8px; padding: 8px; background: white; border: 1px solid #ccc; border-radius: 3px;">
+                                <div class="f7 mb1">
+                                    <span class="b">📄 File:</span> <span id="sampleFileName">--</span>
+                                </div>
+                                <div class="f7 mb1">
+                                    <span class="b">⏱ Duration:</span> <span id="sampleDuration">--</span>
+                                </div>
+                                <div class="f7">
+                                    <span class="b">📊 Format:</span> <span id="sampleFormat">--</span>
+                                </div>
+                                <button id="clearSampleBtn" class="mt2 pa1 f7 ba b--black bg-white pointer hover-bg-black hover-white" style="width: 100%;">
+                                    Clear Sample
+                                </button>
+                            </div>
+                            
+                            <div id="sampleLoadError" style="display: none; margin-top: 8px; padding: 8px; background: #ffe6e6; border: 1px solid #cc0000; border-radius: 3px; color: #cc0000;" class="f7">
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="mb3">
                         <div class="b mb2 f6">Smart Processing</div>
                         <label class="db mb2 f6">
@@ -1147,11 +1186,88 @@
         let delayNode, delayFeedbackGain, delayWetGain, delayDryGain;  // Audio effect nodes
         let reverbNode, reverbWetGain, reverbDryGain;                   // Reverb nodes
         let previousDelayTime = null;  // Track for analog pitch shifting
+        
+        // Sampler mode variables
+        let samplerMode = false;       // false = synthesizer, true = sampler
+        let sampleBuffer = null;       // Decoded audio buffer
+        let sampleFileName = '';       // Name of loaded sample file
+        let sampleDuration = 0;        // Duration in seconds
 
         // Master Volume control
         document.getElementById('masterVolume').addEventListener('input', (e) => {
             const vol = parseFloat(e.target.value);
             document.getElementById('masterVolumeValue').textContent = `${vol.toFixed(2)} (${(vol * 100).toFixed(0)}%)`;
+        });
+        
+        // Sound Source mode toggle (Synthesizer vs Sampler)
+        document.querySelectorAll('input[name="soundSource"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                samplerMode = e.target.value === 'sampler';
+                const uploadSection = document.getElementById('sampleUploadSection');
+                uploadSection.style.display = samplerMode ? 'block' : 'none';
+                
+                console.log(`🎛️ Switched to ${samplerMode ? 'SAMPLER' : 'SYNTHESIZER'} mode`);
+                
+                // Rebuild parameter UI and patch visualization with new parameter set
+                if (numericPaths.length > 0) {
+                    createMappingControls(numericPaths);
+                    const nodes = createNodes(numericPaths);
+                    drawNodes(document.getElementById('patchViz'));
+                    console.log('✅ UI rebuilt for new mode');
+                }
+            });
+        });
+        
+        // Sample file upload handler
+        document.getElementById('sampleFileInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            console.log(`📂 Loading sample: ${file.name}`);
+            
+            // Hide error, show loading state
+            document.getElementById('sampleLoadError').style.display = 'none';
+            
+            try {
+                // Read file as ArrayBuffer
+                const arrayBuffer = await file.arrayBuffer();
+                
+                // Initialize audio context if needed
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                // Decode audio data
+                sampleBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                sampleFileName = file.name;
+                sampleDuration = sampleBuffer.duration;
+                
+                // Display sample info
+                document.getElementById('sampleFileName').textContent = file.name;
+                document.getElementById('sampleDuration').textContent = `${sampleDuration.toFixed(2)}s`;
+                document.getElementById('sampleFormat').textContent = 
+                    `${sampleBuffer.numberOfChannels} ch, ${(sampleBuffer.sampleRate / 1000).toFixed(1)} kHz`;
+                document.getElementById('sampleInfo').style.display = 'block';
+                
+                console.log(`✅ Sample loaded: ${sampleDuration.toFixed(2)}s, ${sampleBuffer.numberOfChannels}ch, ${sampleBuffer.sampleRate}Hz`);
+                
+            } catch (error) {
+                console.error('❌ Error loading sample:', error);
+                document.getElementById('sampleLoadError').textContent = 
+                    `Error loading sample: ${error.message}. Please try a different audio file (WAV, MP3, OGG).`;
+                document.getElementById('sampleLoadError').style.display = 'block';
+                sampleBuffer = null;
+            }
+        });
+        
+        // Clear sample button
+        document.getElementById('clearSampleBtn').addEventListener('click', () => {
+            sampleBuffer = null;
+            sampleFileName = '';
+            sampleDuration = 0;
+            document.getElementById('sampleFileInput').value = '';
+            document.getElementById('sampleInfo').style.display = 'none';
+            console.log('🗑️ Sample cleared');
         });
         
         // Speed control
@@ -1472,26 +1588,52 @@
             return quantizedFrequency;
         }
 
+        // Get audio parameters based on current mode (synthesizer vs sampler)
+        function getAudioParams() {
+            if (samplerMode) {
+                // Sampler mode: pitch, sampleOffset, duration, effects
+                return [
+                    { id: 'pitch', label: 'Pitch (Playback Rate)', min: 0.25, max: 4, default: 1 },
+                    { id: 'sampleOffset', label: 'Sample Start (0-1)', min: 0, max: 1, default: 0 },
+                    { id: 'duration', label: 'Duration (ms)', min: 50, max: 2000, default: 200 },
+                    { id: 'noteSpacing', label: 'Note Spacing (ms) - Rhythm', min: 50, max: 2000, default: 300 },
+                    { id: 'pan', label: 'Pan', min: -1, max: 1, default: 0 },
+                    { id: 'filterFreq', label: 'Filter Freq (Hz)', min: 200, max: 8000, default: 2000 },
+                    { id: 'filterQ', label: 'Filter Q', min: 0.1, max: 20, default: 1 },
+                    { id: 'delayTime', label: 'Delay Time (ms)', min: 50, max: 1000, default: 300 },
+                    { id: 'delayFeedback', label: 'Delay Feedback', min: 0.1, max: 0.85, default: 0.5 },
+                    { id: 'delayMix', label: 'Delay Mix', min: 0.1, max: 0.9, default: 0.5 },
+                    { id: 'reverbDecay', label: 'Reverb Decay (s)', min: 0.1, max: 10, default: 2 },
+                    { id: 'reverbMix', label: 'Reverb Mix', min: 0, max: 1, default: 0.3 },
+                    { id: 'attack', label: 'Attack (ms)', min: 1, max: 1000, default: 10 },
+                    { id: 'release', label: 'Release (ms)', min: 1, max: 2000, default: 100 }
+                ];
+            } else {
+                // Synthesizer mode: frequency, duration, effects
+                return [
+                    { id: 'frequency', label: 'Frequency (Hz)', min: 200, max: 2000, default: 440 },
+                    { id: 'duration', label: 'Duration (ms)', min: 50, max: 2000, default: 200 },
+                    { id: 'noteSpacing', label: 'Note Spacing (ms) - Rhythm', min: 50, max: 2000, default: 300 },
+                    { id: 'pan', label: 'Pan', min: -1, max: 1, default: 0 },
+                    { id: 'filterFreq', label: 'Filter Freq (Hz)', min: 200, max: 8000, default: 2000 },
+                    { id: 'filterQ', label: 'Filter Q', min: 0.1, max: 20, default: 1 },
+                    { id: 'delayTime', label: 'Delay Time (ms)', min: 50, max: 1000, default: 300 },
+                    { id: 'delayFeedback', label: 'Delay Feedback', min: 0.1, max: 0.85, default: 0.5 },
+                    { id: 'delayMix', label: 'Delay Mix', min: 0.1, max: 0.9, default: 0.5 },
+                    { id: 'reverbDecay', label: 'Reverb Decay (s)', min: 0.1, max: 10, default: 2 },
+                    { id: 'reverbMix', label: 'Reverb Mix', min: 0, max: 1, default: 0.3 },
+                    { id: 'attack', label: 'Attack (ms)', min: 1, max: 1000, default: 10 },
+                    { id: 'release', label: 'Release (ms)', min: 1, max: 2000, default: 100 }
+                ];
+            }
+        }
+        
         // Create mapping controls
         function createMappingControls(numericPaths) {
             const mappingControls = document.getElementById('mappingControls');
             mappingControls.innerHTML = '';
             
-            const audioParams = [
-                { id: 'frequency', label: 'Frequency (Hz)', min: 200, max: 2000, default: 440 },
-                { id: 'duration', label: 'Duration (ms)', min: 50, max: 2000, default: 200 },
-                { id: 'noteSpacing', label: 'Note Spacing (ms) - Rhythm', min: 50, max: 2000, default: 300 },
-                { id: 'pan', label: 'Pan', min: -1, max: 1, default: 0 },
-                { id: 'filterFreq', label: 'Filter Freq (Hz)', min: 200, max: 8000, default: 2000 },
-                { id: 'filterQ', label: 'Filter Q', min: 0.1, max: 20, default: 1 },
-                { id: 'delayTime', label: 'Delay Time (ms)', min: 50, max: 1000, default: 300 },
-                { id: 'delayFeedback', label: 'Delay Feedback', min: 0.1, max: 0.85, default: 0.5 },
-                { id: 'delayMix', label: 'Delay Mix', min: 0.1, max: 0.9, default: 0.5 },
-                { id: 'reverbDecay', label: 'Reverb Decay (s)', min: 0.1, max: 10, default: 2 },
-                { id: 'reverbMix', label: 'Reverb Mix', min: 0, max: 1, default: 0.3 },
-                { id: 'attack', label: 'Attack (ms)', min: 1, max: 1000, default: 10 },
-                { id: 'release', label: 'Release (ms)', min: 1, max: 2000, default: 100 }
-            ];
+            const audioParams = getAudioParams();
             
             audioParams.forEach(param => {
                 const div = document.createElement('div');
@@ -1618,8 +1760,12 @@
                 console.log(`  ${p.path}: score=${p.interestScore.toFixed(3)}, CV=${p.coefficientOfVariation.toFixed(3)}, unique=${(p.uniqueRatio*100).toFixed(0)}%`);
             });
             
-            // Define parameter importance (perceptual impact)
-            const parameterTiers = {
+            // Define parameter importance (perceptual impact) - mode-specific
+            const parameterTiers = samplerMode ? {
+                critical: ['noteSpacing', 'sampleOffset', 'duration'], // Rhythm and sample position for variation
+                important: ['pitch', 'pan', 'delayTime', 'delayFeedback', 'delayMix', 'attack', 'release'], // Clear impact
+                subtle: ['filterFreq', 'filterQ', 'reverbDecay', 'reverbMix'] // Textural
+            } : {
                 critical: ['noteSpacing', 'frequency', 'duration'], // Rhythm first for more interesting patterns
                 important: ['pan', 'filterFreq', 'delayTime', 'delayFeedback', 'delayMix', 'attack', 'release'], // Clear impact (delay elevated for sonic interest)
                 subtle: ['filterQ', 'reverbDecay', 'reverbMix'] // Textural
@@ -2006,12 +2152,9 @@
                 });
             });
             
-            // Audio parameter nodes (right side) - compact layout (exclude volume)
-            const audioParams = [
-                'frequency', 'duration', 'noteSpacing', 'pan',
-                'filterFreq', 'filterQ', 'delayTime', 'delayFeedback', 'delayMix',
-                'reverbDecay', 'reverbMix', 'attack', 'release'
-            ];
+            // Audio parameter nodes (right side) - dynamically based on mode
+            const audioParamsConfig = getAudioParams();
+            const audioParams = audioParamsConfig.map(p => p.id);
             
             audioParams.forEach((param, i) => {
                 nodes.push({
@@ -2598,10 +2741,20 @@
                         return mapping.fixed;
                     };
                     
-                    // Calculate all audio parameters
+                    // Calculate all audio parameters (mode-specific)
                     const audioParams = {};
-                    const frequency = getParamValue('frequency') || 440;
-                    audioParams.frequency = frequency;
+                    
+                    if (samplerMode) {
+                        // Sampler mode: pitch (playback rate) and sampleOffset
+                        audioParams.pitch = getParamValue('pitch');
+                        audioParams.sampleOffset = getParamValue('sampleOffset');
+                    } else {
+                        // Synthesizer mode: frequency
+                        const frequency = getParamValue('frequency') || 440;
+                        audioParams.frequency = frequency;
+                    }
+                    
+                    // Common parameters for both modes
                     audioParams.duration = getParamValue('duration');
                     audioParams.noteSpacing = getParamValue('noteSpacing');
                     audioParams.pan = getParamValue('pan');
@@ -2690,17 +2843,36 @@
                     if (i % 5 === 0) {
                         const loggedParams = {
                             item: i + 1,
-                            frequency: frequency.toFixed(1) + 'Hz',
                             duration: duration.toFixed(0) + 'ms',
                             pan: pan.toFixed(2),
                             filterFreq: filterFreq.toFixed(0) + 'Hz',
                             delayTime: delayTime.toFixed(0) + 'ms'
                         };
                         
-                        // Show raw data values for mapped params
-                        if (mappings.frequency?.path) {
-                            loggedParams.freqRaw = getValueByPath(item, mappings.frequency.path);
+                        // Mode-specific parameters
+                        if (samplerMode) {
+                            const pitch = audioParams.pitch || 1;
+                            const offset = audioParams.sampleOffset || 0;
+                            loggedParams.pitch = pitch.toFixed(2) + 'x';
+                            loggedParams.sampleOffset = (offset * 100).toFixed(0) + '%';
+                            
+                            // Show raw data values for mapped params
+                            if (mappings.pitch?.path) {
+                                loggedParams.pitchRaw = getValueByPath(item, mappings.pitch.path);
+                            }
+                            if (mappings.sampleOffset?.path) {
+                                loggedParams.offsetRaw = getValueByPath(item, mappings.sampleOffset.path);
+                            }
+                        } else {
+                            const frequency = audioParams.frequency || 440;
+                            loggedParams.frequency = frequency.toFixed(1) + 'Hz';
+                            
+                            // Show raw data values for mapped params
+                            if (mappings.frequency?.path) {
+                                loggedParams.freqRaw = getValueByPath(item, mappings.frequency.path);
+                            }
                         }
+                        
                         if (mappings.filterFreq?.path) {
                             loggedParams.filterRaw = getValueByPath(item, mappings.filterFreq.path);
                         }
@@ -2713,20 +2885,54 @@
                     const panner = audioContext.createStereoPanner();
                     const envelope = audioContext.createGain();
                     
-                    // Apply master pitch transpose
-                    const pitchTranspose = parseFloat(document.getElementById('pitchControl')?.value || 0);
-                    let transposedFrequency = frequency * Math.pow(2, pitchTranspose / 12);
+                    let source; // Will be either oscillator or buffer source
                     
-                    // Apply pitch quantization if enabled
-                    if (document.getElementById('pitchQuantization')?.checked) {
-                        transposedFrequency = quantizePitch(transposedFrequency);
+                    if (samplerMode && sampleBuffer) {
+                        // SAMPLER MODE: Create buffer source from loaded sample
+                        source = audioContext.createBufferSource();
+                        source.buffer = sampleBuffer;
+                        
+                        // Get pitch (playback rate) parameter
+                        const pitchRate = audioParams.pitch !== null && audioParams.pitch !== undefined ? audioParams.pitch : 1;
+                        
+                        // Apply master pitch transpose on top of data-driven rate
+                        const pitchTranspose = parseFloat(document.getElementById('pitchControl')?.value || 0);
+                        const transposeSemitones = Math.pow(2, pitchTranspose / 12);
+                        source.playbackRate.value = pitchRate * transposeSemitones;
+                        
+                        // Get sample offset parameter (0-1, normalized position in sample)
+                        const sampleOffsetNorm = audioParams.sampleOffset !== null && audioParams.sampleOffset !== undefined ? audioParams.sampleOffset : 0;
+                        const sampleOffsetSeconds = sampleOffsetNorm * sampleBuffer.duration;
+                        
+                        // Crop duration: how long to play from offset point (in seconds)
+                        const cropDurationSeconds = duration / 1000;
+                        
+                        // Store for starting/stopping later
+                        source._offsetSeconds = sampleOffsetSeconds;
+                        source._cropDuration = cropDurationSeconds;
+                        
+                        // Log first note for debugging
+                        if (i === 0) {
+                            console.log(`🎵 Sampler: rate=${source.playbackRate.value.toFixed(2)}, offset=${sampleOffsetSeconds.toFixed(2)}s (${(sampleOffsetNorm*100).toFixed(0)}%), crop=${cropDurationSeconds.toFixed(2)}s`);
+                        }
+                        
+                    } else {
+                        // SYNTHESIZER MODE: Create oscillator
+                        // Apply master pitch transpose
+                        const pitchTranspose = parseFloat(document.getElementById('pitchControl')?.value || 0);
+                        let transposedFrequency = frequency * Math.pow(2, pitchTranspose / 12);
+                        
+                        // Apply pitch quantization if enabled
+                        if (document.getElementById('pitchQuantization')?.checked) {
+                            transposedFrequency = quantizePitch(transposedFrequency);
+                        }
+                        
+                        // Get selected waveform type
+                        const waveformType = document.querySelector('input[name="waveform"]:checked')?.value || 'sine';
+                        
+                        // Create oscillator (could be standard oscillator, noise buffer, or FM synth)
+                        source = createCustomOscillator(audioContext, transposedFrequency, waveformType, duration);
                     }
-                    
-                    // Get selected waveform type
-                    const waveformType = document.querySelector('input[name="waveform"]:checked')?.value || 'sine';
-                    
-                    // Create oscillator (could be standard oscillator, noise buffer, or FM synth)
-                    const oscillator = createCustomOscillator(audioContext, transposedFrequency, waveformType, duration);
                     
                     // Configure filter
                     filter.type = document.querySelector('input[name="filterType"]:checked')?.value || 'lowpass';
@@ -2747,12 +2953,12 @@
                     envelope.gain.setValueAtTime(volume, now + Math.max(attackTime, durationTime - releaseTime));
                     envelope.gain.linearRampToValueAtTime(0, now + durationTime);
                     
-                    // Handle additive synthesis (create harmonics)
-                    if (oscillator._isAdditive) {
+                    // Handle additive synthesis (create harmonics) - synth mode only
+                    if (source._isAdditive) {
                         // Create harmonic series (1x, 2x, 3x, 4x frequencies with decreasing amplitude)
                         const harmonicGain = audioContext.createGain();
                         harmonicGain.gain.value = 0.6; // Reduce fundamental
-                        oscillator.connect(harmonicGain);
+                        source.connect(harmonicGain);
                         harmonicGain.connect(filter);
                         
                         // Add 3 harmonics
@@ -2769,7 +2975,7 @@
                         }
                     } else {
                         // Standard connection
-                        oscillator.connect(filter);
+                        source.connect(filter);
                     }
                     
                     // Connect rest of chain
@@ -2778,20 +2984,20 @@
                     envelope.connect(delayNode);
                     envelope.connect(delayDryGain);
                     
-                    // Start source
-                    oscillator.start(now);
-                    
-                    // Start FM modulator if present
-                    if (oscillator._modulator) {
-                        oscillator._modulator.start(now);
-                    }
-                    
-                    // Stop source
-                    oscillator.stop(now + durationTime);
-                    
-                    // Stop FM modulator if present
-                    if (oscillator._modulator) {
-                        oscillator._modulator.stop(now + durationTime);
+                    // Start and stop source
+                    if (samplerMode && source._offsetSeconds !== undefined) {
+                        // Sampler mode: start at offset, play for crop duration
+                        source.start(now, source._offsetSeconds, source._cropDuration);
+                    } else {
+                        // Synthesizer mode: standard start/stop
+                        source.start(now);
+                        source.stop(now + durationTime);
+                        
+                        // Start/stop FM modulator if present
+                        if (source._modulator) {
+                            source._modulator.start(now);
+                            source._modulator.stop(now + durationTime);
+                        }
                     }
                     
                     // Calculate note spacing: use mapped value if available, otherwise use speed slider WITH VARIATION
