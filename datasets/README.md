@@ -5,23 +5,31 @@ This directory contains rich, multi-dimensional datasets perfect for audio sonif
 ## 📦 Available Datasets
 
 ### 1. 🌍 **Earthquake Data (USGS) - REAL-TIME**
+**Available Feeds:** 16 live feeds organized by magnitude and time range  
 **Files:** `earthquakes-week.geojson` (local archive)  
-**Real-time APIs:**
-- `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson` (updates every minute)
-- `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson` (past 24 hours)
+**Guides:** 
+- [USGS_FEEDS_GUIDE.md](USGS_FEEDS_GUIDE.md) - **Complete guide to all 16 feeds**
+- [EARTHQUAKES_DATA_GUIDE.md](EARTHQUAKES_DATA_GUIDE.md) - Field descriptions & sonification tips
 
-**Size:** 1,600+ events per week  
-**Fields:** 26+ measurements per earthquake  
-**Guide:** [EARTHQUAKES_DATA_GUIDE.md](EARTHQUAKES_DATA_GUIDE.md)
+**Feed Categories:**
+- **All Magnitudes:** Hour, Day, Week, Month (complete global coverage)
+- **M4.5+ (Major):** Hour, Day, Week, Month (significant events only)
+- **M2.5+ (Felt):** Hour, Day, Week, Month (commonly felt earthquakes)
+- **Significant:** Hour, Day, Week, Month (headline-worthy events)
+
+**Update Frequency:** Every 1 minute (hourly/daily/weekly), Every 5 minutes (monthly)  
+**Size:** 10 KB (hour) to 8 MB (month)  
+**Fields:** 26+ measurements per earthquake
 
 **Why it's great:**
-- **REAL-TIME DATA** - earthquakes happening right now
-- Dramatic range (magnitude 1.0 to 7.0+)
+- **16 DIFFERENT FEEDS** - choose your magnitude/time range
+- **REAL-TIME DATA** - earthquakes happening right now (1-5 min latency)
+- Dramatic range (magnitude 1.0 to 9.0+)
 - Rich seismic network metrics (gap, rms, nst)
-- Geographic spread (global coverage)
+- Global coverage with geographic coordinates
 - Natural tension and drama
 
-**Key fields:** `mag`, `depth`, `gap`, `dmin`, `rms`, `nst`, `sig`, `longitude`, `latitude`
+**Key fields:** `mag`, `depth`, `gap`, `dmin`, `rms`, `nst`, `sig`, `felt`, `tsunami`, `longitude`, `latitude`
 
 ---
 
@@ -205,6 +213,7 @@ This directory contains rich, multi-dimensional datasets perfect for audio sonif
 datasets/
 ├── README.md (this file)
 │
+├── USGS_FEEDS_GUIDE.md ⭐ NEW - Complete guide to 16 earthquake feeds
 ├── EARTHQUAKES_DATA_GUIDE.md
 ├── earthquakes-week.geojson (1600+ events, local archive)
 │
@@ -217,9 +226,9 @@ datasets/
 └── WEATHER_DATA_GUIDE.md
 
 Note: Real-time data is loaded directly via API endpoints:
-- USGS Earthquake Feed (live)
-- NASA NEO API (daily updates)
-- ISS Tracking API (real-time)
+- USGS Earthquake Feeds (16 feeds: all magnitudes, M4.5+, M2.5+, significant)
+- NASA NEO API (daily asteroid updates)
+- ISS Tracking API (real-time orbital position)
 ```
 
 ---

@@ -256,16 +256,19 @@
             stroke-width: 2;
             fill: none;
             cursor: pointer;
+            stroke-dasharray: 5, 5; /* MaxMSP-style alternating dashes */
         }
         
         .connection-path:hover {
             stroke: #00f;
             stroke-width: 3;
+            stroke-dasharray: 5, 5;
         }
         
         .connection-path.active {
             stroke: #0f0;
             stroke-width: 3;
+            stroke-dasharray: 5, 5;
             animation: pulse 0.5s ease;
         }
         
@@ -358,11 +361,36 @@
                 <select id="templateSelector" class="pa2 ba b--black f6" style="width: 600px; max-width: 90%;">
                     <option value="">-- Select Dataset --</option>
                     
-                    <optgroup label="🌍 Earthquakes (Live)">
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson">USGS: Past Week</option>
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson">USGS: Past Day</option>
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson">USGS: Significant - Month</option>
-                        <option value="datasets/earthquakes-week.geojson">Archive: Weekly (1600+ events)</option>
+                    <optgroup label="🌍 Earthquakes - All Magnitudes (USGS Live)">
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson">All Earthquakes: Past Hour (Real-time)</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson">All Earthquakes: Past Day</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson">All Earthquakes: Past Week</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson">All Earthquakes: Past Month</option>
+                    </optgroup>
+                    
+                    <optgroup label="🔴 Earthquakes - Magnitude 4.5+ (USGS Live)">
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_hour.geojson">M4.5+: Past Hour</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson">M4.5+: Past Day</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson">M4.5+: Past Week</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_month.geojson">M4.5+: Past Month</option>
+                    </optgroup>
+                    
+                    <optgroup label="🟠 Earthquakes - Magnitude 2.5+ (USGS Live)">
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_hour.geojson">M2.5+: Past Hour</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson">M2.5+: Past Day</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson">M2.5+: Past Week</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_month.geojson">M2.5+: Past Month</option>
+                    </optgroup>
+                    
+                    <optgroup label="⚠️ Earthquakes - Significant Only (USGS Live)">
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_hour.geojson">Significant: Past Hour</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_day.geojson">Significant: Past Day</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson">Significant: Past Week</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson">Significant: Past Month</option>
+                    </optgroup>
+                    
+                    <optgroup label="📦 Earthquakes - Archived">
+                        <option value="datasets/earthquakes-week.geojson">Local Archive: Weekly Snapshot (1600+ events)</option>
                     </optgroup>
                     
                     <optgroup label="🏗️ Urban Development">
@@ -371,8 +399,9 @@
                     
                     <optgroup label="🌌 Space">
                         <option value="datasets/exoplanets.csv">NASA Exoplanets (6000+ planets)</option>
-                        <option value="http://api.open-notify.org/iss-now.json">ISS Location (Live)</option>
-                        <option value="http://api.open-notify.org/astros.json">Astronauts in Space (Live)</option>
+                        <option value="https://api.nasa.gov/neo/rest/v1/feed?start_date=2024-11-12&end_date=2024-11-12&api_key=DEMO_KEY">NASA: Near Earth Objects - Today</option>
+                        <option value="http://api.open-notify.org/iss-now.json">ISS Location (Real-time)</option>
+                        <option value="http://api.open-notify.org/astros.json">Astronauts in Space (Real-time)</option>
                     </optgroup>
                 </select>
             </div>
@@ -441,7 +470,7 @@
                     <div class="mb3">
                         <label class="db mb2">
                             <span class="db mb1 f6 b">Master Volume:</span>
-                            <input type="range" id="masterVolume" min="0" max="1" step="0.05" value="0.2" class="w-100">
+                            <input type="range" id="masterVolume" min="0" max="1" step="0.01" value="0.2" class="w-100">
                             <span id="masterVolumeValue" class="f6">0.2 (20%)</span>
                         </label>
                     </div>
@@ -462,7 +491,7 @@
                         </label>
                     </div>
                     
-                    <div class="mb3">
+                    <div class="mb3" id="scaleContainer" style="display: none;">
                         <div class="b mb2 f6">Scale</div>
                         <select id="scaleSelector" class="w-100 pa1 ba b--black f6">
                             <option value="pentatonic" selected>Pentatonic (5 notes)</option>
@@ -537,7 +566,7 @@
                     <div class="mb3">
                         <label class="db mb2">
                             <span class="db mb1 f6">Master Pitch:</span>
-                            <input type="range" id="pitchControl" min="-24" max="24" step="1" value="0" class="w-100">
+                            <input type="range" id="pitchControl" min="-24" max="24" step="0.1" value="0" class="w-100">
                             <span id="pitchValue" class="f6">0 semitones</span>
                         </label>
                         <label class="db mb2">
@@ -1132,9 +1161,22 @@
         
         // Pitch control
         document.getElementById('pitchControl').addEventListener('input', (e) => {
-            const semitones = parseInt(e.target.value);
+            const semitones = parseFloat(e.target.value);
             const sign = semitones >= 0 ? '+' : '';
-            document.getElementById('pitchValue').textContent = `${sign}${semitones} semitones`;
+            document.getElementById('pitchValue').textContent = `${sign}${semitones.toFixed(1)} semitones`;
+        });
+        
+        // Pitch quantization toggle - show/hide scale selector
+        const pitchQuantCheckbox = document.getElementById('pitchQuantization');
+        const scaleContainer = document.getElementById('scaleContainer');
+        
+        // Show scale selector if pitch quantization is checked on load
+        if (pitchQuantCheckbox.checked) {
+            scaleContainer.style.display = 'block';
+        }
+        
+        pitchQuantCheckbox.addEventListener('change', (e) => {
+            scaleContainer.style.display = e.target.checked ? 'block' : 'none';
         });
 
         // Custom sound generation functions
@@ -1442,9 +1484,9 @@
                 { id: 'pan', label: 'Pan', min: -1, max: 1, default: 0 },
                 { id: 'filterFreq', label: 'Filter Freq (Hz)', min: 200, max: 8000, default: 2000 },
                 { id: 'filterQ', label: 'Filter Q', min: 0.1, max: 20, default: 1 },
-                { id: 'delayTime', label: 'Delay Time (ms)', min: 0, max: 1000, default: 200 },
-                { id: 'delayFeedback', label: 'Delay Feedback', min: 0, max: 0.9, default: 0.3 },
-                { id: 'delayMix', label: 'Delay Mix', min: 0, max: 1, default: 0.3 },
+                { id: 'delayTime', label: 'Delay Time (ms)', min: 50, max: 1000, default: 300 },
+                { id: 'delayFeedback', label: 'Delay Feedback', min: 0.1, max: 0.85, default: 0.5 },
+                { id: 'delayMix', label: 'Delay Mix', min: 0.1, max: 0.9, default: 0.5 },
                 { id: 'reverbDecay', label: 'Reverb Decay (s)', min: 0.1, max: 10, default: 2 },
                 { id: 'reverbMix', label: 'Reverb Mix', min: 0, max: 1, default: 0.3 },
                 { id: 'attack', label: 'Attack (ms)', min: 1, max: 1000, default: 10 },
@@ -1579,8 +1621,8 @@
             // Define parameter importance (perceptual impact)
             const parameterTiers = {
                 critical: ['noteSpacing', 'frequency', 'duration'], // Rhythm first for more interesting patterns
-                important: ['pan', 'filterFreq', 'attack', 'release'], // Clear impact
-                subtle: ['filterQ', 'delayTime', 'delayFeedback', 'delayMix', 'reverbDecay', 'reverbMix'] // Textural
+                important: ['pan', 'filterFreq', 'delayTime', 'delayFeedback', 'delayMix', 'attack', 'release'], // Clear impact (delay elevated for sonic interest)
+                subtle: ['filterQ', 'reverbDecay', 'reverbMix'] // Textural
             };
             
             // Clear all mappings first
@@ -1699,29 +1741,55 @@
                 }
             });
             
-            // Map extra data to subtle parameters (prioritize one delay param for richness)
+            // Map extra data to subtle parameters (all delay params now mapped for dynamic sonic variation)
             const extraPaths = pathAnalysis.slice(pathIndex);
             if (extraPaths.length > 0) {
-                // Map just delayTime for analog richness (others stay fixed for stability)
-                if (mappings['delayTime'] && extraPaths.length > 0) {
-                    const pathData = extraPaths[0];
-                    mappings['delayTime'].path = pathData.path;
-                    mappings['delayTime'].min = 100;   // Medium slapback
-                    mappings['delayTime'].max = 600;  // Medium echo
-                    mappings['delayTime'].curve = 'linear';
-                    
-                    const mapEl = document.getElementById('map_delayTime');
-                    const minEl = document.getElementById('min_delayTime');
-                    const maxEl = document.getElementById('max_delayTime');
-                    const curveEl = document.getElementById('curve_delayTime');
-                    
-                    if (mapEl) mapEl.value = pathData.path;
-                    if (minEl) minEl.value = 100;
-                    if (maxEl) maxEl.value = 600;
-                    if (curveEl) curveEl.value = 'linear';
-                    
-                    console.log(`✓ Mapped ${pathData.path} → delayTime (analog pitch shifting enabled)`);
-                }
+                // Map all 3 delay parameters with aggressive ranges for varied delay textures
+                const delayParams = [
+                    { 
+                        id: 'delayTime', 
+                        min: 50,    // Short slapback
+                        max: 800,   // Long echo
+                        curve: 'linear',
+                        description: 'wide timing variation'
+                    },
+                    { 
+                        id: 'delayFeedback', 
+                        min: 0.1,   // Subtle single repeat
+                        max: 0.8,   // Building repeats
+                        curve: 'exponential',
+                        description: 'feedback dynamics'
+                    },
+                    { 
+                        id: 'delayMix', 
+                        min: 0.2,   // Subtle presence
+                        max: 0.8,   // Prominent delay
+                        curve: 'linear',
+                        description: 'wet/dry balance'
+                    }
+                ];
+                
+                delayParams.forEach((delayParam, idx) => {
+                    if (extraPaths.length > idx && mappings[delayParam.id]) {
+                        const pathData = extraPaths[idx];
+                        mappings[delayParam.id].path = pathData.path;
+                        mappings[delayParam.id].min = delayParam.min;
+                        mappings[delayParam.id].max = delayParam.max;
+                        mappings[delayParam.id].curve = delayParam.curve;
+                        
+                        const mapEl = document.getElementById(`map_${delayParam.id}`);
+                        const minEl = document.getElementById(`min_${delayParam.id}`);
+                        const maxEl = document.getElementById(`max_${delayParam.id}`);
+                        const curveEl = document.getElementById(`curve_${delayParam.id}`);
+                        
+                        if (mapEl) mapEl.value = pathData.path;
+                        if (minEl) minEl.value = delayParam.min;
+                        if (maxEl) maxEl.value = delayParam.max;
+                        if (curveEl) curveEl.value = delayParam.curve;
+                        
+                        console.log(`✓ Mapped ${pathData.path} → ${delayParam.id} (${delayParam.description})`);
+                    }
+                });
             }
             
             // Set interesting waveform and filter
@@ -1958,11 +2026,18 @@
         }
         
         function drawNodes(container) {
-            // Responsive node sizing
+            // Responsive node sizing - DATA NODES ARE WIDER
             const svg = d3.select('#patchViz');
             const svgWidth = parseInt(svg.style('width')) || 600;
-            const nodeWidth = svgWidth < 600 ? 90 : 110; // Smaller on mobile
-            const nodeHeight = svgWidth < 600 ? 32 : 36; // Smaller on mobile
+            const audioNodeWidth = svgWidth < 600 ? 90 : 110; // Audio params stay compact
+            const dataNodeWidth = svgWidth < 600 ? 120 : 160; // Data fields are wider
+            const nodeHeight = svgWidth < 600 ? 32 : 36;
+            
+            // Helper function to truncate text
+            const truncateText = (text, maxLength) => {
+                if (text.length <= maxLength) return text;
+                return text.substring(0, maxLength - 1) + '…';
+            };
             
             const nodeGroups = container.selectAll('.node')
                 .data(nodes)
@@ -1971,21 +2046,28 @@
                 .attr('class', 'node')
                 .attr('transform', d => `translate(${d.x},${d.y})`);
             
-            // Node rectangle (smaller)
+            // Node rectangle - different width for data vs audio
             nodeGroups.append('rect')
                 .attr('class', 'node-rect')
-                .attr('x', -nodeWidth/2)
+                .attr('x', d => {
+                    const width = d.type === 'data' ? dataNodeWidth : audioNodeWidth;
+                    return -width/2;
+                })
                 .attr('y', -nodeHeight/2)
-                .attr('width', nodeWidth)
+                .attr('width', d => d.type === 'data' ? dataNodeWidth : audioNodeWidth)
                 .attr('height', nodeHeight)
                 .attr('rx', 2)
                 .attr('data-node-id', d => d.id);
             
-            // Node label (original path with dots for display)
+            // Node label (truncate long data paths)
             nodeGroups.append('text')
                 .attr('class', 'node-text')
                 .attr('y', 0)
-                .text(d => d.label);
+                .text(d => {
+                    // Truncate data field labels to fit in wider boxes
+                    const maxChars = d.type === 'data' ? 22 : 15;
+                    return truncateText(d.label, maxChars);
+                });
             
             // Value display (below label)
             // ID uses safe version: value_data_properties_mag (no dots)
@@ -1996,10 +2078,13 @@
                 .attr('text-anchor', 'middle')
                 .text('--');
             
-            // Connection ports (smaller)
+            // Connection ports - positioned at edge of appropriate width node
             nodeGroups.append('circle')
                 .attr('class', 'port')
-                .attr('cx', d => d.type === 'data' ? nodeWidth/2 : -nodeWidth/2)
+                .attr('cx', d => {
+                    const width = d.type === 'data' ? dataNodeWidth : audioNodeWidth;
+                    return d.type === 'data' ? width/2 : -width/2;
+                })
                 .attr('cy', 0)
                 .attr('r', 4)
                 .on('click', function(event, d) {
@@ -2050,7 +2135,11 @@
             }
             container.selectAll('*').remove();
             
-            const nodeWidth = 100;
+            // Get SVG width for responsive node sizing
+            const svg = d3.select('#patchViz');
+            const svgWidth = parseInt(svg.style('width')) || 600;
+            const audioNodeWidth = svgWidth < 600 ? 90 : 110;
+            const dataNodeWidth = svgWidth < 600 ? 120 : 160;
             let connectionCount = 0;
             
             // Draw each active mapping
@@ -2060,9 +2149,10 @@
                     const targetNode = nodes.find(n => n.audioParam === audioParam);
                     
                     if (sourceNode && targetNode) {
-                        const sourceX = sourceNode.x + nodeWidth/2;
+                        // Use correct widths - data nodes are wider
+                        const sourceX = sourceNode.x + dataNodeWidth/2;
                         const sourceY = sourceNode.y;
-                        const targetX = targetNode.x - nodeWidth/2;
+                        const targetX = targetNode.x - audioNodeWidth/2;
                         const targetY = targetNode.y;
                         const midX = (sourceX + targetX) / 2;
                         
@@ -2538,9 +2628,13 @@
                     const release = audioParams.release || 100;
                     
                     // Update delay parameters globally with analog-style pitch shifting
-                    const delayTime = audioParams.delayTime || 200;
+                    let delayTime = audioParams.delayTime || 200;
                     const delayFeedback = audioParams.delayFeedback !== null && audioParams.delayFeedback !== undefined ? audioParams.delayFeedback : 0.3;
                     const delayMix = audioParams.delayMix !== null && audioParams.delayMix !== undefined ? audioParams.delayMix : 0.3;
+                    
+                    // Add subtle random variation to delay time for organic pitch-shifting layers (±15%)
+                    const delayTimeVariation = 0.85 + (Math.random() * 0.3); // 0.85 to 1.15 multiplier
+                    delayTime = delayTime * delayTimeVariation;
                     
                     if (delayNode && delayFeedbackGain && delayWetGain && delayDryGain) {
                         const now = audioContext.currentTime;
@@ -2620,7 +2714,7 @@
                     const envelope = audioContext.createGain();
                     
                     // Apply master pitch transpose
-                    const pitchTranspose = parseInt(document.getElementById('pitchControl')?.value || 0);
+                    const pitchTranspose = parseFloat(document.getElementById('pitchControl')?.value || 0);
                     let transposedFrequency = frequency * Math.pow(2, pitchTranspose / 12);
                     
                     // Apply pitch quantization if enabled
