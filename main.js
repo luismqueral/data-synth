@@ -66,6 +66,10 @@ let numericPaths = [];
 let isPlaying = false;
 let currentTimeout = null;
 
+// Playback ID system prevents race conditions when user rapidly clicks play/stop
+// Each playback session gets a unique ID; loops check if their ID is still current
+let currentPlaybackId = 0;
+
 // ============================================================================
 // INITIALIZATION
 // ============================================================================
@@ -296,8 +300,14 @@ async function handlePlay() {
         return;
     }
     
-    // Start playback
+    // Start playback with new unique ID
+    // This prevents race conditions if user rapidly clicks play/stop/play
     isPlaying = true;
+    currentPlaybackId++;
+    const thisPlaybackId = currentPlaybackId;
+    
+    console.log(`🎵 Starting playback session #${thisPlaybackId}`);
+    
     document.getElementById('playIcon').textContent = '⏹';
     document.getElementById('playText').textContent = 'Stop';
     document.getElementById('audioVisualizer').classList.add('active');
@@ -324,8 +334,9 @@ async function handlePlay() {
     console.log('Active mappings:', Object.values(parameterMapper.mappings).filter(m => m.path).length);
     
     // Playback loop
-    while (isPlaying) {
-        for (let i = 0; i < itemsArray.length && isPlaying; i++) {
+    // Exit if another playback session started (thisPlaybackId !== currentPlaybackId)
+    while (isPlaying && thisPlaybackId === currentPlaybackId) {
+        for (let i = 0; i < itemsArray.length && isPlaying && thisPlaybackId === currentPlaybackId; i++) {
             const item = itemsArray[i];
             
             // Calculate audio parameters from data
@@ -352,19 +363,32 @@ async function handlePlay() {
             await new Promise(resolve => {
                 currentTimeout = setTimeout(resolve, finalDelay);
             });
+            
+            // Double-check we're still the current playback session
+            if (thisPlaybackId !== currentPlaybackId) {
+                console.log(`⏹ Playback session #${thisPlaybackId} superseded, exiting gracefully`);
+                return; // Another playback started, exit this loop
+            }
         }
     }
     
-    // Playback ended
-    isPlaying = false;
-    document.getElementById('playIcon').textContent = '▶';
-    document.getElementById('playText').textContent = 'Play Data';
-    document.getElementById('audioVisualizer').classList.remove('active');
-    audioEngine.stopVisualizer();
-    patchViz.clearNodeValues();
+    // Playback ended naturally (not stopped by user)
+    // Only update UI if we're still the current playback session
+    if (thisPlaybackId === currentPlaybackId) {
+        isPlaying = false;
+        document.getElementById('playIcon').textContent = '▶';
+        document.getElementById('playText').textContent = 'Play Data';
+        document.getElementById('audioVisualizer').classList.remove('active');
+        audioEngine.stopVisualizer();
+        patchViz.clearNodeValues();
+        console.log(`✅ Playback session #${thisPlaybackId} completed`);
+    }
 }
 
 function stopPlayback() {
+    // Invalidate current playback session
+    // Any running loops will check their ID and exit gracefully
+    currentPlaybackId++;
     isPlaying = false;
     audioEngine.previousDelayTime = null;
     
@@ -377,6 +401,8 @@ function stopPlayback() {
     document.getElementById('playText').textContent = 'Play Data';
     document.getElementById('audioVisualizer').classList.remove('active');
     document.getElementById('itemValue').textContent = '--';
+    
+    console.log(`⏹ Playback stopped, invalidated session (now at #${currentPlaybackId})`);
 }
 
 // ============================================================================
