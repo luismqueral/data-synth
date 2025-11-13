@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2025-11-13 (Refactoring)
+- refined section labels and container styling - moved "Patch View" label above container (small, uppercase, gray), added "Output" label above audio visualizer with matching style, changed patch view container background to near-white (#fafafa) for consistent color scheme with svg background, both labels positioned top-left for cleaner visual hierarchy
 - made d3 patch visualization responsive to window resizing - added debounced resize listener (250ms) that re-renders patch visualization when window width changes, ensures nodes and connections reposition correctly on viewport changes, improves mobile and responsive experience
 - reduced main container width for better readability - changed max-width from 1100px to 900px for more focused layout and better typography line lengths
 - improved ui layout and visual design - moved audio visualizer to appear below settings drawer instead of above it for better visual hierarchy, changed d3 patch visualization svg background from transparent to near-white (#fafafa) for better contrast and readability
