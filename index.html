@@ -151,15 +151,19 @@
             transition: opacity 0.2s;
         }
         
-        .connection-path.hover-dimmed,
+        .connection-path.hover-dimmed {
+            stroke: #ddd !important;
+            transition: stroke 0.2s;
+        }
+        
         .connection-path-yellow.hover-dimmed {
-            opacity: 0.2;
-            transition: opacity 0.2s;
+            stroke: #ddd !important;
+            transition: stroke 0.2s;
         }
         
         .connection-path,
         .connection-path-yellow {
-            transition: opacity 0.2s;
+            transition: stroke 0.2s;
         }
         
         .param-bar-fill {
@@ -191,13 +195,7 @@
             fill: #fff;
             stroke: #000;
             stroke-width: 2;
-            cursor: pointer;
-        }
-        
-        .port:hover {
-            fill: #00f;
-            stroke: #000;
-            stroke-width: 2;
+            cursor: default;
         }
         
         /* Connection lines: Always show yellow/black dashed pattern */
