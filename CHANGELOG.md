@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2025-11-13 (Refactoring)
+- increased distance between d3 visualization columns and updated visualizer background - reduced columnGap multiplier from 0.25 to 0.15 to push data fields and audio parameter columns further apart for longer more visible patch cables, changed audio visualizer canvas background from light gray (#eee) to near-white (#fafafa) to match overall color scheme
 - improved d3 node spacing and typography - increased node height from 40px to 50px for more padding, increased node value font size from 8px to 10px for better readability, increased spacing between label and value from y:12 to y:15, increased vertical spacing between nodes from 45px to 60px for less cramped appearance, fixed inconsistency where nodeSpacing was 45 in one place and 50 in another
 - made output label appear only during playback - added id to output label and toggle display in main.js alongside audioVisualizer active state, label now shows when audio plays and hides when stopped, cleaner ui when not in use
 - refined section labels and container styling - moved "Patch View" label above container (small, uppercase, gray), added "Output" label above audio visualizer with matching style, changed patch view container background to near-white (#fafafa) for consistent color scheme with svg background, both labels positioned top-left for cleaner visual hierarchy
