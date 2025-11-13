@@ -8,6 +8,32 @@
  * - Modules handle their responsibilities (data, audio, mapping, viz)
  * - main.js coordinates modules and handles UI events
  * - index.html provides structure and styling
+ * 
+ * ============================================================================
+ * TABLE OF CONTENTS
+ * ============================================================================
+ * 
+ * 1. IMPORT MODULES               - ES6 module imports
+ * 2. CREATE MODULE INSTANCES      - AudioEngine, ParameterMapper, PatchViz
+ * 3. APPLICATION STATE            - Global state variables
+ * 4. INITIALIZATION               - Startup sequence
+ * 5. EVENT LISTENERS              - Wire up UI event handlers
+ *    - Data Loading               - Dataset selector, file drop
+ *    - Playback Controls          - Play/stop, randomize
+ *    - Global Settings            - Volume, pitch, speed
+ *    - Mode Switching             - Synth ↔ Sampler
+ *    - Sampler Controls           - Sample upload/clear
+ *    - UI Interactions            - Drawers, toggles
+ * 6. DATASET LOADING              - JSON/CSV/GeoJSON parsing
+ * 7. FILE DROP ZONE               - Drag-and-drop file upload
+ * 8. PLAYBACK CONTROL             - Main playback loop
+ * 9. AUDIO PARAMETER CALCULATION  - Data → audio mapping pipeline
+ * 10. AUDIO PLAYBACK              - Note creation and playback
+ * 11. MUSICAL QUANTIZATION        - Pitch and rhythm quantization
+ * 12. UI EVENT HANDLERS           - Control handlers and UI updates
+ * 13. START APPLICATION           - Entry point
+ * 
+ * ============================================================================
  */
 
 // ============================================================================
@@ -92,29 +118,45 @@ function init() {
 
 // ============================================================================
 // EVENT LISTENERS
+// Wire up all UI event handlers and user interactions
 // ============================================================================
 
 function setupEventListeners() {
-    // Dataset selection
+    // ========================================================================
+    // DATA LOADING
+    // ========================================================================
     document.getElementById('templateSelector').addEventListener('change', handleDatasetSelection);
+    setupFileDropZone(); // Drag-and-drop file upload
     
-    // Playback controls
+    // ========================================================================
+    // PLAYBACK CONTROLS
+    // ========================================================================
     document.getElementById('playDataBtn').addEventListener('click', handlePlay);
     document.getElementById('randomizeMappingsBtn').addEventListener('click', handleRandomize);
     
-    // Settings controls
+    // ========================================================================
+    // GLOBAL SETTINGS (Volume, Pitch, Speed)
+    // ========================================================================
     document.getElementById('masterVolume').addEventListener('input', handleVolumeChange);
     document.getElementById('pitchControl').addEventListener('input', handlePitchChange);
     document.getElementById('speedControl').addEventListener('input', handleSpeedChange);
     
-    // Mode toggle
+    // ========================================================================
+    // MODE SWITCHING (Synthesizer ↔ Sampler)
+    // ========================================================================
     document.querySelectorAll('input[name="soundSource"]').forEach(radio => {
         radio.addEventListener('change', handleModeChange);
     });
     
-    // Sampler controls
+    // ========================================================================
+    // SAMPLER CONTROLS (Sample loading and management)
+    // ========================================================================
     document.getElementById('sampleFileInput').addEventListener('change', handleSampleUpload);
     document.getElementById('clearSampleBtn').addEventListener('click', handleClearSample);
+    
+    // ========================================================================
+    // UI INTERACTIONS (Drawers, toggles, show/hide)
+    // ========================================================================
     
     // Settings drawer toggle
     document.getElementById('settingsDrawerToggle').addEventListener('click', () => {
@@ -124,7 +166,7 @@ function setupEventListeners() {
         icon.classList.toggle('open');
     });
     
-    // Pitch quantization toggle
+    // Pitch quantization toggle (show/hide scale selector)
     document.getElementById('pitchQuantization').addEventListener('change', (e) => {
         document.getElementById('scaleContainer').style.display = e.target.checked ? 'block' : 'none';
     });
@@ -133,13 +175,11 @@ function setupEventListeners() {
     if (document.getElementById('pitchQuantization').checked) {
         document.getElementById('scaleContainer').style.display = 'block';
     }
-    
-    // File drop support
-    setupFileDropZone();
 }
 
 // ============================================================================
 // DATASET LOADING
+// Handle JSON/CSV/GeoJSON loading from URLs or file drop
 // ============================================================================
 
 async function handleDatasetSelection(e) {
@@ -239,6 +279,7 @@ function processData(data) {
 
 // ============================================================================
 // FILE DROP ZONE
+// Drag-and-drop support for uploading local data files
 // ============================================================================
 
 function setupFileDropZone() {
@@ -285,7 +326,9 @@ function setupFileDropZone() {
 }
 
 // ============================================================================
-// PLAYBACK
+// PLAYBACK CONTROL
+// Main playback loop with race condition protection
+// Loops through data items, calculates audio params, plays notes
 // ============================================================================
 
 async function handlePlay() {
@@ -407,6 +450,8 @@ function stopPlayback() {
 
 // ============================================================================
 // AUDIO PARAMETER CALCULATION
+// Extract data values, normalize, apply curves, scale to audio ranges
+// Pre-calculate data ranges once for performance
 // ============================================================================
 
 function calculateDataRanges(itemsArray, mappings) {
@@ -504,6 +549,8 @@ function calculateAudioParams(item, mappings, dataRanges) {
 
 // ============================================================================
 // AUDIO PLAYBACK
+// Create and play notes using AudioEngine
+// Per-note chain: source → filter → panner → envelope → effects → speakers
 // ============================================================================
 
 async function playNote(audioParams) {
@@ -635,6 +682,8 @@ function updateReverbParameters(audioParams) {
 
 // ============================================================================
 // MUSICAL QUANTIZATION
+// Snap pitches to scales and rhythms to musical time divisions
+// Optional features for more structured/musical output
 // ============================================================================
 
 function quantizeRhythm(spacing) {
@@ -677,7 +726,9 @@ function quantizePitch(frequency) {
 }
 
 // ============================================================================
-// UI CONTROLS
+// UI EVENT HANDLERS
+// Handle user interactions with controls and settings
+// Update UI feedback and coordinate module state
 // ============================================================================
 
 function handleRandomize() {

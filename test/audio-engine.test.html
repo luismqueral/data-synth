@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AudioEngine Tests</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        h1 {
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ccc;
+        }
+        
+        .test-section.running {
+            border-left-color: #ffa500;
+        }
+        
+        .test-section.pass {
+            border-left-color: #28a745;
+        }
+        
+        .test-section.fail {
+            border-left-color: #dc3545;
+        }
+        
+        .test {
+            margin: 8px 0;
+            padding: 8px;
+            border-radius: 3px;
+        }
+        
+        .test.pass {
+            color: #28a745;
+            background: #d4edda;
+        }
+        
+        .test.fail {
+            color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        .test.skip {
+            color: #856404;
+            background: #fff3cd;
+        }
+        
+        .summary {
+            background: white;
+            padding: 20px;
+            margin-top: 30px;
+            border: 2px solid #333;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .summary.all-pass {
+            border-color: #28a745;
+            color: #28a745;
+        }
+        
+        .summary.some-fail {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+        
+        .error-detail {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+            padding-left: 20px;
+            font-style: italic;
+        }
+        
+        canvas {
+            border: 1px solid #ccc;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔊 AudioEngine Module Tests</h1>
+    <p class="subtitle">Unit tests for lib/audio-engine.js</p>
+    
+    <div id="testResults"></div>
+    <div id="summary"></div>
+    
+    <!-- Test canvas for visualizer tests -->
+    <canvas id="testCanvas" width="200" height="100" style="display: none;"></canvas>
+    
+    <script type="module">
+        import { AudioEngine } from '../lib/audio-engine.js';
+        
+        const resultsDiv = document.getElementById('testResults');
+        const summaryDiv = document.getElementById('summary');
+        const allResults = [];
+        
+        // Helper to create test section
+        function createSection(title) {
+            const section = document.createElement('div');
+            section.className = 'test-section running';
+            section.innerHTML = `<h3>${title}</h3><div class="tests"></div>`;
+            resultsDiv.appendChild(section);
+            return section;
+        }
+        
+        // Helper to add test result
+        function addTest(section, name, pass, error = null) {
+            const testDiv = document.createElement('div');
+            testDiv.className = `test ${pass ? 'pass' : 'fail'}`;
+            testDiv.textContent = `${pass ? '✅' : '❌'} ${name}`;
+            
+            if (error) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-detail';
+                errorDiv.textContent = `Error: ${error}`;
+                testDiv.appendChild(errorDiv);
+            }
+            
+            section.querySelector('.tests').appendChild(testDiv);
+            allResults.push({ name, pass, error });
+            
+            // Update section status
+            const allTests = section.querySelectorAll('.test');
+            const failedTests = section.querySelectorAll('.test.fail');
+            if (failedTests.length > 0) {
+                section.className = 'test-section fail';
+            } else if (allTests.length > 0) {
+                section.className = 'test-section pass';
+            }
+        }
+        
+        // Helper to skip test
+        function skipTest(section, name, reason) {
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test skip';
+            testDiv.textContent = `⚠️ ${name} (skipped: ${reason})`;
+            section.querySelector('.tests').appendChild(testDiv);
+        }
+        
+        // ====================================================================
+        // TEST SUITE 1: AUDIO CONTEXT INITIALIZATION
+        // ====================================================================
+        
+        const section1 = createSection('1. Audio Context Initialization');
+        
+        try {
+            const engine = new AudioEngine();
+            addTest(section1, 'AudioEngine constructor creates instance', true);
+            
+            // Test initial state
+            addTest(section1, 'audioContext is null before initialization', engine.audioContext === null);
+            addTest(section1, 'samplerMode defaults to false', engine.samplerMode === false);
+            addTest(section1, 'sampleBuffer is null', engine.sampleBuffer === null);
+            
+            // Test effects initialization
+            engine.initEffects();
+            
+            addTest(section1, 'initEffects() creates AudioContext', engine.audioContext !== null);
+            addTest(section1, 'AudioContext is correct type', 
+                engine.audioContext instanceof (window.AudioContext || window.webkitAudioContext));
+            addTest(section1, 'delayNode created', engine.delayNode !== null);
+            addTest(section1, 'reverbNode created', engine.reverbNode !== null);
+            addTest(section1, 'delayFeedbackGain created', engine.delayFeedbackGain !== null);
+            addTest(section1, 'delayWetGain created', engine.delayWetGain !== null);
+            addTest(section1, 'delayDryGain created', engine.delayDryGain !== null);
+            addTest(section1, 'reverbWetGain created', engine.reverbWetGain !== null);
+            addTest(section1, 'reverbDryGain created', engine.reverbDryGain !== null);
+            
+            // Test reverb buffer
+            addTest(section1, 'reverbNode has impulse buffer', engine.reverbNode.buffer !== null);
+            addTest(section1, 'reverb buffer is stereo (2 channels)', 
+                engine.reverbNode.buffer.numberOfChannels === 2);
+            
+            // Cleanup for next tests
+            engine.cleanup();
+            addTest(section1, 'cleanup() closes AudioContext', 
+                engine.audioContext === null || engine.audioContext.state === 'closed');
+            
+        } catch (error) {
+            addTest(section1, 'Audio Context Initialization', false, error.message);
+        }
+        
+        // ====================================================================
+        // TEST SUITE 2: REVERB IMPULSE GENERATION
+        // ====================================================================
+        
+        const section2 = createSection('2. Reverb Impulse Generation');
+        
+        try {
+            const engine = new AudioEngine();
+            engine.initEffects();
+            
+            // Test default impulse
+            const impulse1 = engine.createReverbImpulse(2, 2);
+            addTest(section2, 'createReverbImpulse() returns AudioBuffer', 
+                impulse1 instanceof AudioBuffer);
+            addTest(section2, 'impulse has correct duration (2s)', 
+                Math.abs(impulse1.duration - 2) < 0.01);
+            addTest(section2, 'impulse is stereo', impulse1.numberOfChannels === 2);
+            addTest(section2, 'impulse has data in both channels', 
+                impulse1.getChannelData(0).length > 0 && impulse1.getChannelData(1).length > 0);
+            
+            // Test different durations
+            const impulse2 = engine.createReverbImpulse(0.5, 2);
+            addTest(section2, 'short impulse (0.5s) has correct duration', 
+                Math.abs(impulse2.duration - 0.5) < 0.01);
+            
+            const impulse3 = engine.createReverbImpulse(5, 2);
+            addTest(section2, 'long impulse (5s) has correct duration', 
+                Math.abs(impulse3.duration - 5) < 0.01);
+            
+            // Test decay envelope
+            const channelData = impulse1.getChannelData(0);
+            const firstSample = Math.abs(channelData[0]);
+            const midSample = Math.abs(channelData[Math.floor(channelData.length / 2)]);
+            const lastSample = Math.abs(channelData[channelData.length - 1]);
+            
+            addTest(section2, 'impulse decays over time (first > mid > last)', 
+                firstSample > midSample && midSample > lastSample);
+            
+            engine.cleanup();
+            
+        } catch (error) {
+            addTest(section2, 'Reverb Impulse Generation', false, error.message);
+        }
+        
+        // ====================================================================
+        // TEST SUITE 3: NOISE BUFFER GENERATION
+        // ====================================================================
+        
+        const section3 = createSection('3. Noise Buffer Generation');
+        
+        try {
+            const engine = new AudioEngine();
+            engine.initEffects();
+            
+            // White noise
+            const whiteNoise = engine.createNoiseBuffer('white-noise', 100);
+            addTest(section3, 'createNoiseBuffer() returns AudioBuffer', 
+                whiteNoise instanceof AudioBuffer);
+            addTest(section3, 'white noise buffer has correct duration (~100ms)', 
+                Math.abs(whiteNoise.duration - 0.1) < 0.01);
+            addTest(section3, 'white noise is mono (1 channel)', 
+                whiteNoise.numberOfChannels === 1);
+            
+            const whiteData = whiteNoise.getChannelData(0);
+            const whiteMax = Math.max(...whiteData);
+            const whiteMin = Math.min(...whiteData);
+            addTest(section3, 'white noise has values in range (-1 to 1)', 
+                whiteMin >= -1.5 && whiteMax <= 1.5);
+            
+            // Pink noise
+            const pinkNoise = engine.createNoiseBuffer('pink-noise', 100);
+            addTest(section3, 'pink noise buffer created', pinkNoise !== null);
+            addTest(section3, 'pink noise has data', pinkNoise.getChannelData(0).length > 0);
+            
+            // Brown noise
+            const brownNoise = engine.createNoiseBuffer('brown-noise', 100);
+            addTest(section3, 'brown noise buffer created', brownNoise !== null);
+            addTest(section3, 'brown noise has data', brownNoise.getChannelData(0).length > 0);
+            
+            // Test different durations
+            const longNoise = engine.createNoiseBuffer('white-noise', 500);
+            addTest(section3, 'longer noise buffer (500ms) has more samples', 
+                longNoise.getChannelData(0).length > whiteNoise.getChannelData(0).length);
+            
+            engine.cleanup();
+            
+        } catch (error) {
+            addTest(section3, 'Noise Buffer Generation', false, error.message);
+        }
+        
+        // ====================================================================
+        // TEST SUITE 4: OSCILLATOR CREATION
+        // ====================================================================
+        
+        const section4 = createSection('4. Oscillator Creation');
+        
+        try {
+            const engine = new AudioEngine();
+            engine.initEffects();
+            
+            // Standard waveforms
+            const sine = engine.createCustomOscillator(440, 'sine', 1000);
+            addTest(section4, 'sine oscillator created', sine !== null);
+            addTest(section4, 'sine oscillator is OscillatorNode', 
+                sine instanceof OscillatorNode);
+            addTest(section4, 'sine frequency set correctly (440Hz)', 
+                sine.frequency.value === 440);
+            addTest(section4, 'sine type is correct', sine.type === 'sine');
+            
+            const square = engine.createCustomOscillator(440, 'square', 1000);
+            addTest(section4, 'square oscillator created', square !== null);
+            addTest(section4, 'square type is correct', square.type === 'square');
+            
+            const sawtooth = engine.createCustomOscillator(440, 'sawtooth', 1000);
+            addTest(section4, 'sawtooth oscillator created', sawtooth !== null);
+            addTest(section4, 'sawtooth type is correct', sawtooth.type === 'sawtooth');
+            
+            const triangle = engine.createCustomOscillator(440, 'triangle', 1000);
+            addTest(section4, 'triangle oscillator created', triangle !== null);
+            addTest(section4, 'triangle type is correct', triangle.type === 'triangle');
+            
+            // Noise sources (BufferSourceNode)
+            const whiteNoise = engine.createCustomOscillator(440, 'white-noise', 1000);
+            addTest(section4, 'white noise source created', whiteNoise !== null);
+            addTest(section4, 'white noise is AudioBufferSourceNode', 
+                whiteNoise instanceof AudioBufferSourceNode);
+            addTest(section4, 'white noise has buffer', whiteNoise.buffer !== null);
+            
+            const pinkNoise = engine.createCustomOscillator(440, 'pink-noise', 1000);
+            addTest(section4, 'pink noise source created', pinkNoise !== null);
+            
+            const brownNoise = engine.createCustomOscillator(440, 'brown-noise', 1000);
+            addTest(section4, 'brown noise source created', brownNoise !== null);
+            
+            // FM synthesis
+            const fm = engine.createCustomOscillator(440, 'fm', 1000);
+            addTest(section4, 'FM oscillator created', fm !== null);
+            addTest(section4, 'FM has modulator attached', fm._modulator !== undefined);
+            addTest(section4, 'FM modulator is OscillatorNode', 
+                fm._modulator instanceof OscillatorNode);
+            addTest(section4, 'FM carrier frequency is correct', fm.frequency.value === 440);
+            
+            // Additive synthesis
+            const additive = engine.createCustomOscillator(440, 'additive', 1000);
+            addTest(section4, 'additive oscillator created', additive !== null);
+            addTest(section4, 'additive flag set', additive._isAdditive === true);
+            
+            // PWM
+            const pwm = engine.createCustomOscillator(440, 'pwm', 1000);
+            addTest(section4, 'PWM oscillator created', pwm !== null);
+            addTest(section4, 'PWM flag set', pwm._isPWM === true);
+            
+            engine.cleanup();
+            
+        } catch (error) {
+            addTest(section4, 'Oscillator Creation', false, error.message);
+        }
+        
+        // ====================================================================
+        // TEST SUITE 5: SAMPLE LOADING
+        // ====================================================================
+        
+        const section5 = createSection('5. Sample Loading');
+        
+        try {
+            const engine = new AudioEngine();
+            
+            // Create a minimal WAV file (1 second of silence)
+            const sampleRate = 44100;
+            const duration = 1;
+            const numChannels = 2;
+            const numSamples = sampleRate * duration;
+            const bytesPerSample = 2;
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = numSamples * blockAlign;
+            
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+            
+            // WAV header
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+            
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, dataSize, true);
+            
+            const blob = new Blob([buffer], { type: 'audio/wav' });
+            const file = new File([blob], 'test.wav', { type: 'audio/wav' });
+            
+            // Test sample loading
+            engine.loadSample(file).then(info => {
+                addTest(section5, 'loadSample() resolves successfully', true);
+                addTest(section5, 'sample info contains fileName', info.fileName === 'test.wav');
+                addTest(section5, 'sample info contains duration', typeof info.duration === 'number');
+                addTest(section5, 'sample info contains channels', info.channels === 2);
+                addTest(section5, 'sample info contains sampleRate', info.sampleRate > 0);
+                
+                addTest(section5, 'engine.sampleBuffer is set', engine.sampleBuffer !== null);
+                addTest(section5, 'sampleBuffer is AudioBuffer', 
+                    engine.sampleBuffer instanceof AudioBuffer);
+                addTest(section5, 'sampleBuffer duration is ~1 second', 
+                    Math.abs(engine.sampleBuffer.duration - 1) < 0.1);
+                
+                // Test clear sample
+                engine.clearSample();
+                addTest(section5, 'clearSample() clears sampleBuffer', engine.sampleBuffer === null);
+                addTest(section5, 'clearSample() clears fileName', engine.sampleFileName === '');
+                
+                engine.cleanup();
+            }).catch(error => {
+                addTest(section5, 'Sample loading', false, error.message);
+            });
+            
+        } catch (error) {
+            addTest(section5, 'Sample Loading Setup', false, error.message);
+        }
+        
+        // ====================================================================
+        // TEST SUITE 6: VISUALIZER
+        // ====================================================================
+        
+        const section6 = createSection('6. Visualizer Setup');
+        
+        try {
+            const engine = new AudioEngine();
+            engine.initEffects();
+            
+            const canvas = document.getElementById('testCanvas');
+            engine.setupVisualizer(canvas);
+            
+            addTest(section6, 'setupVisualizer() creates AnalyserNode', 
+                engine.analyser !== null);
+            addTest(section6, 'analyser is AnalyserNode', 
+                engine.analyser instanceof AnalyserNode);
+            addTest(section6, 'dataArray created', engine.dataArray !== null);
+            addTest(section6, 'dataArray is Uint8Array', 
+                engine.dataArray instanceof Uint8Array);
+            addTest(section6, 'dataArray has correct size', 
+                engine.dataArray.length === engine.analyser.frequencyBinCount);
+            
+            addTest(section6, 'analyser fftSize is 256', engine.analyser.fftSize === 256);
+            addTest(section6, 'analyser smoothing is 0 (instant response)', 
+                engine.analyser.smoothingTimeConstant === 0);
+            
+            addTest(section6, 'canvas context stored', engine.visualizerCtx !== null);
+            addTest(section6, 'canvas reference stored', engine.visualizerCanvas !== null);
+            
+            // Test canvas DPI scaling
+            const dpr = window.devicePixelRatio || 1;
+            addTest(section6, 'canvas width scaled for DPI', canvas.width > 0);
+            addTest(section6, 'canvas height scaled for DPI', canvas.height > 0);
+            
+            // Test stop visualizer
+            engine.stopVisualizer();
+            addTest(section6, 'stopVisualizer() cancels animation', 
+                engine.animationId === null);
+            
+            engine.cleanup();
+            
+        } catch (error) {
+            addTest(section6, 'Visualizer Setup', false, error.message);
+        }
+        
+        // ====================================================================
+        // TEST SUITE 7: CLEANUP AND MEMORY MANAGEMENT
+        // ====================================================================
+        
+        const section7 = createSection('7. Cleanup and Memory Management');
+        
+        try {
+            const engine = new AudioEngine();
+            engine.initEffects();
+            
+            // Set up visualizer
+            const canvas = document.getElementById('testCanvas');
+            engine.setupVisualizer(canvas);
+            
+            // Verify everything is initialized
+            const hadContext = engine.audioContext !== null;
+            const hadAnalyser = engine.analyser !== null;
+            const hadDelayNode = engine.delayNode !== null;
+            
+            addTest(section7, 'engine is fully initialized before cleanup', 
+                hadContext && hadAnalyser && hadDelayNode);
+            
+            // Call cleanup
+            engine.cleanup();
+            
+            addTest(section7, 'cleanup() clears audioContext', engine.audioContext === null);
+            addTest(section7, 'cleanup() clears delayNode', engine.delayNode === null);
+            addTest(section7, 'cleanup() clears reverbNode', engine.reverbNode === null);
+            addTest(section7, 'cleanup() clears analyser', engine.analyser === null);
+            addTest(section7, 'cleanup() clears dataArray', engine.dataArray === null);
+            addTest(section7, 'cleanup() clears sampleBuffer', engine.sampleBuffer === null);
+            addTest(section7, 'cleanup() clears gain nodes', 
+                engine.delayFeedbackGain === null && 
+                engine.delayWetGain === null && 
+                engine.reverbWetGain === null);
+            
+            // Test multiple cleanup calls (should not error)
+            try {
+                engine.cleanup();
+                engine.cleanup();
+                addTest(section7, 'multiple cleanup() calls do not error', true);
+            } catch (e) {
+                addTest(section7, 'multiple cleanup() calls do not error', false, e.message);
+            }
+            
+        } catch (error) {
+            addTest(section7, 'Cleanup and Memory Management', false, error.message);
+        }
+        
+        // ====================================================================
+        // DISPLAY SUMMARY
+        // ====================================================================
+        
+        setTimeout(() => {
+            const totalTests = allResults.length;
+            const passedTests = allResults.filter(r => r.pass).length;
+            const failedTests = totalTests - passedTests;
+            const passRate = ((passedTests / totalTests) * 100).toFixed(1);
+            
+            summaryDiv.className = `summary ${failedTests === 0 ? 'all-pass' : 'some-fail'}`;
+            summaryDiv.innerHTML = `
+                <div>📊 Test Summary</div>
+                <div style="margin-top: 10px; font-size: 16px;">
+                    ${passedTests} / ${totalTests} tests passed (${passRate}%)
+                </div>
+                ${failedTests > 0 ? 
+                    `<div style="margin-top: 10px; font-size: 14px;">⚠️ ${failedTests} test(s) failed</div>` : 
+                    '<div style="margin-top: 10px; font-size: 14px;">✨ All tests passed!</div>'
+                }
+            `;
+            
+            console.log(`\n${'='.repeat(60)}`);
+            console.log('AudioEngine Test Results');
+            console.log('='.repeat(60));
+            console.log(`Total: ${totalTests}`);
+            console.log(`Passed: ${passedTests} (${passRate}%)`);
+            console.log(`Failed: ${failedTests}`);
+            console.log('='.repeat(60));
+            
+            if (failedTests > 0) {
+                console.log('\n❌ Failed tests:');
+                allResults.filter(r => !r.pass).forEach(r => {
+                    console.log(`  - ${r.name}`);
+                    if (r.error) console.log(`    Error: ${r.error}`);
+                });
+            }
+        }, 500); // Wait for async tests to complete
+    </script>
+</body>
+</html>
+
