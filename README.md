@@ -1,141 +1,318 @@
 # DataSynth
 
-Turn any dataset into sound. A flexible data sonification tool that translates multi-dimensional data (JSON, CSV, GeoJSON) into musical compositions using the Web Audio API.
+**Turn any dataset into sound.**
 
-## 🚧 Current Status: Refactoring to Modular Architecture
+DataSynth is a client-side data sonification tool that transforms JSON, CSV, and GeoJSON data into audio. Built with vanilla JavaScript, Web Audio API, and D3.js - no frameworks, no build step.
 
-**Active Version:** `json-mapper-v2.html` (3400+ lines, fully functional)  
-**In Progress:** Refactoring to ES6 modules (`index.html` + `lib/` + `main.js`)
+🔊 **[Try it live](https://data-synth-two.vercel.app)** | 📖 **[Documentation](docs/AUDIO_ENGINE_DOCUMENTATION.md)**
 
-See [`docs/REFACTOR_GUIDE.md`](docs/REFACTOR_GUIDE.md) for migration progress.
+---
 
-## ✨ What It Does
+## Features
 
-- **Universal Data Mapper:** Load any structured data and map fields to synth parameters
-- **Real-Time Data:** Sonify live earthquake feeds, weather, and more
-- **Node-Based Visualization:** See your data-to-sound mappings as interactive patch cables
-- **Dual Modes:** Synthesizer (oscillators) or Sampler (audio files)
-- **Smart Processing:** Auto-detects data ranges and applies optimal scaling
+✨ **Intelligent Mapping**
+- Auto-analyzes your data to find interesting patterns
+- Maps data fields to audio parameters (pitch, rhythm, effects)
+- Suggests optimal scaling curves based on data distribution
 
-## 🚀 Quick Start
+🎹 **Dual Sound Engines**
+- **Synthesizer:** 10 waveform types (sine, FM, noise, additive, etc.)
+- **Sampler:** Upload audio files, pitch shift and slice them with data
+
+🎛️ **Real-Time Effects**
+- Reverb (convolution)
+- Delay (with analog pitch-shifting)
+- Filter (4 types)
+- Stereo panning
+- Musical quantization
+
+📊 **Live Visualization**
+- Patch cable interface showing data→audio mappings
+- Real-time waveform display
+- Interactive node graph (hover to highlight connections)
+
+---
+
+## Quick Start
+
+### 1. Run Local Server
 
 ```bash
-python3 -m http.server 5555
+python3 -m http.server 8000
 ```
 
-Open in browser:
-- **`http://localhost:5555/json-mapper-v2.html`** - Current working version (recommended)
-- `http://localhost:5555/index.html` - New modular version (in development)
-- `http://localhost:5555/datasets/prose-embeddings-example.html` - Text-to-sound tool
+Then open: **http://localhost:8000**
 
-## 📊 Data Sources
+> **Note:** ES6 modules require HTTP (not file://) to avoid CORS errors
 
-### Built-In Datasets
-- **Earthquakes:** Real-time USGS feeds (16 different feeds by magnitude/time)
-- **Exoplanets:** 6,000+ planets with 683 data fields
-- **Weather:** Historical and forecast data
-- **Prose/Literature:** ANY text using semantic embeddings ⭐ NEW
+### 2. Load Data
 
-See **[datasets/README.md](datasets/README.md)** for complete list and guides.
+Choose from built-in datasets:
+- 🌍 **USGS Earthquakes** (real-time API)
+- 🌌 **NASA Exoplanets** (6000+ planets)
+- 📦 **Local CSV/JSON files** (drag-and-drop)
 
-### Custom Data
-Drag & drop any:
-- JSON files
-- CSV files
-- GeoJSON files
-- Your own datasets!
+Or paste any JSON/CSV URL!
 
-## 🎵 How It Works
+### 3. Play
 
-1. **Load Data:** Upload file or use built-in datasets
-2. **Map Parameters:** Connect data fields to sound parameters:
-   - Frequency, filter, reverb, pan
-   - Attack, release, detune
-   - Sample offset (sampler mode)
-3. **Play:** Hear your data as sound
-4. **Visualize:** Watch the node patch graph update in real-time
+Click **▶ Play Data** to hear your dataset as sound.
 
-## 🆕 Prose Embeddings (NEW!)
+---
 
-Convert any text into sonifiable data using **semantic embeddings**:
+## How It Works
 
 ```
-"Call me Ishmael." → [0.234, -0.891, 0.456, ...] → Sound parameters
+┌─────────────┐
+│  JSON Data  │  → Earthquake magnitude, planet mass, etc.
+└──────┬──────┘
+       │
+       ▼
+┌─────────────────────────┐
+│  Intelligent Analysis   │  → Find "interesting" fields (high variance)
+│  - Variance             │  → Suggest optimal scaling curves
+│  - Uniqueness           │  → Map to perceptually important parameters
+│  - Range                │
+└──────┬──────────────────┘
+       │
+       ▼
+┌─────────────────────────┐
+│  Parameter Mapping      │  → Magnitude → Frequency
+│  - Extract values       │  → Depth → Filter
+│  - Normalize (0-1)      │  → Latitude → Pan
+│  - Apply curves         │  → etc.
+│  - Scale to audio range │
+└──────┬──────────────────┘
+       │
+       ▼
+┌─────────────────────────┐
+│  Audio Synthesis        │  → Oscillators, samples, effects
+│  - Web Audio API        │  → Real-time processing
+│  - Effects chain        │  → Reverb → Delay → Output
+│  - Envelope (ADSR)      │
+└──────┬──────────────────┘
+       │
+       ▼
+       🔊
 ```
 
-- **Client-side processing** (no API keys needed)
-- Uses Transformers.js (all-MiniLM-L6-v2 model)
-- Captures *meaning*, not just word counts
-- Perfect for literary analysis, speeches, creative writing
+---
 
-**Try it:** Open `datasets/prose-embeddings-example.html`  
-**Learn more:** See [datasets/PROSE_EMBEDDINGS_GUIDE.md](datasets/PROSE_EMBEDDINGS_GUIDE.md)
+## Architecture
 
-## 🎹 Features
+### Modular Design
 
-- **Synthesizer Mode:** Oscillators (sine, square, sawtooth, triangle)
-- **Sampler Mode:** Load audio samples, map data to playback position
-- **Effects:** Filter, reverb, delay, panning
-- **Smart Scaling:** Auto-detects low-variance data and applies curves
-- **Rhythmic Quantization:** Snap to musical time divisions
-- **Pitch Quantization:** Force frequencies to musical scales
-- **Real-Time Visualization:** Waveform display and parameter meters
-- **Node Graph:** See data flow from sources to audio outputs
+DataSynth uses **4 ES6 modules** for clean separation of concerns:
 
-## 🛠️ Tech Stack
+```
+lib/
+├── data-processor.js     (~290 lines)  - Pure functions for data parsing
+├── parameter-mapper.js   (~461 lines)  - Intelligent mapping algorithm
+├── audio-engine.js       (~586 lines)  - Web Audio API management
+└── patch-viz.js          (~603 lines)  - D3.js visualization
+```
 
-- **Audio:** Web Audio API (native browser, no libraries)
-- **Visualization:** D3.js (node graphs), Canvas API (waveforms)
-- **Data Processing:** Vanilla JavaScript
-- **UI:** Tachyons CSS
-- **Architecture:** ES6 Modules (native, no build step)
-- **Deployment:** Static files (works on any web server)
+**Coordinated by:**
+- `main.js` - Wires modules together, handles playback loop
+- `index.html` - UI structure and styling
 
-## 📚 Documentation
+### No Build Required
 
-### User Guides
-- [datasets/README.md](datasets/README.md) - Complete dataset guide
-- [datasets/EARTHQUAKES_DATA_GUIDE.md](datasets/EARTHQUAKES_DATA_GUIDE.md) - Earthquake field descriptions
-- [datasets/EXOPLANETS_DATA_GUIDE.md](datasets/EXOPLANETS_DATA_GUIDE.md) - Exoplanet data guide
+- ✅ **ES6 modules** - Native browser imports
+- ✅ **Web Audio API** - Browser-native synthesis
+- ✅ **D3.js from CDN** - No bundler needed
+- ✅ **Tachyons CSS** - Utility-first styling
+- ✅ **Static deployment** - Works offline
 
-### Developer Guides
-- **[docs/REFACTOR_GUIDE.md](docs/REFACTOR_GUIDE.md)** - ⭐ Refactoring progress & plan
-- **[docs/ARCHITECTURE_SUMMARY.md](docs/ARCHITECTURE_SUMMARY.md)** - Architecture overview
-- [docs/AUDIO_ENGINE_DOCUMENTATION.md](docs/AUDIO_ENGINE_DOCUMENTATION.md) - Complete Web Audio API reference
-- [CHANGELOG.md](CHANGELOG.md) - Development history
-- [.cursor/rules/datasynth-dev-rules.mdc](.cursor/rules/datasynth-dev-rules.mdc) - Development guidelines
+Deploy to any static host (Vercel, Netlify, GitHub Pages, etc.)
 
-### Archived Documentation
-- [_archive/](_archive/) - Previous Next.js exploration (deprecated)
+---
 
-## 🎯 Example Use Cases
+## Tech Stack
 
-- **Data Exploration:** Hear patterns you might miss visually
-- **Literary Analysis:** Compare authors, track narrative arcs
-- **Accessibility:** Audio representation of complex datasets
-- **Art/Music:** Generate compositions from data
-- **Education:** Teach data analysis through sound
-- **Science Communication:** Make data more engaging
+| Technology | Purpose | Why |
+|------------|---------|-----|
+| **Vanilla JavaScript** | Core logic | No framework overhead |
+| **ES6 Modules** | Code organization | Browser-native, no bundler |
+| **Web Audio API** | Sound synthesis | Direct API access, low latency |
+| **D3.js** | Node graph viz | Industry standard for data viz |
+| **Canvas API** | Waveform display | Hardware-accelerated rendering |
+| **Tachyons CSS** | Styling | Utility-first, no custom CSS |
 
-## 🎨 Example Sonifications
+---
 
-**"Live Earth Symphony"** - Real-time earthquakes  
-Load: USGS feed → Map: magnitude→frequency, depth→reverb
+## Development
 
-**"Cosmic Tour"** - Exoplanets  
-Load: exoplanets.csv → Map: planet_radius→frequency, temperature→filter
+### Running Tests
 
-**"Literary Soundscape"** - Moby Dick  
-Load: Opening chapter → Embeddings → Map: dimensions→synth parameters
+```bash
+python3 -m http.server 8000
 
-**"Seismic Samples"** - Earthquake chopping  
-Load: Audio sample + earthquake data → Map: magnitude→sample offset
+# Open in browser:
+http://localhost:8000/test/data-processor.test.html
+http://localhost:8000/test/parameter-mapper.test.html
+http://localhost:8000/test/audio-engine.test.html
+http://localhost:8000/test/patch-viz.test.html
+```
 
-## 🤝 Contributing
+**Test Coverage:**
+- ✅ 77 audio-engine tests
+- ✅ 25 data-processor tests
+- ✅ 14 parameter-mapper tests
+- ✅ 8 patch-viz tests
 
-Found an interesting dataset? Create a guide following existing examples in `datasets/`.
+### Project Structure
 
-## 📝 License
+```
+datasynth/
+├── index.html              # Entry point
+├── main.js                 # Application coordinator
+├── lib/                    # Core modules
+│   ├── audio-engine.js
+│   ├── data-processor.js
+│   ├── parameter-mapper.js
+│   └── patch-viz.js
+├── test/                   # Unit tests
+├── docs/                   # Documentation
+├── datasets/               # Sample data
+└── _archive/               # Old Next.js exploration
+```
 
-MIT
+### Design Philosophy
 
+**Incremental Development**
+- Small, testable changes
+- Commit often, keep it working
+- Test continuously
+
+**Keep It Simple**
+- No frameworks (specialized tool, not a web app)
+- No build steps (use native ES6 modules)
+- No over-abstraction (solve the problem at hand)
+- Static files (maintain deployability)
+
+**Modular Architecture**
+- One module = one responsibility
+- Pure functions for data processing
+- Classes for stateful audio management
+- Clear imports/exports
+
+See **[Development Rules](.cursor/rules/datasynth-dev-rules.mdc)** for detailed guidelines.
+
+---
+
+## Documentation
+
+📖 **[Audio Engine Documentation](docs/AUDIO_ENGINE_DOCUMENTATION.md)**
+- Complete technical reference
+- Signal flow diagrams
+- Web Audio API patterns
+- Parameter mapping deep dive
+
+📖 **[Refactor Guide](docs/REFACTOR_GUIDE.md)**
+- Module extraction process
+- Testing strategy
+- Migration notes
+
+---
+
+## Datasets
+
+DataSynth works with any JSON/CSV data. Built-in options include:
+
+**🌍 Real-time APIs:**
+- USGS Earthquakes (magnitude, depth, location)
+- NASA Near-Earth Objects
+- ISS Location
+- Astronauts in Space
+
+**📦 Local Files:**
+- Earthquake archives (1600+ events)
+- NASA Exoplanets (6000+ planets)
+- Your own JSON/CSV files (drag-and-drop)
+
+See **[datasets/](datasets/)** for sample data and guides.
+
+---
+
+## Audio Parameters
+
+DataSynth can map data to 13+ audio parameters:
+
+**Synthesis:**
+- Frequency (pitch)
+- Duration (note length)
+- Note Spacing (rhythm)
+- Waveform type
+
+**Spatial:**
+- Pan (stereo position)
+- Filter frequency & resonance
+
+**Effects:**
+- Delay time, feedback, mix
+- Reverb decay, mix
+
+**Envelope:**
+- Attack, release
+
+Each parameter has:
+- Configurable min/max range
+- Curve type (linear, exponential, cubic, logarithmic, inverse)
+- Fixed fallback value
+
+---
+
+## Browser Support
+
+**Tested:**
+- ✅ Chrome/Edge 90+
+- ✅ Firefox 88+
+- ✅ Safari 14+
+
+**Requirements:**
+- Modern browser with Web Audio API support
+- JavaScript enabled
+- HTTP server (for ES6 modules)
+
+---
+
+## Contributing
+
+This is a personal learning project by [Luis Queral](https://queral.studio), but suggestions and feedback are welcome!
+
+**If you find bugs:**
+- Open an issue with steps to reproduce
+- Include browser/OS info
+- Check console for errors
+
+**If you want to contribute:**
+- Keep it simple (no frameworks)
+- Follow the design philosophy
+- Test your changes
+- Update documentation
+
+---
+
+## License
+
+MIT - Use it, learn from it, build your own!
+
+---
+
+## Credits
+
+**Created by:** Luis Queral  
+**Website:** [queral.studio](https://queral.studio)  
+**GitHub:** [@luismqueral](https://github.com/luismqueral)
+
+**Built with:**
+- Web Audio API
+- D3.js
+- Tachyons CSS
+- Earthquake data from USGS
+- Exoplanet data from NASA
+
+---
+
+*DataSynth v2.0 - Modular Architecture*
