@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parameter Mapper Module Tests</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css">
+    <style>
+        body { 
+            font-family: monospace; 
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .pass { color: green; }
+        .fail { color: red; }
+        .test { 
+            margin: 10px 0; 
+            padding: 8px 12px;
+            border-left: 3px solid #ccc;
+        }
+        .test.pass { border-left-color: green; background: #f0fff0; }
+        .test.fail { border-left-color: red; background: #fff0f0; }
+        .summary {
+            margin-top: 30px;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="f2 fw6">Parameter Mapper Module Tests</h1>
+    <p class="f5 gray mb4">Testing: lib/parameter-mapper.js</p>
+    
+    <div id="results"></div>
+    
+    <script type="module">
+        import { ParameterMapper } from '../lib/parameter-mapper.js';
+        import { extractPaths } from '../lib/data-processor.js';
+        
+        const results = [];
+        
+        // ========================================================================
+        // TEST: Initialization
+        // ========================================================================
+        
+        console.group('Testing Initialization');
+        
+        // Test 1: Create mapper instance
+        const mapper = new ParameterMapper();
+        const test1 = mapper !== null && mapper.mappings !== undefined;
+        results.push({ 
+            name: 'ParameterMapper - constructor creates instance', 
+            pass: test1 
+        });
+        
+        // Test 2: Initialize mappings
+        mapper.samplerMode = false;
+        mapper.initializeMappings();
+        const test2 = Object.keys(mapper.mappings).length > 0;
+        results.push({ 
+            name: 'ParameterMapper - initializeMappings() creates mappings', 
+            pass: test2,
+            detail: test2 ? `Created ${Object.keys(mapper.mappings).length} mappings` : 'No mappings created'
+        });
+        
+        console.groupEnd();
+        
+        // ========================================================================
+        // TEST: getAudioParams()
+        // ========================================================================
+        
+        console.group('Testing getAudioParams()');
+        
+        // Test 3: Synthesizer mode parameters
+        mapper.samplerMode = false;
+        const synthParams = mapper.getAudioParams();
+        const test3 = synthParams.length > 0 && 
+                     synthParams.some(p => p.id === 'frequency');
+        results.push({ 
+            name: 'getAudioParams - synthesizer mode includes frequency', 
+            pass: test3,
+            detail: test3 ? `${synthParams.length} synth parameters` : 'Frequency parameter missing'
+        });
+        
+        // Test 4: Sampler mode parameters
+        mapper.samplerMode = true;
+        const samplerParams = mapper.getAudioParams();
+        const test4 = samplerParams.length > 0 && 
+                     samplerParams.some(p => p.id === 'pitch') &&
+                     samplerParams.some(p => p.id === 'sampleOffset');
+        results.push({ 
+            name: 'getAudioParams - sampler mode includes pitch and sampleOffset', 
+            pass: test4,
+            detail: test4 ? `${samplerParams.length} sampler parameters` : 'Pitch/offset missing'
+        });
+        
+        // Test 5: Both modes have common parameters
+        const test5 = synthParams.some(p => p.id === 'pan') &&
+                     samplerParams.some(p => p.id === 'pan');
+        results.push({ 
+            name: 'getAudioParams - both modes include common params (pan, delay, etc)', 
+            pass: test5 
+        });
+        
+        console.groupEnd();
+        
+        // ========================================================================
+        // TEST: intelligentMapping()
+        // ========================================================================
+        
+        console.group('Testing intelligentMapping()');
+        
+        // Create test data with varying characteristics
+        const testData = [
+            { 
+                highVariance: 1, 
+                lowVariance: 99.1, 
+                midVariance: 50,
+                constant: 42 
+            },
+            { 
+                highVariance: 100, 
+                lowVariance: 99.2, 
+                midVariance: 60,
+                constant: 42 
+            },
+            { 
+                highVariance: 1000, 
+                lowVariance: 99.3, 
+                midVariance: 70,
+                constant: 42 
+            }
+        ];
+        
+        const paths = extractPaths(testData);
+        const numericPaths = paths.filter(p => p.type === 'number');
+        
+        // Test 6: Intelligent mapping creates mappings
+        mapper.samplerMode = false;
+        mapper.initializeMappings();
+        mapper.intelligentMapping(testData, numericPaths);
+        
+        const hasMappings = Object.values(mapper.mappings).some(m => m.path !== '');
+        const test6 = hasMappings;
+        results.push({ 
+            name: 'intelligentMapping - creates mappings from data', 
+            pass: test6,
+            detail: test6 ? `Mapped ${Object.values(mapper.mappings).filter(m => m.path).length} parameters` : 'No mappings created'
+        });
+        
+        // Test 7: High variance data mapped to critical params
+        const criticalMapped = mapper.mappings['frequency']?.path || 
+                              mapper.mappings['noteSpacing']?.path ||
+                              mapper.mappings['duration']?.path;
+        const test7 = criticalMapped !== undefined && criticalMapped !== '';
+        results.push({ 
+            name: 'intelligentMapping - maps data to critical parameters', 
+            pass: test7,
+            detail: test7 ? `Critical param mapped to: ${criticalMapped}` : 'No critical mappings'
+        });
+        
+        // Test 8: Curve selection based on variance
+        const lowVarMapping = Object.values(mapper.mappings).find(m => m.path === 'lowVariance');
+        const test8 = lowVarMapping && 
+                     (lowVarMapping.curve === 'cubic' || lowVarMapping.curve === 'exponential');
+        results.push({ 
+            name: 'intelligentMapping - low variance gets cubic/exponential curve', 
+            pass: test8,
+            detail: test8 ? `lowVariance → ${lowVarMapping.curve}` : 'Wrong curve for low variance'
+        });
+        
+        console.groupEnd();
+        
+        // ========================================================================
+        // TEST: Randomization
+        // ========================================================================
+        
+        console.group('Testing Randomization');
+        
+        // Test 9: randomizeMappings changes paths
+        const mapper2 = new ParameterMapper();
+        mapper2.samplerMode = false;
+        mapper2.initializeMappings();
+        
+        const originalPaths = { ...mapper2.mappings };
+        mapper2.randomizeMappings(numericPaths);
+        
+        const pathsChanged = Object.keys(mapper2.mappings).some(key => 
+            mapper2.mappings[key].path !== originalPaths[key].path
+        );
+        const test9 = pathsChanged;
+        results.push({ 
+            name: 'randomizeMappings - changes mapped paths', 
+            pass: test9,
+            detail: test9 ? 'Paths randomized successfully' : 'Paths unchanged'
+        });
+        
+        // Test 10: randomizeRanges changes min/max
+        const mapper3 = new ParameterMapper();
+        mapper3.samplerMode = false;
+        mapper3.initializeMappings();
+        
+        const originalRanges = JSON.stringify(mapper3.mappings);
+        mapper3.randomizeRanges();
+        const rangesChanged = JSON.stringify(mapper3.mappings) !== originalRanges;
+        
+        const test10 = rangesChanged;
+        results.push({ 
+            name: 'randomizeRanges - changes min/max values', 
+            pass: test10,
+            detail: test10 ? 'Ranges randomized successfully' : 'Ranges unchanged'
+        });
+        
+        // Test 11: randomizeAll changes both
+        const mapper4 = new ParameterMapper();
+        mapper4.samplerMode = false;
+        mapper4.initializeMappings();
+        
+        const originalAll = JSON.stringify(mapper4.mappings);
+        mapper4.randomizeAll(numericPaths);
+        const allChanged = JSON.stringify(mapper4.mappings) !== originalAll;
+        
+        const test11 = allChanged;
+        results.push({ 
+            name: 'randomizeAll - changes paths and ranges', 
+            pass: test11 
+        });
+        
+        console.groupEnd();
+        
+        // ========================================================================
+        // TEST: Mode Switching
+        // ========================================================================
+        
+        console.group('Testing Mode Switching');
+        
+        // Test 12: Different params for different modes
+        const mapper5 = new ParameterMapper();
+        
+        mapper5.samplerMode = false;
+        const synthParams2 = mapper5.getAudioParams();
+        
+        mapper5.samplerMode = true;
+        const samplerParams2 = mapper5.getAudioParams();
+        
+        const test12 = synthParams2.some(p => p.id === 'frequency') &&
+                      !samplerParams2.some(p => p.id === 'frequency') &&
+                      samplerParams2.some(p => p.id === 'pitch');
+        results.push({ 
+            name: 'getAudioParams - returns different params for different modes', 
+            pass: test12,
+            detail: test12 ? 'Synth has frequency, Sampler has pitch' : 'Mode switching failed'
+        });
+        
+        console.groupEnd();
+        
+        // ========================================================================
+        // INTEGRATION TEST: Real Earthquake Data
+        // ========================================================================
+        
+        console.group('Integration Test: Earthquake Data');
+        
+        // Load real earthquake data
+        try {
+            const response = await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson');
+            const geojson = await response.json();
+            const earthquakeData = geojson.features;
+            
+            const eqPaths = extractPaths(earthquakeData);
+            const eqNumericPaths = eqPaths.filter(p => p.type === 'number');
+            
+            // Test 13: Intelligent mapping works with real data
+            const mapper6 = new ParameterMapper();
+            mapper6.samplerMode = false;
+            mapper6.initializeMappings();
+            mapper6.intelligentMapping(earthquakeData, eqNumericPaths);
+            
+            const eqMappingsCount = Object.values(mapper6.mappings).filter(m => m.path).length;
+            const test13 = eqMappingsCount > 0;
+            results.push({ 
+                name: 'intelligentMapping - works with real earthquake data', 
+                pass: test13,
+                detail: test13 ? `Mapped ${eqMappingsCount} parameters from earthquake data` : 'Mapping failed'
+            });
+            
+            // Test 14: Critical parameters mapped
+            const hasCritical = mapper6.mappings['frequency']?.path || 
+                               mapper6.mappings['noteSpacing']?.path;
+            const test14 = hasCritical;
+            results.push({ 
+                name: 'intelligentMapping - maps to critical parameters first', 
+                pass: test14,
+                detail: test14 ? 'Critical parameters have mappings' : 'Critical params not mapped'
+            });
+            
+        } catch (error) {
+            console.error('Integration test error:', error);
+            results.push({ 
+                name: 'intelligentMapping - works with real earthquake data', 
+                pass: false,
+                detail: error.message
+            });
+        }
+        
+        console.groupEnd();
+        
+        // ========================================================================
+        // DISPLAY RESULTS
+        // ========================================================================
+        
+        const resultsDiv = document.getElementById('results');
+        results.forEach(result => {
+            const div = document.createElement('div');
+            div.className = `test ${result.pass ? 'pass' : 'fail'}`;
+            
+            const icon = result.pass ? '✅' : '❌';
+            let content = `${icon} ${result.name}`;
+            if (result.detail) {
+                content += `<br><span style="font-size: 12px; color: #666; margin-left: 20px;">${result.detail}</span>`;
+            }
+            
+            div.innerHTML = content;
+            resultsDiv.appendChild(div);
+        });
+        
+        const passed = results.filter(r => r.pass).length;
+        const total = results.length;
+        const allPassed = passed === total;
+        
+        const summary = document.createElement('div');
+        summary.className = `summary ${allPassed ? 'pass' : 'fail'}`;
+        summary.style.borderLeft = `5px solid ${allPassed ? 'green' : 'red'}`;
+        summary.innerHTML = `
+            <div>${passed}/${total} tests passed</div>
+            <div style="font-size: 14px; font-weight: normal; margin-top: 8px;">
+                ${allPassed ? '🎉 All tests passing! Parameter mapper is working correctly.' : '⚠️ Some tests failed. Check console for details.'}
+            </div>
+        `;
+        resultsDiv.appendChild(summary);
+        
+        // Console summary
+        console.log('\n' + '='.repeat(50));
+        console.log(`TEST SUMMARY: ${passed}/${total} passed`);
+        console.log('='.repeat(50));
+        
+        if (!allPassed) {
+            console.error('Failed tests:');
+            results.filter(r => !r.pass).forEach(r => {
+                console.error(`  ❌ ${r.name}`);
+            });
+        } else {
+            console.log('✅ All tests passed!');
+        }
+    </script>
+</body>
+</html>
+

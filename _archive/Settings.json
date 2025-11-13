@@ -1,0 +1,531 @@
+{
+  "directory": "Settings",
+  "path": "Newsreader/Settings",
+  "timestamp": "2025-10-28T16:54:13.300471",
+  "files_scanned": 71,
+  "files_with_typography": 24,
+  "total_occurrences": 50,
+  "opportunities_reported": 50,
+  "completeness_percent": 100.0,
+  "opportunities": [
+    {
+      "file": "Newsreader/Settings/SettingsFlowCoordinator.swift",
+      "lines": "911",
+      "type": "typography",
+      "category": "explicit_non_adoption",
+      "description": "Navigation title attributed string sets a direct UIFont.franklinBold(18.0, dynamicType: .disabled) instead of using TPL typography token.",
+      "current_implementation": ".font: UIFont.franklinBold(18.0, dynamicType: .disabled)",
+      "suggested_tpl_component": ".typography(.tpl.title18)"
+    },
+    {
+      "file": "Newsreader/Settings/About Page/AboutPageView.swift",
+      "lines": "46",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "Section header Text uses app theme font (Current.theme.tableView.sectionTitleFont) rather than a TPL typography token.",
+      "current_implementation": ".font(Current.theme.tableView.sectionTitleFont)",
+      "suggested_tpl_component": ".typography(.tpl.labelEmphasis) // or .typography(.tpl.title12) depending on desired size/weight"
+    },
+    {
+      "file": "Newsreader/Settings/Notification Settings/NotificationChannelToggleView.swift",
+      "lines": "37",
+      "type": "typography",
+      "category": "explicit_non_adoption",
+      "description": "Primary toggle label uses a direct custom font .franklinBold(16) instead of TPL typography token.",
+      "current_implementation": ".font(.franklinBold(16))",
+      "suggested_tpl_component": ".typography(.tpl.title16)"
+    },
+    {
+      "file": "Newsreader/Settings/Notification Settings/NotificationChannelToggleView.swift",
+      "lines": "42",
+      "type": "typography",
+      "category": "explicit_non_adoption",
+      "description": "Secondary toggle description uses a direct custom font .franklinMedium(15) instead of TPL typography token.",
+      "current_implementation": ".font(.franklinMedium(15))",
+      "suggested_tpl_component": ".typography(.tpl.text16)"
+    },
+    {
+      "file": "Newsreader/Settings/Notification Settings/NotificationSettingsView.swift",
+      "lines": "45",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "CTA Button applies an app theme font (Current.theme.notifications.callToActionFont) instead of a TPL token.",
+      "current_implementation": ".font(Current.theme.notifications.callToActionFont)",
+      "suggested_tpl_component": ".typography(.tpl.title16) // use appropriate TPL CTA token"
+    },
+    {
+      "file": "Newsreader/Settings/Notification Settings/NotificationSettingsView.swift",
+      "lines": "58",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "Section header Text uses Current.theme.notifications.headerFont rather than a TPL typography token.",
+      "current_implementation": ".font(Current.theme.notifications.headerFont)",
+      "suggested_tpl_component": ".typography(.tpl.title16)"
+    },
+    {
+      "file": "Newsreader/Settings/Views/CaptionedImageView.swift",
+      "lines": "20",
+      "type": "typography",
+      "category": "explicit_non_adoption",
+      "description": "Caption text uses a custom Cheltenham font with size 11 (.cheltenhamShortRegular(11)) \u2014 direct custom font usage should migrate to TPL tokens.",
+      "current_implementation": ".font(.cheltenhamShortRegular(11))",
+      "suggested_tpl_component": ".typography(.tpl.text12)"
+    },
+    {
+      "file": "Newsreader/Settings/Views/CaptionedImageView.swift",
+      "lines": "22",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "Caption also applies system .caption style rather than a TPL token.",
+      "current_implementation": ".font(.caption)",
+      "suggested_tpl_component": ".typography(.tpl.labelRegular)"
+    },
+    {
+      "file": "Newsreader/Settings/Views/LightStandardTextView.swift",
+      "lines": "10",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "Cell text uses app theme font (Current.theme.settings.cellTextFont) instead of mapping to a TPL token.",
+      "current_implementation": ".font(Current.theme.settings.cellTextFont)",
+      "suggested_tpl_component": ".typography(.tpl.text16)"
+    },
+    {
+      "file": "Newsreader/Settings/Views/SingleLineDetailView.swift",
+      "lines": "12",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "Title Text uses Current.theme.settings.cellTextFont instead of a TPL token.",
+      "current_implementation": ".font(Current.theme.settings.cellTextFont)",
+      "suggested_tpl_component": ".typography(.tpl.text16)"
+    },
+    {
+      "file": "Newsreader/Settings/Views/SingleLineDetailView.swift",
+      "lines": "17",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "Detail Text uses Current.theme.settings.cellTextFont rather than a TPL token.",
+      "current_implementation": ".font(Current.theme.settings.cellTextFont)",
+      "suggested_tpl_component": ".typography(.tpl.text16)"
+    },
+    {
+      "file": "Newsreader/Settings/Views/DisclosureStandardTextView.swift",
+      "lines": "11",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "Disclosure row title uses Current.theme.settings.cellTextFont instead of a TPL token.",
+      "current_implementation": ".font(Current.theme.settings.cellTextFont)",
+      "suggested_tpl_component": ".typography(.tpl.text16)"
+    },
+    {
+      "file": "Newsreader/Settings/Views/DisclosureStandardTextView.swift",
+      "lines": "18",
+      "type": "typography",
+      "category": "explicit_non_adoption",
+      "description": "Chevron Image uses a system font with explicit size and weight (.system(size:13, weight:.semibold)) instead of a TPL label token.",
+      "current_implementation": ".font(.system(size: 13, weight: .semibold, design: .default))",
+      "suggested_tpl_component": ".typography(.tpl.labelEmphasis) // use of TPL label emphasis for small semibold labels"
+    },
+    {
+      "file": "Newsreader/Settings/Views/IconTextView.swift",
+      "lines": "25",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "IconTextView title uses Current.theme.settings.cellTextFont rather than TPL typography token.",
+      "current_implementation": ".font(Current.theme.settings.cellTextFont)",
+      "suggested_tpl_component": ".typography(.tpl.text16)"
+    },
+    {
+      "file": "Newsreader/Settings/User Settings/Data Usage/DataUsageSettingsView.swift",
+      "lines": "23",
+      "type": "typography",
+      "category": "full_adoption",
+      "description": "Footer Text uses TPL token text14 via .typography(.tpl.text14) \u2014 correct TPL usage.",
+      "current_implementation": ".typography(.tpl.text14)",
+      "suggested_tpl_component": "N/A (already correct)"
+    },
+    {
+      "file": "Newsreader/Settings/User Settings/Data Usage/DataUsageSettingsView.swift",
+      "lines": "34",
+      "type": "typography",
+      "category": "full_adoption",
+      "description": "Footer Text uses TPL token text14 via .typography(.tpl.text14) \u2014 correct TPL usage.",
+      "current_implementation": ".typography(.tpl.text14)",
+      "suggested_tpl_component": "N/A (already correct)"
+    },
+    {
+      "file": "Newsreader/Settings/User Settings/Data Usage/DataUsageSettingsView.swift",
+      "lines": "47",
+      "type": "typography",
+      "category": "full_adoption",
+      "description": "List-level typography uses TPL token text16 via .typography(.tpl.text16) \u2014 correct TPL usage.",
+      "current_implementation": ".typography(.tpl.text16)",
+      "suggested_tpl_component": "N/A (already correct)"
+    },
+    {
+      "file": "Newsreader/Settings/User Settings/Display Settings/UserSettingsLabelCellViewModel.swift",
+      "lines": "22",
+      "type": "typography",
+      "category": "explicit_non_adoption",
+      "description": "NSAttributedString attributes use UIFont.franklinMedium(14) (direct UIFont) \u2014 should use TPL typography tokens for attributed strings.",
+      "current_implementation": ".font: UIFont.franklinMedium(14)",
+      "suggested_tpl_component": "NSAttributedString.attributed(.tpl.text14) or use .attributed(.tpl.text14) for the normal text and apply TPL token for attributed strings"
+    },
+    {
+      "file": "Newsreader/Settings/User Settings/Display Settings/UserSettingsLabelCellViewModel.swift",
+      "lines": "28",
+      "type": "typography",
+      "category": "explicit_non_adoption",
+      "description": "NSAttributedString bold attributes use UIFont.franklinBold(14) \u2014 direct font usage instead of TPL token.",
+      "current_implementation": ".font: UIFont.franklinBold(14)",
+      "suggested_tpl_component": "NSAttributedString.attributed(.tpl.title14) // use a TPL emphasis/title14 token for bolded inline text"
+    },
+    {
+      "file": "Newsreader/Settings/User Settings/Display Settings/UserSettingsPreviewCellViewModel.swift",
+      "lines": "19",
+      "type": "typography",
+      "category": "explicit_non_adoption",
+      "description": "Headline NSAttributedString uses a custom Karnak/Cheltenham bold at 21pt (UIFont.cheltenhamBold(21.0)) \u2014 direct font usage should be mapped to a TPL headline token.",
+      "current_implementation": ".font: UIFont.cheltenhamBold(21.0)",
+      "suggested_tpl_component": "NSAttributedString.attributed(.tpl.headline24) // closest TPL headline token"
+    },
+    {
+      "file": "Newsreader/Settings/User Settings/Display Settings/UserSettingsPreviewCellViewModel.swift",
+      "lines": "33",
+      "type": "typography",
+      "category": "explicit_non_adoption",
+      "description": "Summary NSAttributedString uses UIFont.imperialRegular(16.0) \u2014 custom font mapping should migrate to TPL body token.",
+      "current_implementation": ".font: UIFont.imperialRegular(16.0)",
+      "suggested_tpl_component": "NSAttributedString.attributed(.tpl.body16)"
+    },
+    {
+      "file": "Newsreader/Settings/User Settings/Display Settings/UserSettingsPreviewCellViewModel.swift",
+      "lines": "44",
+      "type": "typography",
+      "category": "explicit_non_adoption",
+      "description": "Attributed string modifies a range with UIFont.franklinMedium(13.0) (direct UIFont) \u2014 should use a TPL token for inline attributed fonts.",
+      "current_implementation": "attributedString.addAttribute(.font, value: UIFont.franklinMedium(13.0), range: ... )",
+      "suggested_tpl_component": "attributedString = attributedString.attributed(.tpl.text14) // or .tpl.labelRegular for small inline text"
+    },
+    {
+      "file": "Newsreader/Settings/User Settings/Autoplay Preferences/AutoplayPreferencesView.swift",
+      "lines": "24",
+      "type": "typography",
+      "category": "full_adoption",
+      "description": "List content uses TPL token text16 via .typography(.tpl.text16) \u2014 correct usage.",
+      "current_implementation": ".typography(.tpl.text16)",
+      "suggested_tpl_component": "N/A (already correct)"
+    },
+    {
+      "file": "Newsreader/Settings/User Settings/Autoplay Preferences/AutoplayPreferencesView.swift",
+      "lines": "39",
+      "type": "typography",
+      "category": "full_adoption",
+      "description": "Section header uses TPL token title16 via .typography(.tpl.title16) \u2014 correct usage.",
+      "current_implementation": ".typography(.tpl.title16)",
+      "suggested_tpl_component": "N/A (already correct)"
+    },
+    {
+      "file": "Newsreader/Settings/User Settings/Autoplay Preferences/AutoplayPreferencesView.swift",
+      "lines": "42",
+      "type": "typography",
+      "category": "full_adoption",
+      "description": "Body explanatory text uses TPL token text16 via .typography(.tpl.text16) \u2014 correct usage.",
+      "current_implementation": ".typography(.tpl.text16)",
+      "suggested_tpl_component": "N/A (already correct)"
+    },
+    {
+      "file": "Newsreader/Settings/User Settings/Autoplay Preferences/AutoplayPreferencesView.swift",
+      "lines": "50",
+      "type": "typography",
+      "category": "full_adoption",
+      "description": "Toggle label uses TPL token text16 via .typography(.tpl.text16) \u2014 correct usage.",
+      "current_implementation": ".typography(.tpl.text16)",
+      "suggested_tpl_component": "N/A (already correct)"
+    },
+    {
+      "file": "Newsreader/Settings/User Settings/Autoplay Preferences/AutoplayPreferencesView.swift",
+      "lines": "61",
+      "type": "typography",
+      "category": "full_adoption",
+      "description": "Section header uses TPL token title16 via .typography(.tpl.title16) \u2014 correct usage.",
+      "current_implementation": ".typography(.tpl.title16)",
+      "suggested_tpl_component": "N/A (already correct)"
+    },
+    {
+      "file": "Newsreader/Settings/Beta Settings/Content/BetaSettingsView+ReturnHome.swift",
+      "lines": "32",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": ".font(.footnote) is used on Picker labels instead of a TPL token.",
+      "current_implementation": ".font(.footnote)",
+      "suggested_tpl_component": ".typography(.tpl.text12)"
+    },
+    {
+      "file": "Newsreader/Settings/User Settings/Beta Settings/Content/BetaSettingsView+Marketing.swift",
+      "lines": "98",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": ".font(.footnote) is used in marketing Beta settings content instead of a TPL token.",
+      "current_implementation": ".font(.footnote)",
+      "suggested_tpl_component": ".typography(.tpl.text12)"
+    },
+    {
+      "file": "Newsreader/Settings/User Settings/Beta Settings/Content/BetaSettingsView+Marketing.swift",
+      "lines": "110",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": ".font(.footnote) is used in marketing Beta settings content instead of a TPL token.",
+      "current_implementation": ".font(.footnote)",
+      "suggested_tpl_component": ".typography(.tpl.text12)"
+    },
+    {
+      "file": "Newsreader/Settings/Beta Settings/Content/BetaSettingsView+ListenTab.swift",
+      "lines": "82",
+      "type": "typography",
+      "category": "full_adoption",
+      "description": "Uses TPL token text12 via .typography(.tpl.text12) for explanatory Text \u2014 correct TPL usage.",
+      "current_implementation": ".typography(.tpl.text12)",
+      "suggested_tpl_component": "N/A (already correct)"
+    },
+    {
+      "file": "Newsreader/Settings/Beta Settings/Content/BetaSettingsView+ListenTab.swift",
+      "lines": "126",
+      "type": "typography",
+      "category": "full_adoption",
+      "description": "Uses TPL token text12 via .typography(.tpl.text12) for explanatory Text \u2014 correct TPL usage.",
+      "current_implementation": ".typography(.tpl.text12)",
+      "suggested_tpl_component": "N/A (already correct)"
+    },
+    {
+      "file": "Newsreader/Settings/Beta Settings/Content/BetaSettingsView+ListenTab.swift",
+      "lines": "147",
+      "type": "typography",
+      "category": "full_adoption",
+      "description": "Uses TPL token text12 via .typography(.tpl.text12) for explanatory Text \u2014 correct TPL usage.",
+      "current_implementation": ".typography(.tpl.text12)",
+      "suggested_tpl_component": "N/A (already correct)"
+    },
+    {
+      "file": "Newsreader/Settings/Beta Settings/Content/BetaSettingsView+ListenTab.swift",
+      "lines": "171",
+      "type": "typography",
+      "category": "full_adoption",
+      "description": "Uses TPL token text12 via .typography(.tpl.text12) for explanatory Text \u2014 correct TPL usage.",
+      "current_implementation": ".typography(.tpl.text12)",
+      "suggested_tpl_component": "N/A (already correct)"
+    },
+    {
+      "file": "Newsreader/Settings/Beta Settings/Content/BetaSettingsView+PlayTab.swift",
+      "lines": "50",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "Picker items use .font(.footnote) rather than a TPL token.",
+      "current_implementation": ".font(.footnote)",
+      "suggested_tpl_component": ".typography(.tpl.text12)"
+    },
+    {
+      "file": "Newsreader/Settings/Beta Settings/Content/BetaSettingsView+PlayTab.swift",
+      "lines": "137",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "Picker items in custom picker helper use .font(.footnote) instead of TPL tokens.",
+      "current_implementation": ".font(.footnote)",
+      "suggested_tpl_component": ".typography(.tpl.text12)"
+    },
+    {
+      "file": "Newsreader/Settings/Beta Settings/Content/BetaSettingsView+Notifications.swift",
+      "lines": "38",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "Picker rows use .font(.footnote) rather than mapping to a TPL token.",
+      "current_implementation": ".font(.footnote)",
+      "suggested_tpl_component": ".typography(.tpl.text12)"
+    },
+    {
+      "file": "Newsreader/Settings/Beta Settings/Content/BetaSettingsView+CrossProductNavigation.swift",
+      "lines": "38",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "Picker label uses explicit .font(.body) instead of a TPL body token.",
+      "current_implementation": "label: Text(\"Environment\").font(.body)",
+      "suggested_tpl_component": ".typography(.tpl.body16)"
+    },
+    {
+      "file": "Newsreader/Settings/Beta Settings/Content/BetaSettingsView+CrossProductNavigation.swift",
+      "lines": "42",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "Picker rows use .font(.footnote) rather than a TPL token.",
+      "current_implementation": ".font(.footnote)",
+      "suggested_tpl_component": ".typography(.tpl.text12)"
+    },
+    {
+      "file": "Newsreader/Settings/Beta Settings/Content/MessagesView.swift",
+      "lines": "232",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "AB test debug Text uses a system caption2 font (.font(.caption2)) instead of a TPL token.",
+      "current_implementation": "Text(\"\\nAB Test Name: ... \\nAB Test Variant: ...\").font(.caption2)",
+      "suggested_tpl_component": ".typography(.tpl.text12)"
+    },
+    {
+      "file": "Newsreader/Settings/Beta Settings/Content/MessagesView.swift",
+      "lines": "241",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "Message ID Text uses .font(.caption) and .bold() (system caption) instead of a TPL token.",
+      "current_implementation": "Text(\"\\($0.message.id)\\n\").font(.caption).bold()",
+      "suggested_tpl_component": ".typography(.tpl.labelEmphasis)"
+    },
+    {
+      "file": "Newsreader/Settings/Beta Settings/Content/MessagesView.swift",
+      "lines": "242",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "Message date Text uses .font(.caption2) rather than TPL tokens.",
+      "current_implementation": "Text(\"Earliest available by: \\($0.displayDate)\").font(.caption2)",
+      "suggested_tpl_component": ".typography(.tpl.text12)"
+    },
+    {
+      "file": "Newsreader/Settings/Beta Settings/Content/BetaSettingsView+Content.swift",
+      "lines": "148",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "Content uses .font(.body) instead of a TPL body token.",
+      "current_implementation": ".font(.body)",
+      "suggested_tpl_component": ".typography(.tpl.body16)"
+    },
+    {
+      "file": "Newsreader/Settings/Beta Settings/Content/BetaSettingsView+Content.swift",
+      "lines": "152",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "Content uses .font(.footnote) rather than a TPL token for small helper text.",
+      "current_implementation": ".font(.footnote)",
+      "suggested_tpl_component": ".typography(.tpl.text12)"
+    },
+    {
+      "file": "Newsreader/Settings/Beta Settings/Content/BetaSettingsView+Content.swift",
+      "lines": "170",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "Content uses .font(.body) instead of TPL body tokens.",
+      "current_implementation": ".font(.body)",
+      "suggested_tpl_component": ".typography(.tpl.body16)"
+    },
+    {
+      "file": "Newsreader/Settings/Beta Settings/Content/BetaSettingsView+Content.swift",
+      "lines": "174",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "Content uses .font(.footnote) instead of a TPL small text token.",
+      "current_implementation": ".font(.footnote)",
+      "suggested_tpl_component": ".typography(.tpl.text12)"
+    },
+    {
+      "file": "Newsreader/Settings/Beta Settings/Content/BetaSettingsView+RemoteDataCoordinator.swift",
+      "lines": "35",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": "Uses .font(.footnote) in remote data coordinator UI content instead of a TPL token.",
+      "current_implementation": ".font(.footnote)",
+      "suggested_tpl_component": ".typography(.tpl.text12)"
+    },
+    {
+      "file": "Newsreader/Settings/Beta Settings/Content/BetaSettingsView+MeterAdditions.swift",
+      "lines": "61",
+      "type": "typography",
+      "category": "compliant_non_adoption",
+      "description": ".font(.footnote) is used for meter-related UI text instead of TPL token.",
+      "current_implementation": ".font(.footnote)",
+      "suggested_tpl_component": ".typography(.tpl.text12)"
+    },
+    {
+      "file": "Newsreader/Settings/Cells/Switch Cell/SwitchCell.swift",
+      "lines": "83",
+      "type": "typography",
+      "category": "explicit_non_adoption",
+      "description": "UILabel titleLabel assigned a direct UIFont.franklinMedium(17.0) \u2014 direct UIFont usage instead of TPL typography.",
+      "current_implementation": "titleLabel.font = UIFont.franklinMedium(17.0)",
+      "suggested_tpl_component": ".typography(.tpl.text16) // use TPL token for programmatic UILabel via attributed string or set font via .attributed(.tpl.text16)"
+    },
+    {
+      "file": "Newsreader/Settings/Cells/Switch Cell/SwitchCell.swift",
+      "lines": "97",
+      "type": "typography",
+      "category": "explicit_non_adoption",
+      "description": "A smaller label uses UIFont.franklinMedium(11.0) (direct UIFont) \u2014 migrate to TPL token.",
+      "current_implementation": ".font: UIFont.franklinMedium(11.0)",
+      "suggested_tpl_component": "Use NSAttributedString.attributed(.tpl.text12) or .tpl.labelRegular for small cell labels"
+    }
+  ],
+  "patterns": [
+    {
+      "pattern": "Direct UIFont calls (franklin*, cheltenham*, imperial*)",
+      "description": "Multiple files create NSAttributedString or set UILabel.font with explicit UIFont families and sizes (e.g., UIFont.franklinBold(18), UIFont.cheltenhamBold(21), UIFont.imperialRegular(16)). These are scattered across SettingsFlowCoordinator, UserSettingsPreviewCellViewModel, UserSettingsLabelCellViewModel, SwitchCell, and CaptionedImageView.",
+      "files": [
+        "Newsreader/Settings/SettingsFlowCoordinator.swift",
+        "Newsreader/Settings/User Settings/Display Settings/UserSettingsPreviewCellViewModel.swift",
+        "Newsreader/Settings/User Settings/Display Settings/UserSettingsLabelCellViewModel.swift",
+        "Newsreader/Settings/Cells/Switch Cell/SwitchCell.swift",
+        "Newsreader/Settings/Views/CaptionedImageView.swift"
+      ],
+      "occurrences": 13,
+      "recommendation": "Replace direct UIFont usage with TPL typography tokens via .typography(.tpl.<token>) for SwiftUI Text and .attributed(.tpl.<token>) or set attributed strings using TPL tokens for UILabel/NSAttributedString. Map sizes to closest TPL tokens (e.g., franklinBold(18) -> .tpl.title18, cheltenhamBold(21) -> .tpl.headline24, imperialRegular(16) -> .tpl.body16).",
+      "impact": "high",
+      "effort": "medium"
+    },
+    {
+      "pattern": "App theme fonts (Current.theme.*) used instead of TPL tokens",
+      "description": "Many SwiftUI views reference Current.theme.* fonts for cells, notifications, and table view section titles rather than TPL tokens.",
+      "files": [
+        "Newsreader/Settings/About Page/AboutPageView.swift",
+        "Newsreader/Settings/Notification Settings/NotificationSettingsView.swift",
+        "Newsreader/Settings/Views/LightStandardTextView.swift",
+        "Newsreader/Settings/Views/SingleLineDetailView.swift",
+        "Newsreader/Settings/Views/DisclosureStandardTextView.swift",
+        "Newsreader/Settings/Views/IconTextView.swift"
+      ],
+      "occurrences": 7,
+      "recommendation": "Audit Current.theme font mappings and replace direct uses with the corresponding .typography(.tpl.<token>) calls throughout SwiftUI views. Where Current.theme must remain (UIKit), set fonts via NSAttributedString.attributed(.tpl.<token>) or unify Current.theme to derive from TPL tokens.",
+      "impact": "medium",
+      "effort": "medium"
+    },
+    {
+      "pattern": "Use of SwiftUI system semantic fonts (.body, .footnote, .caption, .caption2, .system(size:))",
+      "description": "Multiple Picker/Label/Debug views use SwiftUI system fonts like .font(.footnote), .font(.body), .font(.caption2) and explicit .system(size:..., weight: ...). These are not using TPL tokens.",
+      "files": [
+        "Newsreader/Settings/Beta Settings/Content/*",
+        "Newsreader/Settings/Beta Settings/Content/MessagesView.swift",
+        "Newsreader/Settings/Views/DisclosureStandardTextView.swift"
+      ],
+      "occurrences": 20,
+      "recommendation": "Replace semantic system font usages with the appropriate TPL tokens (e.g., .font(.footnote) -> .typography(.tpl.text12), .font(.body) -> .typography(.tpl.body16), .font(.caption/.caption2) -> .typography(.tpl.text12) or .tpl.labelRegular). For explicit .system(size:) usages use a mapped TPL token.",
+      "impact": "medium",
+      "effort": "low"
+    },
+    {
+      "pattern": "Correct TPL usage present (.typography(.tpl.*))",
+      "description": "Several files already use .typography(.tpl.*) tokens (text12, text14, text16, title16), mainly in DataUsageSettingsView, AutoplayPreferencesView, and ListenTab Beta content.",
+      "files": [
+        "Newsreader/Settings/User Settings/Data Usage/DataUsageSettingsView.swift",
+        "Newsreader/Settings/User Settings/Autoplay Preferences/AutoplayPreferencesView.swift",
+        "Newsreader/Settings/Beta Settings/Content/BetaSettingsView+ListenTab.swift"
+      ],
+      "occurrences": 8,
+      "recommendation": "Keep and replicate this pattern as the standard. Update other views to match this declarative TPL usage for consistent, accessible typography.",
+      "impact": "low",
+      "effort": "low"
+    }
+  ],
+  "metadata": {
+    "strategy": "agentic",
+    "model": "gpt-5-mini-2025-08-07",
+    "rounds_used": 7,
+    "max_rounds": 15,
+    "tokens_used": 224245,
+    "token_budget": 200000,
+    "budget_used_percent": 112.1,
+    "files_read_by_llm": 19
+  }
+}

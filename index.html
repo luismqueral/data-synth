@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataSynth</title>
+    
+    <!-- Tachyons CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- D3.js for visualization -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <!-- Preload critical modules for faster startup -->
+    <link rel="modulepreload" href="./lib/data-processor.js">
+    <link rel="modulepreload" href="./lib/audio-engine.js">
+    <link rel="modulepreload" href="./lib/parameter-mapper.js">
+    <link rel="modulepreload" href="./lib/patch-viz.js">
+    
+    <style>
+        * {
+            font-family: 'IBM Plex Mono', monospace;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background: #fff;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding-bottom: 40px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .section:last-of-type {
+            border-bottom: none;
+        }
+        
+        .section-header {
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #000;
+        }
+        
+        .settings-drawer {
+            border: 1px solid #e0e0e0;
+            background: #f5f5f5;
+            margin-bottom: 20px;
+        }
+        
+        .settings-drawer-header {
+            padding: 12px 16px;
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .settings-drawer-header:hover {
+            background: #fafafa;
+        }
+        
+        .settings-drawer-content {
+            padding: 20px;
+            display: none;
+        }
+        
+        .settings-drawer-content.open {
+            display: block;
+        }
+        
+        .drawer-toggle {
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+        
+        .drawer-toggle.open {
+            transform: rotate(180deg);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .content-wrapper {
+                padding: 12px !important;
+                max-width: 100% !important;
+            }
+            
+            h1 {
+                font-size: 2rem !important;
+            }
+            
+            #playDataBtn {
+                min-width: 140px !important;
+                padding: 12px 16px !important;
+                font-size: 18px !important;
+            }
+            
+            #patchViz {
+                overflow-x: auto;
+            }
+        }
+        
+        /* ================================================================
+           AUDIO VISUALIZER STYLES
+           Required by: lib/audio-engine.js
+           ================================================================ */
+        
+        #audioVisualizer {
+            background: #eee;
+            display: none;
+        }
+        
+        #audioVisualizer.active {
+            display: block;
+        }
+        
+        /* ================================================================
+           PATCH VISUALIZATION STYLES
+           Required by: lib/patch-viz.js
+           ================================================================ */
+        
+        .node-rect {
+            fill: #fff;
+            stroke: none;
+            cursor: default;
+        }
+        
+        .node.unmapped {
+            opacity: 0.4;
+        }
+        
+        .node.unmapped rect {
+            fill: #f5f5f5;
+        }
+        
+        .node.hover-dimmed {
+            opacity: 0.2;
+            transition: opacity 0.2s;
+        }
+        
+        .node {
+            transition: opacity 0.2s;
+        }
+        
+        .connection-path.hover-dimmed,
+        .connection-path-yellow.hover-dimmed {
+            opacity: 0.2;
+            transition: opacity 0.2s;
+        }
+        
+        .connection-path,
+        .connection-path-yellow {
+            transition: opacity 0.2s;
+        }
+        
+        .param-bar-fill {
+            transition: width 0.15s ease-out;
+        }
+        
+        .node-text {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            pointer-events: none;
+            text-anchor: middle;
+            font-weight: 600;
+        }
+        
+        .node-rect.playing {
+            fill: #d0e7ff;
+        }
+        
+        .node-value {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 8px;
+            fill: #666;
+            font-weight: 400;
+            pointer-events: none;
+            text-anchor: middle;
+        }
+        
+        .port {
+            fill: #fff;
+            stroke: #000;
+            stroke-width: 2;
+            cursor: pointer;
+        }
+        
+        .port:hover {
+            fill: #00f;
+            stroke: #000;
+            stroke-width: 2;
+        }
+        
+        /* Connection lines: Always show yellow/black dashed pattern */
+        .connection-path-yellow {
+            stroke: #FFD700;
+            stroke-width: 3;
+            fill: none;
+            pointer-events: none;
+            stroke-dasharray: 8, 8;
+        }
+        
+        .connection-path {
+            stroke: #000;
+            stroke-width: 3;
+            fill: none;
+            cursor: pointer;
+            stroke-dasharray: 8, 8;
+            stroke-dashoffset: 8;
+        }
+        
+        .connection-path:hover {
+            stroke: #000;
+            stroke-width: 4;
+        }
+        
+        .connection-path:hover + .connection-path-yellow,
+        .connection-path-yellow.hover {
+            stroke-width: 4;
+        }
+        
+        .node-rect.playing {
+            fill: #fff;
+            stroke: none;
+        }
+        
+        .playback-labels {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-size: 10px;
+            color: #666;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .playback-value {
+            font-size: 14px;
+            color: #000;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="pa3 content-wrapper" style="max-width: 1100px; margin: 0 auto;">
+        <h1 class="f1 mb2 mt0 tc" style="font-family: 'Lucida Blackletter', 'Blackletter686', serif; font-weight: normal;">DataSynth</h1>
+        <p class="tc f6 gray mb3" style="max-width: 600px; margin-left: auto; margin-right: auto;">
+            Turn any dataset into sound. <a href="https://github.com/luismqueral/data-2-sound" target="_blank" class="black underline">Learn More</a>
+        </p>
+        
+        <!-- Data Selection -->
+        <div class="mb4">
+            <div class="tc mb2">
+                <select id="templateSelector" class="pa2 ba b--black f6" style="width: 600px; max-width: 90%;">
+                    <option value="">-- Select Dataset --</option>
+                    
+                    <optgroup label="🌍 Earthquakes - All Magnitudes (USGS Live)">
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson">All Earthquakes: Past Hour (Real-time)</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson">All Earthquakes: Past Day</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson">All Earthquakes: Past Week</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson">All Earthquakes: Past Month</option>
+                    </optgroup>
+                    
+                    <optgroup label="🔴 Earthquakes - Magnitude 4.5+ (USGS Live)">
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_hour.geojson">M4.5+: Past Hour</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson">M4.5+: Past Day</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson">M4.5+: Past Week</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_month.geojson">M4.5+: Past Month</option>
+                    </optgroup>
+                    
+                    <optgroup label="🟠 Earthquakes - Magnitude 2.5+ (USGS Live)">
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_hour.geojson">M2.5+: Past Hour</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson">M2.5+: Past Day</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson">M2.5+: Past Week</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_month.geojson">M2.5+: Past Month</option>
+                    </optgroup>
+                    
+                    <optgroup label="⚠️ Earthquakes - Significant Only (USGS Live)">
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_hour.geojson">Significant: Past Hour</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_day.geojson">Significant: Past Day</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson">Significant: Past Week</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson">Significant: Past Month</option>
+                    </optgroup>
+                    
+                    <optgroup label="📦 Earthquakes - Archived">
+                        <option value="datasets/earthquakes-week.geojson">Local Archive: Weekly Snapshot (1600+ events)</option>
+                    </optgroup>
+                    
+                    <optgroup label="🌌 Space">
+                        <option value="datasets/exoplanets.csv">NASA Exoplanets (6000+ planets)</option>
+                        <option value="https://api.nasa.gov/neo/rest/v1/feed?start_date=2024-11-12&end_date=2024-11-12&api_key=DEMO_KEY">NASA: Near Earth Objects - Today</option>
+                        <option value="http://api.open-notify.org/iss-now.json">ISS Location (Real-time)</option>
+                        <option value="http://api.open-notify.org/astros.json">Astronauts in Space (Real-time)</option>
+                    </optgroup>
+                </select>
+            </div>
+            <div class="tc f6 gray mb3">
+                Drag-and-drop JSON/CSV file to upload your own
+            </div>
+            <div class="tc mb2">
+                <span id="parseStatus" class="f6 gray"></span>
+            </div>
+        </div>
+        
+        <!-- Control Buttons -->
+        <div class="mb3 flex items-center justify-center">
+            <button id="playDataBtn" disabled class="mr2 ba b--black bg-black white pointer hover-bg-white hover-black" style="width: 240px; padding: 16px 24px; font-size: 24px; height: 64px;">
+                <span class="mr2" id="playIcon" style="font-size: 24px;">▶</span>
+                <span id="playText">Play Data</span>
+            </button>
+            <div class="mr2 ba b--black-10 flex items-center justify-center" id="itemLabel" style="background: #f5f5f5; padding: 16px 24px; min-width: 120px; height: 64px;">
+                <div class="tc">
+                    <div style="font-size: 9px; color: #999; letter-spacing: 0.5px; margin-bottom: 2px;">ITEM</div>
+                    <div class="playback-value" id="itemValue" style="font-size: 16px; font-weight: 600; color: #000;">--</div>
+                </div>
+            </div>
+            <button id="randomizeMappingsBtn" disabled class="ba b--black bg-white pointer hover-bg-black hover-white" style="padding: 16px 24px; font-size: 16px; min-width: 180px; height: 64px;">
+                <span style="margin-right: 4px;">🔀</span>Randomize Patch
+            </button>
+        </div>
+        
+        <!-- Audio Visualizer -->
+        <div style="margin-bottom: 20px;">
+            <canvas id="audioVisualizer" style="width: 100%; height: 120px;"></canvas>
+        </div>
+        
+        <!-- Global Settings Drawer -->
+        <div class="settings-drawer">
+            <div class="settings-drawer-header" id="settingsDrawerToggle">
+                <span class="b f5">Global Settings</span>
+                <span class="drawer-toggle" id="drawerToggleIcon">▼</span>
+            </div>
+            <div class="settings-drawer-content" id="settingsDrawerContent">
+                    
+                    <div class="mb3" style="padding-bottom: 12px; border-bottom: 2px solid #ddd;">
+                        <div class="b mb2 f6">Volume</div>
+                        <label class="db mb2">
+                            <span class="db mb1 f6">Master Volume:</span>
+                            <input type="range" id="masterVolume" min="0" max="1" step="0.01" value="0.2" class="w-100">
+                            <span id="masterVolumeValue" class="f6">0.2 (20%)</span>
+                        </label>
+                        <label class="db mb2">
+                            <span class="db mb1 f6">Master Pitch:</span>
+                            <input type="range" id="pitchControl" min="-24" max="24" step="0.1" value="0" class="w-100">
+                            <span id="pitchValue" class="f6">0 semitones</span>
+                        </label>
+                        <label class="db mb2">
+                            <span class="db mb1 f6">Speed:</span>
+                            <input type="range" id="speedControl" min="0.1" max="5" step="0.1" value="1" class="w-100">
+                            <span id="speedValue" class="f6">1x</span>
+                        </label>
+                    </div>
+                    
+                    <div class="mb3" style="padding-bottom: 12px; border-bottom: 2px solid #ddd;">
+                        <div class="b mb2 f6">Sound Source</div>
+                        <label class="db mb2 f6">
+                            <input type="radio" name="soundSource" value="synthesizer" checked class="mr2" id="synthesizerMode">
+                            <span>🎹 Synthesizer (Oscillators)</span>
+                        </label>
+                        <label class="db mb2 f6">
+                            <input type="radio" name="soundSource" value="sampler" class="mr2" id="samplerMode">
+                            <span>🎵 Sampler (Audio Files)</span>
+                        </label>
+                        
+                        <!-- Sample Upload Section (hidden by default) -->
+                        <div id="sampleUploadSection" style="display: none; margin-top: 12px; padding: 12px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px;">
+                            <div class="mb2">
+                                <label class="db mb1 f7 b">Load Audio Sample:</label>
+                                <input type="file" id="sampleFileInput" accept="audio/wav,audio/mpeg,audio/mp3,audio/ogg,audio/webm,audio/x-m4a,audio/mp4,.wav,.mp3,.ogg,.webm,.m4a" class="f6 w-100" style="padding: 4px;">
+                                <div class="f7 mt1" style="color: #666;">Best: WAV, MP3, OGG | M4A may need conversion</div>
+                            </div>
+                            
+                            <!-- Sample Info Display -->
+                            <div id="sampleInfo" style="display: none; margin-top: 8px; padding: 8px; background: white; border: 1px solid #ccc; border-radius: 3px;">
+                                <div class="f7 mb1">
+                                    <span class="b">📄 File:</span> <span id="sampleFileName">--</span>
+                                </div>
+                                <div class="f7 mb1">
+                                    <span class="b">⏱ Duration:</span> <span id="sampleDuration">--</span>
+                                </div>
+                                <div class="f7 mb2">
+                                    <span class="b">📊 Format:</span> <span id="sampleFormat">--</span>
+                                </div>
+                                
+                                <button id="clearSampleBtn" class="mt1 pa1 f7 ba b--black bg-white pointer hover-bg-black hover-white" style="width: 100%;">
+                                    Clear Sample
+                                </button>
+                            </div>
+                            
+                            <div id="sampleLoadError" style="display: none; margin-top: 8px; padding: 8px; background: #ffe6e6; border: 1px solid #cc0000; border-radius: 3px; color: #cc0000; white-space: pre-line;" class="f7">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb3">
+                        <div class="b mb2 f6">Processing</div>
+                        <label class="db mb2 f6">
+                            <input type="checkbox" id="adaptiveNormalization" checked class="mr2">
+                            <span>Adaptive Normalization</span>
+                        </label>
+                        <div class="f7 ml4 mb2" style="color: #666; line-height: 1.3; margin-top: -6px;">
+                            Automatically balances data ranges for more consistent sound levels
+                        </div>
+                        <label class="db mb2 f6">
+                            <input type="checkbox" id="rhythmicQuantization" class="mr2">
+                            <span>Rhythmic Quantization</span>
+                        </label>
+                        <div class="f7 ml4 mb2" style="color: #666; line-height: 1.3; margin-top: -6px;">
+                            Snaps note timings to a grid for tighter rhythms
+                        </div>
+                        <label class="db mb2 f6">
+                            <input type="checkbox" id="pitchQuantization" checked class="mr2">
+                            <span>Pitch Quantization (Scale)</span>
+                        </label>
+                        <div class="f7 ml4 mb2" style="color: #666; line-height: 1.3; margin-top: -6px;">
+                            Constrains pitches to selected musical scale
+                        </div>
+                    </div>
+                    
+                    <div class="mb3" id="scaleContainer" style="display: none;">
+                        <div class="b mb2 f6">Scale</div>
+                        <select id="scaleSelector" class="w-100 pa1 ba b--black f6">
+                            <option value="pentatonic" selected>Pentatonic (5 notes)</option>
+                            <option value="major">Major Scale</option>
+                            <option value="minor">Natural Minor</option>
+                            <option value="dorian">Dorian Mode</option>
+                            <option value="mixolydian">Mixolydian Mode</option>
+                            <option value="chromatic">Chromatic (12 notes)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb3" id="waveformSection">
+                        <div class="b mb2 f6">Waveform</div>
+                        <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #ddd;">
+                            <div class="f7 mb1" style="color: #666;">Classic</div>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="sine" checked class="mr1"> Sine
+                            </label>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="square" class="mr1"> Square
+                            </label>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="sawtooth" class="mr1"> Sawtooth
+                            </label>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="triangle" class="mr1"> Triangle
+                            </label>
+                        </div>
+                        <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #ddd;">
+                            <div class="f7 mb1" style="color: #666;">Noise</div>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="white-noise" class="mr1"> White Noise
+                            </label>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="pink-noise" class="mr1"> Pink Noise
+                            </label>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="brown-noise" class="mr1"> Brown Noise
+                            </label>
+                        </div>
+                        <div>
+                            <div class="f7 mb1" style="color: #666;">Synthesis</div>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="fm" class="mr1"> FM Synthesis
+                            </label>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="additive" class="mr1"> Additive (Harmonics)
+                            </label>
+                            <label class="db mb1 f6">
+                                <input type="radio" name="waveform" value="pwm" class="mr1"> Pulse Width Mod
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb3" id="filterSection">
+                        <div class="b mb2 f6">Filter</div>
+                        <label class="db mb1 f6">
+                            <input type="radio" name="filterType" value="lowpass" checked class="mr1"> Lowpass
+                        </label>
+                        <label class="db mb1 f6">
+                            <input type="radio" name="filterType" value="highpass" class="mr1"> Highpass
+                        </label>
+                        <label class="db mb1 f6">
+                            <input type="radio" name="filterType" value="bandpass" class="mr1"> Bandpass
+                        </label>
+                        <label class="db mb1 f6">
+                            <input type="radio" name="filterType" value="notch" class="mr1"> Notch
+                        </label>
+                    </div>
+            </div>
+        </div>
+        
+        <!-- Patch View (Full Width) -->
+        <div class="bg-light-gray" style="padding: 20px; border: 1px solid #e0e0e0; margin-bottom: 20px;">
+            <h3 class="f5 mt0 mb3">Patch View</h3>
+            
+            <div id="nodeView">
+                <div style="position: relative;">
+                    <div id="columnHeaders" style="position: relative; height: 20px; margin-bottom: 10px;">
+                        <div id="leftHeader" style="position: absolute; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #666; transform: translateX(-50%);">Data Fields</div>
+                        <div id="rightHeader" style="position: absolute; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #666; transform: translateX(-50%);">Audio Parameters</div>
+                    </div>
+                    <svg id="patchViz" width="100%" style="background: transparent;"></svg>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dataset Source Link -->
+        <div class="tc mb4">
+            <a id="datasetSourceLink" href="#" target="_blank" class="f7 gray underline" style="display: none;">View dataset source →</a>
+        </div>
+        
+        <!-- Footer -->
+        <div class="tc mt4 pt3 bt b--light-gray">
+            <p class="f6 gray">
+                DataSynth v2.0 (Modular) • 
+                <a href="json-mapper-v2.html" class="blue no-underline hover-underline">View Legacy Version</a> • 
+                <a href="docs/AUDIO_ENGINE_DOCUMENTATION.md" class="blue no-underline hover-underline">Docs</a>
+            </p>
+        </div>
+    </div>
+    
+    <!-- Main Application Script (ES6 Module) -->
+    <script type="module" src="./main.js"></script>
+</body>
+</html>
