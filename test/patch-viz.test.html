@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patch Viz Module Tests</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body { 
+            font-family: monospace; 
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        #testSvg {
+            border: 1px solid #ccc;
+            background: #fafafa;
+            width: 100%;
+        }
+        /* Import D3 styles from main app */
+        .node-rect {
+            fill: #fff;
+            stroke: none;
+        }
+        .node.unmapped {
+            opacity: 0.4;
+        }
+        .node-text {
+            font-size: 11px;
+            font-weight: 600;
+            text-anchor: middle;
+        }
+        .node-value {
+            font-size: 10px;
+            fill: #666;
+            text-anchor: middle;
+        }
+        .connection-path {
+            stroke: #999;
+            stroke-width: 3;
+            fill: none;
+        }
+        .connection-path-yellow {
+            stroke: transparent;
+            stroke-width: 3;
+            fill: none;
+            stroke-dasharray: 8, 8;
+        }
+        .connection-path.active {
+            stroke: #000;
+            stroke-dasharray: 8, 8;
+        }
+        .connection-path-yellow.active {
+            stroke: #FFD700;
+        }
+        .param-bar-fill {
+            transition: width 0.15s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="f2 fw6">Patch Viz Module Tests</h1>
+    <p class="f5 gray mb4">Testing: lib/patch-viz.js</p>
+    
+    <div class="mb4">
+        <h3 class="f4 fw6">Test Visualization</h3>
+        <svg id="testSvg" height="400"></svg>
+    </div>
+    
+    <div id="results" class="mb4"></div>
+    
+    <button id="testRender" class="pa2 ba b--black bg-blue white pointer hover-bg-dark-blue mr2">
+        Test Render
+    </button>
+    <button id="testUpdate" class="pa2 ba b--black bg-green white pointer hover-bg-dark-green mr2">
+        Test Update Values
+    </button>
+    <button id="testClear" class="pa2 ba b--black bg-red white pointer hover-bg-dark-red">
+        Test Clear
+    </button>
+    
+    <pre id="log" class="mt3 pa2 ba b--light-gray bg-light-gray f6" style="max-height: 300px; overflow-y: auto;"></pre>
+    
+    <script type="module">
+        import { PatchViz } from '../lib/patch-viz.js';
+        import { extractPaths } from '../lib/data-processor.js';
+        import { ParameterMapper } from '../lib/parameter-mapper.js';
+        
+        const log = document.getElementById('log');
+        const logMsg = (msg) => {
+            log.textContent += msg + '\n';
+            console.log(msg);
+        };
+        
+        // Create test data
+        const testData = [
+            { mag: 4.5, depth: 10, time: 100 },
+            { mag: 3.2, depth: 20, time: 200 },
+            { mag: 5.1, depth: 15, time: 150 }
+        ];
+        
+        const numericPaths = extractPaths(testData).filter(p => p.type === 'number');
+        logMsg(`Test data: ${testData.length} items`);
+        logMsg(`Numeric paths: ${numericPaths.length}`);
+        
+        // Create mapper
+        const mapper = new ParameterMapper();
+        mapper.samplerMode = false;
+        mapper.initializeMappings();
+        mapper.intelligentMapping(testData, numericPaths);
+        
+        logMsg(`Mappings created: ${Object.values(mapper.mappings).filter(m => m.path).length} active`);
+        
+        // Create viz
+        const viz = new PatchViz('testSvg');
+        logMsg('✅ PatchViz instance created');
+        
+        // Test 1: Render
+        document.getElementById('testRender').addEventListener('click', () => {
+            logMsg('\n--- Test: Render ---');
+            viz.render(numericPaths, mapper.mappings, mapper, false);
+            logMsg(`Nodes created: ${viz.nodes.length}`);
+            logMsg(`Data nodes: ${viz.nodes.filter(n => n.type === 'data').length}`);
+            logMsg(`Audio nodes: ${viz.nodes.filter(n => n.type === 'audio').length}`);
+            logMsg('✅ Render complete');
+        });
+        
+        // Test 2: Update values
+        document.getElementById('testUpdate').addEventListener('click', () => {
+            logMsg('\n--- Test: Update Values ---');
+            const testItem = testData[0];
+            const audioParams = {
+                frequency: 440,
+                duration: 200,
+                pan: 0.5,
+                filterFreq: 2000
+            };
+            viz.updateNodeValues(testItem, audioParams, mapper.mappings, true);
+            logMsg('✅ Values updated');
+        });
+        
+        // Test 3: Clear
+        document.getElementById('testClear').addEventListener('click', () => {
+            logMsg('\n--- Test: Clear ---');
+            viz.clearNodeValues();
+            logMsg('✅ Values cleared');
+        });
+        
+        // Auto-render on load
+        setTimeout(() => {
+            document.getElementById('testRender').click();
+        }, 500);
+    </script>
+</body>
+</html>
+

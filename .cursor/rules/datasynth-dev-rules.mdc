@@ -1,0 +1,1045 @@
+---
+description: DataSynth Development Rules - Web Audio + D3.js + ES6 Modules
+alwaysApply: true
+---
+# DataSynth Development Rules
+
+## Mission and Context
+
+- DataSynth is a client-side audio data sonification tool (turn data into sound)
+- Built with Web Audio API, D3.js, and vanilla JavaScript (no frameworks)
+- The author is a technically-minded product designer (Luis Queral), not a professional engineer
+- **Teaching approach**: Comment code as if teaching someone how these APIs work
+- **Keep it deployable**: Static files, no build step, works offline
+
+## Core Philosophy
+
+**Incremental Development**
+- Small, testable changes over big rewrites
+- Test continuously, commit often
+- Each commit should leave the app in a working state
+- If it works, don't fix it
+
+**Keep It Simple**
+- No frameworks (no React, Next.js, Vue) - this is a specialized tool
+- No build steps - use native ES6 modules
+- No over-abstraction - solve the problem at hand
+- Deploy as static files - maintain simplicity
+- Prefer vanilla JS over libraries (unless it's Web Audio/D3 specific)
+
+**Modular Architecture**
+- One module = one responsibility
+- Modules should be 100-400 lines max
+- Pure functions wherever possible (easier to test and reason about)
+- Clear imports/exports - no hidden dependencies
+- Document each module's purpose at the top
+
+## Technology Stack
+
+### Core Technologies
+- **Web Audio API** - Audio synthesis, effects, real-time processing
+- **D3.js** - Node graph visualization (patch cables)
+- **Canvas API** - Waveform visualization
+- **Tachyons CSS** - Utility-first styling framework
+- **ES6 Modules** - Native browser imports/exports
+- **Vanilla JavaScript** - No framework overhead
+
+### Why These Choices
+- **No HTMX** - We don't have a server, all processing is client-side
+- **No React** - Audio engines need direct API access, not virtual DOM
+- **No build tools** - Simpler deployment, faster iteration
+- **No TypeScript** - (Yet) Start simple, add types later if needed
+- **Tachyons over custom CSS** - Compose classes, maintain consistency
+
+## Styling with Tachyons
+
+### Philosophy: Composition Over Custom CSS
+
+Use Tachyons utility classes to build UI. **Only write custom CSS when absolutely necessary** (e.g., complex animations, D3-specific styles).
+
+**Example - Build UI with Tachyons:**
+```html
+<!-- ✅ GOOD: Compose Tachyons classes -->
+<button class="pa2 ba b--black bg-white pointer hover-bg-black hover-white f6">
+    Click Me
+</button>
+
+<!-- ❌ BAD: Writing custom CSS for simple styling -->
+<style>
+.my-button {
+    padding: 0.5rem;
+    border: 1px solid black;
+    background: white;
+    cursor: pointer;
+}
+</style>
+<button class="my-button">Click Me</button>
+```
+
+### Common Tachyons Patterns
+
+**Layout:**
+```html
+<!-- Flexbox container -->
+<div class="flex items-center justify-between pa3">
+    <span>Left</span>
+    <span>Right</span>
+</div>
+
+<!-- Responsive widths -->
+<div class="w-100 w-50-ns w-33-l">
+    <!-- 100% mobile, 50% tablet, 33% desktop -->
+</div>
+```
+
+**Spacing:**
+```html
+<!-- Padding: pa0 through pa7 -->
+<div class="pa3">Padding all sides</div>
+<div class="pv2 ph3">Vertical 2, Horizontal 3</div>
+
+<!-- Margin: ma0 through ma7 -->
+<div class="mb3">Margin bottom</div>
+```
+
+**Typography:**
+```html
+<!-- Font sizes: f1 (largest) through f7 (smallest) -->
+<h1 class="f2 fw6">Heading</h1>
+<p class="f5 lh-copy">Body text</p>
+<span class="f6 gray">Small gray text</span>
+```
+
+**Colors:**
+```html
+<!-- Text color -->
+<span class="blue">Blue text</span>
+<span class="gray">Gray text</span>
+
+<!-- Background -->
+<div class="bg-light-gray pa3">Light gray background</div>
+
+<!-- Borders -->
+<div class="ba b--black">Border all sides, black</div>
+```
+
+**Interactive States:**
+```html
+<!-- Hover effects -->
+<button class="bg-blue white hover-bg-dark-blue pointer">
+    Hover me
+</button>
+
+<!-- Pointer cursor for clickable elements -->
+<div class="pointer">Clickable</div>
+```
+
+### When to Write Custom CSS
+
+Only write custom CSS for:
+
+1. **D3.js-specific styles** (node positioning, path animations)
+2. **Canvas styling** (dimensions, positioning)
+3. **Complex animations** that can't be done with Tachyons
+4. **Web Audio visualizations** (waveform colors, dynamic elements)
+
+**Where CSS Lives:**
+- CSS must stay in HTML `<style>` tag (no build step)
+- Document CSS requirements in module header comments
+- Link CSS to module with comments in HTML
+
+**Example - Module documenting CSS requirements:**
+```javascript
+/**
+ * MODULE: Patch Visualization
+ * 
+ * Required CSS (must be in HTML <style> tag):
+ * - .connection-path - Black dashed line
+ * - .connection-path-yellow - Yellow dashed overlay
+ * - .node-rect - Node background
+ */
+```
+
+**Example - HTML linking CSS to module:**
+```html
+<style>
+    /* ================================================================
+       PATCH VISUALIZATION STYLES
+       Required by: lib/patch-viz.js
+       ================================================================ */
+    
+    .connection-path {
+        stroke: #000;
+        stroke-width: 3;
+        stroke-dasharray: 8, 8;
+    }
+</style>
+```
+
+**Example - Acceptable custom CSS:**
+```css
+/* D3 node graph styling */
+.connection-path {
+    stroke: #999;
+    stroke-width: 2;
+    fill: none;
+    cursor: pointer;
+}
+
+.connection-path:hover {
+    stroke: #333;
+    stroke-width: 3;
+}
+
+/* Canvas visualizer */
+#audioVisualizer {
+    background: #eee;
+}
+
+/* Complex animation Tachyons can't handle */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+```
+
+### Responsive Design with Tachyons
+
+Use Tachyons breakpoint suffixes:
+- No suffix: All screen sizes
+- `-ns`: Not small (≥30em / ~480px)
+- `-m`: Medium (30em-60em / ~480px-960px)  
+- `-l`: Large (≥60em / ~960px)
+
+```html
+<!-- Stack on mobile, side-by-side on tablet+ -->
+<div class="flex flex-column flex-row-ns">
+    <div class="w-100 w-50-ns">Left</div>
+    <div class="w-100 w-50-ns">Right</div>
+</div>
+
+<!-- Different padding at different breakpoints -->
+<div class="pa2 pa3-ns pa4-l">
+    Responsive padding
+</div>
+```
+
+### Migrating from json-mapper-v2.html
+
+When extracting UI elements, **preserve the Tachyons classes**:
+
+```html
+<!-- From json-mapper-v2.html -->
+<button id="playDataBtn" class="mr2 ba b--black bg-black white pointer hover-bg-white hover-black">
+    Play Data
+</button>
+
+<!-- Keep the same classes in modular version -->
+<button id="playDataBtn" class="mr2 ba b--black bg-black white pointer hover-bg-white hover-black">
+    Play Data
+</button>
+```
+
+## Project Structure
+
+```
+datasynth/
+├── index.html              # Entry point, HTML structure
+├── main.js                 # Initialization, wires modules together
+├── lib/                    # Core modules
+│   ├── audio-engine.js    # Web Audio API coordination
+│   ├── data-processor.js  # JSON/CSV parsing, path extraction
+│   ├── parameter-mapper.js # Data → audio parameter mapping
+│   ├── visualizer.js      # Canvas waveform visualization
+│   ├── patch-viz.js       # D3.js node graph
+│   └── ui-controller.js   # Event handlers, UI updates
+├── test/                   # Testing files
+│   ├── smoke-test.html    # Quick module verification
+│   └── integration-test.html # Full pipeline tests
+├── docs/                   # Documentation
+│   ├── AUDIO_ENGINE_DOCUMENTATION.md
+│   └── ARCHITECTURE_SUMMARY.md
+├── datasets/              # Sample data files
+└── CHANGELOG.md           # Project history
+```
+
+## Module Design Patterns
+
+### When to Use Pure Functions
+
+**Use pure functions for:**
+- Data transformation (no side effects)
+- Path navigation, value extraction
+- Mathematical calculations
+- Anything that doesn't touch global state
+
+**Benefits:**
+- Easy to test (same input = same output)
+- No surprises (no hidden dependencies)
+- Can be moved between modules easily
+
+**Example:**
+```javascript
+/**
+ * Get value from nested object using dot notation
+ * Pure function - no side effects, predictable output
+ * 
+ * @param {Object} obj - The object to traverse
+ * @param {string} path - Dot-notation path (e.g., "properties.mag")
+ * @returns {*} The value at the path, or undefined if not found
+ * 
+ * Example:
+ *   getValueByPath({user: {name: "Luis"}}, "user.name") → "Luis"
+ *   getValueByPath({user: {name: "Luis"}}, "user.age") → undefined
+ */
+export const getValueByPath = (obj, path) => {
+    if (!obj || !path) return undefined;
+    try {
+        return path.split('.').reduce((curr, key) => {
+            if (curr === null || curr === undefined) return undefined;
+            return curr[key];
+        }, obj);
+    } catch (e) {
+        console.warn(`Error accessing path ${path}:`, e);
+        return undefined;
+    }
+};
+```
+
+### When to Use Classes
+
+**Use classes for:**
+- State that must persist (AudioContext, effects nodes)
+- Multiple methods sharing the same data
+- Resources that need cleanup (close context, cancel animations)
+- Complex initialization logic
+
+**Example:**
+```javascript
+/**
+ * Audio Engine - Manages Web Audio API context and effects chain
+ * 
+ * This is a class (not functions) because:
+ * - AudioContext must persist across multiple note plays
+ * - Effects nodes (delay, reverb) are shared globally
+ * - We need to track playing state to prevent overlaps
+ * - Cleanup is required (close context to free memory)
+ * 
+ * Usage:
+ *   const engine = new AudioEngine();
+ *   engine.initEffects();
+ *   engine.playNote({ frequency: 440, duration: 1000 });
+ *   // ... later
+ *   engine.cleanup();
+ */
+export class AudioEngine {
+    constructor() {
+        // Persistent state - shared across all playback
+        this.audioContext = null;
+        this.delayNode = null;
+        this.reverbNode = null;
+        this.isPlaying = false;
+    }
+    
+    /**
+     * Initialize audio context and effects chain
+     * Must be called before playing any sounds
+     * MUST be called from user interaction (browser requirement)
+     */
+    initEffects() {
+        if (!this.audioContext) {
+            // Safari compatibility - use prefixed version
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        this.setupDelayEffect();
+        this.setupReverbEffect();
+    }
+    
+    /**
+     * Clean up resources when done
+     * Important: Web Audio nodes can leak memory
+     */
+    cleanup() {
+        if (this.audioContext) {
+            this.audioContext.close();
+            this.audioContext = null;
+        }
+    }
+}
+```
+
+### Decision Framework: Class vs Function
+
+```
+Does it need to remember state between calls?
+├─ NO  → Use pure functions
+└─ YES → Does it need cleanup?
+         ├─ YES → Use class with cleanup method
+         └─ NO  → Could use either, prefer class for clarity
+```
+
+## Web Audio API Patterns
+
+### Always Check for Browser Support
+
+```javascript
+// ❌ BAD - Assumes API exists
+const audioContext = new AudioContext();
+
+// ✅ GOOD - Defensive initialization
+if (typeof window !== 'undefined' && 'AudioContext' in window) {
+    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+} else {
+    console.error('Web Audio API not supported in this browser');
+    // Provide fallback or graceful degradation
+}
+```
+
+### Handle User Gesture Requirement
+
+Modern browsers require user interaction before audio playback (security/UX):
+
+```javascript
+/**
+ * Initialize audio system
+ * MUST be called from user interaction (button click, etc)
+ * 
+ * Why: Browsers block audio autoplay to prevent annoying users
+ * When: Call this on first "Play" button click
+ */
+initAudio() {
+    if (!this.audioContext) {
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        console.log('✅ Audio context initialized (sample rate:', this.audioContext.sampleRate, 'Hz)');
+    }
+    
+    // Resume if suspended (common on mobile Safari)
+    if (this.audioContext.state === 'suspended') {
+        this.audioContext.resume();
+    }
+}
+```
+
+### Always Clean Up Audio Resources
+
+Web Audio nodes can leak memory if not properly disposed:
+
+```javascript
+/**
+ * Stop all audio and clean up resources
+ * Call this when user stops playback or closes the app
+ */
+stopAllAudio() {
+    // Cancel any scheduled audio events
+    if (this.scheduledNodes) {
+        this.scheduledNodes.forEach(node => {
+            try {
+                node.stop();
+            } catch (e) {
+                // Node may have already stopped
+            }
+        });
+        this.scheduledNodes = [];
+    }
+    
+    // Clear animation frames
+    if (this.animationId) {
+        cancelAnimationFrame(this.animationId);
+        this.animationId = null;
+    }
+    
+    // Don't close the context - reuse it for next playback
+    // Only close on app shutdown
+}
+```
+
+### Effects Chain Architecture
+
+```javascript
+// Set up audio routing (this is the "patch cables")
+//
+// Input → [Oscillator/Sampler]
+//      → Gain (volume envelope)
+//      → BiquadFilter (tone shaping)
+//      → Panner (stereo position)
+//      → Delay (echo effect)
+//      → Reverb (space simulation)
+//      → Master Gain
+//      → Destination (speakers)
+//
+// Each node is a processing stage
+// Connect them in the order you want audio to flow
+
+setupEffectsChain() {
+    // Create nodes
+    this.masterGain = this.audioContext.createGain();
+    this.delayNode = this.audioContext.createDelay(2.0);  // Max 2 second delay
+    this.reverbNode = this.audioContext.createConvolver();
+    
+    // Connect in series
+    this.delayNode.connect(this.reverbNode);
+    this.reverbNode.connect(this.masterGain);
+    this.masterGain.connect(this.audioContext.destination);
+}
+```
+
+## D3.js Integration Patterns
+
+### Let D3 Own Its DOM Node
+
+D3 does direct DOM manipulation - don't fight it:
+
+```javascript
+/**
+ * Patch Visualization using D3.js
+ * 
+ * Important: D3 directly manipulates SVG DOM
+ * Don't try to update the same SVG with vanilla JS - pick one approach
+ * 
+ * Pattern: Clear and redraw on updates (simpler than incremental updates)
+ */
+export class PatchViz {
+    constructor(svgElementId) {
+        // Store D3 selection (not raw DOM element)
+        this.svg = d3.select(`#${svgElementId}`);
+        this.width = 1200;
+        this.height = 600;
+    }
+    
+    /**
+     * Render the node graph
+     * Clears previous visualization and redraws from scratch
+     */
+    render(nodes, links) {
+        // Clear everything - simpler than trying to update incrementally
+        this.svg.selectAll('*').remove();
+        
+        // Set dimensions
+        this.svg
+            .attr('width', this.width)
+            .attr('height', this.height);
+        
+        // Create layer groups (helps with z-ordering)
+        const linkGroup = this.svg.append('g').attr('class', 'links');
+        const nodeGroup = this.svg.append('g').attr('class', 'nodes');
+        
+        // D3 data binding pattern:
+        // 1. Select elements (even if they don't exist yet)
+        // 2. Bind data
+        // 3. Use .enter() to create new elements
+        // 4. Set attributes based on data
+        
+        const linkElements = linkGroup.selectAll('line')
+            .data(links)
+            .enter()
+            .append('line')
+            .attr('class', 'connection-line')
+            .attr('x1', d => d.source.x)
+            .attr('y1', d => d.source.y)
+            .attr('x2', d => d.target.x)
+            .attr('y2', d => d.target.y);
+        
+        const nodeElements = nodeGroup.selectAll('circle')
+            .data(nodes)
+            .enter()
+            .append('circle')
+            .attr('cx', d => d.x)
+            .attr('cy', d => d.y)
+            .attr('r', 10)
+            .attr('fill', d => d.color);
+    }
+}
+```
+
+### When to Update vs Redraw
+
+```javascript
+// ✅ GOOD: Redraw everything (< 100 nodes, runs at 60fps)
+render(nodes, links) {
+    this.svg.selectAll('*').remove();
+    // ... redraw all nodes and links
+}
+
+// 🤔 CONSIDER: Incremental update (> 100 nodes, or frequent updates)
+update(nodes, links) {
+    // D3's enter/update/exit pattern
+    const nodeSelection = this.svg.selectAll('circle')
+        .data(nodes, d => d.id);  // Key function for object constancy
+    
+    nodeSelection.enter().append('circle');     // New nodes
+    nodeSelection.attr('cx', d => d.x);          // Update existing
+    nodeSelection.exit().remove();               // Removed nodes
+}
+
+// For DataSynth: Redraw is fine (small graphs, infrequent updates)
+```
+
+## Code Documentation Standards
+
+Since the user is learning these APIs, documentation should teach:
+
+### Module Headers
+
+Every module file starts with this:
+
+```javascript
+/**
+ * MODULE: [Module Name]
+ * 
+ * Purpose: [One sentence description]
+ * 
+ * Key Exports:
+ * - functionName() - What it does
+ * - ClassName - What it manages
+ * 
+ * Dependencies:
+ * - [List imported modules, or "None" for pure functions]
+ * 
+ * Used By:
+ * - [Which modules import this]
+ * 
+ * Browser APIs Used:
+ * - [Web Audio API, Canvas API, File API, etc.]
+ */
+```
+
+**Example:**
+```javascript
+/**
+ * MODULE: Data Processor
+ * 
+ * Purpose: Parse JSON/CSV data and extract numeric paths for sonification
+ * 
+ * Key Exports:
+ * - extractPaths() - Find all numeric fields in nested data
+ * - getValueByPath() - Navigate nested objects with dot notation
+ * - analyzeDataVariance() - Suggest mapping curves based on data distribution
+ * 
+ * Dependencies:
+ * - None (pure functions)
+ * 
+ * Used By:
+ * - main.js (when user loads a dataset)
+ * - parameter-mapper.js (for value extraction)
+ * 
+ * Browser APIs Used:
+ * - None (pure JavaScript)
+ */
+```
+
+### Function Documentation
+
+Use JSDoc format + plain English explanation:
+
+```javascript
+/**
+ * Extract all numeric paths from nested data structure
+ * 
+ * This recursively traverses objects/arrays to find numeric fields,
+ * then checks how many items actually have that field (coverage).
+ * 
+ * Why coverage matters:
+ * If "temperature" only exists in 1 out of 100 items, it's probably
+ * not useful for sonification. We filter out fields with <10% coverage.
+ * 
+ * @param {Object|Array} obj - The data to analyze
+ * @param {string} prefix - Current path prefix (used during recursion)
+ * @param {number} depth - Current recursion depth (prevents infinite loops)
+ * @returns {Array<Object>} Array of path objects with metadata
+ * 
+ * Return format:
+ * [
+ *   {
+ *     path: "properties.mag",      // Dot-notation path
+ *     type: "number",               // Data type
+ *     isArray: true,                // Found in array context
+ *     coverage: 0.95,               // 95% of items have this field
+ *     sample: 4.5                   // Example value
+ *   },
+ *   ...
+ * ]
+ * 
+ * Example:
+ * const data = [
+ *   { properties: { mag: 4.5, depth: 10 } },
+ *   { properties: { mag: 3.2, depth: 15 } }
+ * ];
+ * const paths = extractPaths(data);
+ * // Returns 2 paths: "properties.mag" and "properties.depth"
+ */
+export const extractPaths = (obj, prefix = '', depth = 0) => {
+    // Implementation...
+};
+```
+
+### Inline Comments for Complex Logic
+
+```javascript
+// Analyze data distribution to suggest optimal mapping curve
+//
+// Linear: works well for evenly distributed data (0-100)
+// Logarithmic: helps with data spanning orders of magnitude (0.01-1000)
+// Exponential: emphasizes larger values, compresses small ones
+// Cubic: for very subtle variations (99.1, 99.2, 99.3)
+
+const coefficientOfVariation = Math.abs(mean) > 0 ? range / Math.abs(mean) : 0;
+
+let recommendedCurve = 'linear';  // Default for most data
+
+if (coefficientOfVariation < 0.01) {
+    // Very little variation (like 99.1 to 99.9)
+    // Use cubic to make tiny differences audible
+    recommendedCurve = 'cubic';
+} else if (coefficientOfVariation < 0.1) {
+    // Moderate variation
+    // Exponential makes differences more obvious
+    recommendedCurve = 'exponential';
+} else if (coefficientOfVariation > 5) {
+    // Huge variation (like 0.01 to 1000)
+    // Logarithmic prevents extreme values from dominating
+    recommendedCurve = 'logarithmic';
+}
+```
+
+## Testing Requirements
+
+### Every Module Should Have Tests
+
+```html
+<!-- test/module-name.test.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Module Name Tests</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .pass { color: green; }
+        .fail { color: red; }
+        .test { margin: 10px 0; padding: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Module Name Tests</h1>
+    <div id="results"></div>
+    
+    <script type="module">
+        import { functionToTest } from '../lib/module-name.js';
+        
+        const results = [];
+        
+        // Test 1: Normal case
+        const test1 = functionToTest(validInput) === expectedOutput;
+        results.push({ 
+            name: 'functionToTest - handles valid input', 
+            pass: test1 
+        });
+        
+        // Test 2: Edge case
+        const test2 = functionToTest(null) === undefined;
+        results.push({ 
+            name: 'functionToTest - handles null input', 
+            pass: test2 
+        });
+        
+        // Test 3: Error case
+        try {
+            functionToTest(invalidInput);
+            results.push({ 
+                name: 'functionToTest - validates input', 
+                pass: false 
+            });
+        } catch (e) {
+            results.push({ 
+                name: 'functionToTest - validates input', 
+                pass: true 
+            });
+        }
+        
+        // Display results
+        const resultsDiv = document.getElementById('results');
+        results.forEach(result => {
+            const div = document.createElement('div');
+            div.className = `test ${result.pass ? 'pass' : 'fail'}`;
+            div.textContent = `${result.pass ? '✅' : '❌'} ${result.name}`;
+            resultsDiv.appendChild(div);
+        });
+        
+        const passed = results.filter(r => r.pass).length;
+        const total = results.length;
+        
+        const summary = document.createElement('div');
+        summary.style.marginTop = '20px';
+        summary.style.fontWeight = 'bold';
+        summary.textContent = `${passed}/${total} tests passed`;
+        summary.className = passed === total ? 'pass' : 'fail';
+        resultsDiv.appendChild(summary);
+        
+        console.log(`Tests: ${passed}/${total} passed`);
+    </script>
+</body>
+</html>
+```
+
+### Integration Tests
+
+Test that modules work together:
+
+```javascript
+// test/integration-test.html
+import { AudioEngine } from '../lib/audio-engine.js';
+import { extractPaths } from '../lib/data-processor.js';
+import { ParameterMapper } from '../lib/parameter-mapper.js';
+
+const runIntegrationTests = async () => {
+    console.log('🧪 Running integration tests...');
+    
+    // Load real data
+    const response = await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson');
+    const geojson = await response.json();
+    const data = geojson.features;
+    
+    // Test: Data processing pipeline
+    const paths = extractPaths(data);
+    console.assert(paths.length > 0, '✅ Paths extracted from real data');
+    
+    // Test: Mapping configuration
+    const mapper = new ParameterMapper();
+    mapper.addMapping('frequency', {
+        path: 'properties.mag',
+        min: 200,
+        max: 2000
+    });
+    
+    const params = mapper.calculateParams(data[0]);
+    console.assert(
+        params.frequency >= 200 && params.frequency <= 2000, 
+        '✅ Mapping produces values in range'
+    );
+    
+    // Test: Audio engine initialization
+    const engine = new AudioEngine();
+    engine.initEffects();
+    console.assert(engine.audioContext !== null, '✅ Audio context created');
+    
+    console.log('✅ All integration tests passed');
+};
+```
+
+## Performance Considerations
+
+### Module Loading Strategy
+
+```html
+<!-- Preload critical modules -->
+<link rel="modulepreload" href="lib/audio-engine.js">
+<link rel="modulepreload" href="lib/data-processor.js">
+
+<!-- Main script loads modules -->
+<script type="module" src="main.js"></script>
+```
+
+### Avoid Circular Dependencies
+
+```javascript
+// ❌ BAD - Circular imports
+// audio-engine.js imports data-processor.js
+// data-processor.js imports audio-engine.js
+// Result: Initialization errors or undefined imports
+
+// ✅ GOOD - One-way dependency flow
+// data-processor.js (no imports - pure functions)
+// ↓
+// parameter-mapper.js imports data-processor.js
+// ↓
+// audio-engine.js imports parameter-mapper.js
+// ↓
+// main.js imports audio-engine.js (and others)
+```
+
+### Lazy Load Heavy Features
+
+```javascript
+// D3.js is large (~250KB) - only load if user needs visualization
+let patchVizModule = null;
+
+const loadPatchViz = async () => {
+    if (!patchVizModule) {
+        patchVizModule = await import('./lib/patch-viz.js');
+    }
+    return new patchVizModule.PatchViz('patchViz');
+};
+
+// Only load when user clicks "Show Patch Visualization"
+document.getElementById('showPatchBtn').addEventListener('click', async () => {
+    const viz = await loadPatchViz();
+    viz.render(nodes, links);
+});
+```
+
+## Common Pitfalls to Avoid
+
+### ❌ Don't Use HTMX
+
+```javascript
+// ❌ WRONG - HTMX is for server communication
+<button hx-post="/play-audio">Play</button>
+
+// ✅ RIGHT - Audio happens in browser
+<button id="playBtn">Play</button>
+<script type="module">
+  import { AudioEngine } from './lib/audio-engine.js';
+  const engine = new AudioEngine();
+  document.getElementById('playBtn').addEventListener('click', () => {
+    engine.playNote({ frequency: 440, duration: 1000 });
+  });
+</script>
+```
+
+### ❌ Don't Add Framework Overhead
+
+```javascript
+// ❌ WRONG - React adds complexity with no benefit
+import React from 'react';
+function PlayButton() {
+  const [playing, setPlaying] = useState(false);
+  // ... 50 lines of React code
+}
+
+// ✅ RIGHT - Vanilla JS is simpler for this use case
+const playBtn = document.getElementById('playBtn');
+let playing = false;
+
+playBtn.addEventListener('click', () => {
+  playing = !playing;
+  playBtn.textContent = playing ? 'Stop' : 'Play';
+});
+```
+
+### ❌ Don't Skip Browser API Checks
+
+```javascript
+// ❌ WRONG - Assumes API exists
+const audioContext = new AudioContext();
+
+// ✅ RIGHT - Check first
+if ('AudioContext' in window) {
+  const audioContext = new AudioContext();
+} else {
+  alert('Web Audio API not supported. Please use a modern browser.');
+}
+```
+
+## Git Workflow
+
+### Commit Messages
+
+```bash
+# Feature
+git commit -m "feat: add pitch shift effect to audio engine
+
+- implemented pitch shifter using delay-based algorithm
+- added UI controls for pitch shift amount (-12 to +12 semitones)
+- tested with earthquake data (mag → pitch mapping)
+- all existing tests still passing"
+
+# Bug Fix
+git commit -m "fix: audio context not resuming on mobile Safari
+
+- added explicit context.resume() call on play button
+- tested on iOS 15 and 16
+- fixes issue where first play attempt was silent"
+
+# Refactor
+git commit -m "refactor: extract parameter mapping to separate module
+
+- moved mapping logic from audio-engine.js to parameter-mapper.js
+- added unit tests for mapping functions
+- no change to functionality, just better organization"
+
+# Documentation
+git commit -m "docs: add Web Audio API patterns to dev rules
+
+- documented effects chain architecture
+- added examples of node cleanup
+- explained user gesture requirement"
+```
+
+### Branch Strategy
+
+```bash
+# Main branch: always working, always deployable
+git checkout main
+
+# Feature branches: new capabilities
+git checkout -b feat/pitch-shifter
+# ... work ...
+git commit -m "feat: add pitch shift effect"
+git checkout main
+git merge feat/pitch-shifter
+
+# Fix branches: bug fixes
+git checkout -b fix/safari-audio
+# ... work ...
+git commit -m "fix: audio context on mobile Safari"
+git checkout main
+git merge fix/safari-audio
+```
+
+## Changelog Maintenance
+
+Update `CHANGELOG.md` after significant changes:
+
+**IMPORTANT**: Always use the correct date from user_info (Current Date field) when creating changelog entries. The date is provided in the system context - check it before writing!
+
+```markdown
+## 2025-11-13
+
+### ✨ Features
+- added pitch shift effect to audio engine - shift notes up/down by semitones
+- added visual feedback during playback - waveform canvas shows real-time audio
+
+### 🐛 Fixes
+- fixed audio context not resuming on mobile Safari - explicit resume() call now works
+- fixed D3 visualization not updating when mappings change - force re-render on change
+
+### ♻️ Refactoring
+- extracted parameter mapping to separate module - better separation of concerns
+- split audio-engine.js into smaller files - easier to maintain (was 600 lines, now 3x 200 lines)
+
+### 📝 Documentation
+- added Web Audio API patterns to dev rules
+- documented D3.js integration approach
+- added inline comments explaining effects chain routing
+```
+
+**Changelog Format Guidelines:**
+- **Date**: Use YYYY-MM-DD format (check user_info for current date!)
+- **Entries**: lowercase first letter, plain english explanation
+- **Chronological**: Most recent date at top, recent entries within each date at top
+- **Detail level**: High-level functional changes, not overly specific implementation details
+
+## Success Criteria
+
+**For New Features:**
+- [ ] Code is commented (explain the "why")
+- [ ] Tests exist and pass
+- [ ] Works in Chrome, Firefox, Safari
+- [ ] Mobile tested (iOS + Android)
+- [ ] No console errors
+- [ ] Performance is acceptable (< 100ms latency)
+- [ ] Documentation updated
+- [ ] Committed to git
+
+**For Bug Fixes:**
+- [ ] Root cause identified
+- [ ] Fix is minimal (don't refactor while fixing)
+- [ ] Test added to prevent regression
+- [ ] Tested in environment where bug occurred
+- [ ] Changelog updated
+
+**For Refactoring:**
+- [ ] Functionality unchanged (no new features)
+- [ ] All existing tests still pass
+- [ ] Code is more maintainable after change
+- [ ] No performance regression
+- [ ] Committed separately from feature work

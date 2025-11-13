@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Processor Module Tests</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css">
+    <style>
+        body { 
+            font-family: monospace; 
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .pass { color: green; }
+        .fail { color: red; }
+        .test { 
+            margin: 10px 0; 
+            padding: 8px 12px;
+            border-left: 3px solid #ccc;
+        }
+        .test.pass { border-left-color: green; background: #f0fff0; }
+        .test.fail { border-left-color: red; background: #fff0f0; }
+        .summary {
+            margin-top: 30px;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="f2 fw6">Data Processor Module Tests</h1>
+    <p class="f5 gray mb4">Testing: lib/data-processor.js</p>
+    
+    <div id="results"></div>
+    
+    <script type="module">
+        import { 
+            getValueByPath, 
+            safeId, 
+            extractPaths,
+            extractValues,
+            analyzeDataVariance
+        } from '../lib/data-processor.js';
+        
+        const results = [];
+        
+        // ============================================================================
+        // TEST: getValueByPath()
+        // ============================================================================
+        
+        console.group('Testing getValueByPath()');
+        
+        // Test 1: Simple nested path
+        const testData1 = {
+            properties: {
+                mag: 4.5,
+                place: 'California'
+            }
+        };
+        const test1 = getValueByPath(testData1, 'properties.mag') === 4.5;
+        results.push({ 
+            name: 'getValueByPath - simple nested path', 
+            pass: test1,
+            detail: test1 ? 'Got 4.5 from properties.mag' : 'Failed to retrieve value'
+        });
+        
+        // Test 2: Missing path returns undefined
+        const test2 = getValueByPath(testData1, 'properties.missing') === undefined;
+        results.push({ 
+            name: 'getValueByPath - missing path returns undefined', 
+            pass: test2 
+        });
+        
+        // Test 3: Null object returns undefined
+        const test3 = getValueByPath(null, 'any.path') === undefined;
+        results.push({ 
+            name: 'getValueByPath - handles null object', 
+            pass: test3 
+        });
+        
+        // Test 4: Empty path returns undefined
+        const test4 = getValueByPath(testData1, '') === undefined;
+        results.push({ 
+            name: 'getValueByPath - handles empty path', 
+            pass: test4 
+        });
+        
+        // Test 5: Deeply nested path
+        const deepData = { a: { b: { c: { d: 42 } } } };
+        const test5 = getValueByPath(deepData, 'a.b.c.d') === 42;
+        results.push({ 
+            name: 'getValueByPath - deeply nested path (4 levels)', 
+            pass: test5 
+        });
+        
+        console.groupEnd();
+        
+        // ============================================================================
+        // TEST: safeId()
+        // ============================================================================
+        
+        console.group('Testing safeId()');
+        
+        // Test 6: Dots converted to underscores
+        const test6 = safeId('properties.mag') === 'properties_mag';
+        results.push({ 
+            name: 'safeId - converts dots to underscores', 
+            pass: test6,
+            detail: test6 ? 'properties.mag → properties_mag' : 'Conversion failed'
+        });
+        
+        // Test 7: Complex path
+        const test7 = safeId('geometry.coordinates.0') === 'geometry_coordinates_0';
+        results.push({ 
+            name: 'safeId - handles complex paths', 
+            pass: test7 
+        });
+        
+        // Test 8: Special characters removed
+        const test8 = safeId('user-name@domain.com') === 'user_name_domain_com';
+        results.push({ 
+            name: 'safeId - removes special characters', 
+            pass: test8 
+        });
+        
+        console.groupEnd();
+        
+        // ============================================================================
+        // TEST: extractPaths()
+        // ============================================================================
+        
+        console.group('Testing extractPaths()');
+        
+        // Test 9: Simple object
+        const simpleObj = { name: 'Test', value: 42, active: true };
+        const paths9 = extractPaths(simpleObj);
+        const test9 = paths9.length === 3 && 
+                     paths9.some(p => p.path === 'name' && p.type === 'string') &&
+                     paths9.some(p => p.path === 'value' && p.type === 'number');
+        results.push({ 
+            name: 'extractPaths - simple object with 3 fields', 
+            pass: test9,
+            detail: test9 ? `Found ${paths9.length} paths` : 'Path count mismatch'
+        });
+        
+        // Test 10: Nested object
+        const nestedObj = { 
+            user: { 
+                name: 'Luis', 
+                age: 30 
+            } 
+        };
+        const paths10 = extractPaths(nestedObj);
+        const test10 = paths10.some(p => p.path === 'user.name') && 
+                      paths10.some(p => p.path === 'user.age');
+        results.push({ 
+            name: 'extractPaths - nested object paths', 
+            pass: test10,
+            detail: test10 ? 'Found user.name and user.age' : 'Failed to find nested paths'
+        });
+        
+        // Test 11: Array of objects with coverage
+        const arrayData = [
+            { properties: { mag: 4.5, depth: 10 } },
+            { properties: { mag: 3.2, depth: 20 } },
+            { properties: { mag: 5.1, depth: 30 } }
+        ];
+        const paths11 = extractPaths(arrayData);
+        const magPath = paths11.find(p => p.path === 'properties.mag');
+        const test11 = magPath && magPath.type === 'number' && magPath.coverage === 1.0;
+        results.push({ 
+            name: 'extractPaths - array of objects with full coverage', 
+            pass: test11,
+            detail: test11 ? 'properties.mag has 100% coverage' : 'Coverage check failed'
+        });
+        
+        // Test 12: Sparse field coverage filtering
+        const sparseData = [
+            { val: 1 },
+            { val: 2 },
+            { val: 3, rare: 99 }  // "rare" only in 1/3 items (33% coverage)
+        ];
+        const paths12 = extractPaths(sparseData);
+        const hasRare = paths12.some(p => p.path === 'rare');
+        const test12 = hasRare; // 33% > 10% threshold, should be included
+        results.push({ 
+            name: 'extractPaths - includes fields with >10% coverage', 
+            pass: test12,
+            detail: test12 ? 'rare field (33% coverage) included' : 'Sparse field incorrectly filtered'
+        });
+        
+        // Test 13: Very sparse field filtered out
+        const verySparseData = Array(20).fill(null).map((_, i) => ({ val: i }));
+        verySparseData[0].rare = 99; // Only in 1/20 items (5% coverage)
+        const paths13 = extractPaths(verySparseData);
+        const hasVeryRare = paths13.some(p => p.path === 'rare');
+        const test13 = !hasVeryRare; // 5% < 10% threshold, should be filtered
+        results.push({ 
+            name: 'extractPaths - filters out fields with <10% coverage', 
+            pass: test13,
+            detail: test13 ? 'rare field (5% coverage) filtered out' : 'Sparse field not filtered'
+        });
+        
+        console.groupEnd();
+        
+        // ============================================================================
+        // TEST: extractValues()
+        // ============================================================================
+        
+        console.group('Testing extractValues()');
+        
+        // Test 14: Extract from array
+        const dataArray = [
+            { properties: { mag: 4.5 } },
+            { properties: { mag: 3.2 } },
+            { properties: { mag: 5.1 } }
+        ];
+        const values14 = extractValues(dataArray, 'properties.mag');
+        const test14 = values14.length === 3 && 
+                      values14[0] === 4.5 && 
+                      values14[1] === 3.2 && 
+                      values14[2] === 5.1;
+        results.push({ 
+            name: 'extractValues - extracts from array of objects', 
+            pass: test14,
+            detail: test14 ? `Got [${values14.join(', ')}]` : 'Values mismatch'
+        });
+        
+        // Test 15: Extract from single object
+        const singleObj = { properties: { mag: 4.5 } };
+        const values15 = extractValues(singleObj, 'properties.mag');
+        const test15 = values15.length === 1 && values15[0] === 4.5;
+        results.push({ 
+            name: 'extractValues - extracts from single object', 
+            pass: test15 
+        });
+        
+        // Test 16: Missing values filtered out
+        const sparseArray = [
+            { mag: 4.5 },
+            { mag: 3.2 },
+            { other: 'no mag' }
+        ];
+        const values16 = extractValues(sparseArray, 'mag');
+        const test16 = values16.length === 2; // Only 2 items have 'mag'
+        results.push({ 
+            name: 'extractValues - filters out undefined values', 
+            pass: test16,
+            detail: test16 ? 'Got 2 values (3rd item missing mag)' : 'Undefined not filtered'
+        });
+        
+        console.groupEnd();
+        
+        // ============================================================================
+        // TEST: analyzeDataVariance()
+        // ============================================================================
+        
+        console.group('Testing analyzeDataVariance()');
+        
+        // Test 17: Linear curve for normal data
+        const linearData = [1, 2, 3, 4, 5];
+        const analysis17 = analyzeDataVariance(linearData);
+        const test17 = analysis17.curve === 'linear' && analysis17.coefficient > 0;
+        results.push({ 
+            name: 'analyzeDataVariance - linear for normal distribution', 
+            pass: test17,
+            detail: test17 ? `curve=${analysis17.curve}, CV=${analysis17.coefficient.toFixed(3)}` : 'Wrong curve'
+        });
+        
+        // Test 18: Cubic curve for very low variance
+        const tinyVariance = [99.1, 99.2, 99.3];
+        const analysis18 = analyzeDataVariance(tinyVariance);
+        const test18 = analysis18.curve === 'cubic';
+        results.push({ 
+            name: 'analyzeDataVariance - cubic for tiny variance', 
+            pass: test18,
+            detail: test18 ? `CV=${analysis18.coefficient.toFixed(4)} → cubic` : 'Expected cubic curve'
+        });
+        
+        // Test 19: Logarithmic curve for huge variance
+        const hugeVariance = [0.01, 0.1, 1, 10, 100, 1000];
+        const analysis19 = analyzeDataVariance(hugeVariance);
+        const test19 = analysis19.curve === 'logarithmic';
+        results.push({ 
+            name: 'analyzeDataVariance - logarithmic for huge variance', 
+            pass: test19,
+            detail: test19 ? `CV=${analysis19.coefficient.toFixed(2)} → logarithmic` : 'Expected logarithmic curve'
+        });
+        
+        // Test 20: Exponential curve for moderate variance
+        const modVariance = [95, 96, 97, 98, 99, 100];
+        const analysis20 = analyzeDataVariance(modVariance);
+        const test20 = analysis20.curve === 'exponential';
+        results.push({ 
+            name: 'analyzeDataVariance - exponential for moderate variance', 
+            pass: test20,
+            detail: test20 ? `CV=${analysis20.coefficient.toFixed(4)} → exponential` : 'Expected exponential curve'
+        });
+        
+        // Test 21: Handles empty array
+        const analysis21 = analyzeDataVariance([]);
+        const test21 = analysis21.curve === 'linear' && analysis21.coefficient === 0;
+        results.push({ 
+            name: 'analyzeDataVariance - handles empty array', 
+            pass: test21 
+        });
+        
+        // Test 22: Handles non-numeric values
+        const analysis22 = analyzeDataVariance(['a', 'b', 'c']);
+        const test22 = analysis22.curve === 'linear' && analysis22.coefficient === 0;
+        results.push({ 
+            name: 'analyzeDataVariance - handles non-numeric values', 
+            pass: test22 
+        });
+        
+        console.groupEnd();
+        
+        // ============================================================================
+        // INTEGRATION TEST: Real earthquake data
+        // ============================================================================
+        
+        console.group('Integration Test: Real Earthquake Data');
+        
+        // Simulate earthquake GeoJSON structure
+        const earthquakeData = [
+            { 
+                properties: { 
+                    mag: 4.5, 
+                    depth: 10.2, 
+                    place: 'California' 
+                },
+                geometry: {
+                    coordinates: [-118.5, 34.2, 8.1]
+                }
+            },
+            { 
+                properties: { 
+                    mag: 3.2, 
+                    depth: 15.8, 
+                    place: 'Nevada' 
+                },
+                geometry: {
+                    coordinates: [-119.1, 35.5, 12.3]
+                }
+            },
+            { 
+                properties: { 
+                    mag: 5.1, 
+                    depth: 8.5, 
+                    place: 'Alaska' 
+                },
+                geometry: {
+                    coordinates: [-150.2, 61.3, 5.2]
+                }
+            }
+        ];
+        
+        // Test 23: Extract paths from earthquake data
+        const eqPaths = extractPaths(earthquakeData);
+        const hasPropertiesMag = eqPaths.some(p => p.path === 'properties.mag' && p.type === 'number');
+        const hasPropertiesDepth = eqPaths.some(p => p.path === 'properties.depth' && p.type === 'number');
+        const hasPropertiesPlace = eqPaths.some(p => p.path === 'properties.place' && p.type === 'string');
+        const test23 = hasPropertiesMag && hasPropertiesDepth && hasPropertiesPlace;
+        results.push({ 
+            name: 'extractPaths - earthquake GeoJSON structure', 
+            pass: test23,
+            detail: test23 ? `Found ${eqPaths.length} paths including mag, depth, place` : 'Missing expected paths'
+        });
+        
+        // Test 24: Extract magnitude values
+        const magnitudes = extractValues(earthquakeData, 'properties.mag');
+        const test24 = magnitudes.length === 3 && 
+                      magnitudes[0] === 4.5 && 
+                      magnitudes[1] === 3.2 && 
+                      magnitudes[2] === 5.1;
+        results.push({ 
+            name: 'extractValues - earthquake magnitudes', 
+            pass: test24,
+            detail: test24 ? `Got [${magnitudes.join(', ')}]` : 'Failed to extract magnitudes'
+        });
+        
+        // Test 25: Analyze magnitude variance
+        const magAnalysis = analyzeDataVariance(magnitudes);
+        const test25 = magAnalysis.curve !== undefined && magAnalysis.coefficient > 0;
+        results.push({ 
+            name: 'analyzeDataVariance - earthquake magnitude analysis', 
+            pass: test25,
+            detail: test25 ? `Recommended: ${magAnalysis.curve}, CV=${magAnalysis.coefficient.toFixed(3)}` : 'Analysis failed'
+        });
+        
+        console.groupEnd();
+        
+        // ============================================================================
+        // DISPLAY RESULTS
+        // ============================================================================
+        
+        const resultsDiv = document.getElementById('results');
+        results.forEach(result => {
+            const div = document.createElement('div');
+            div.className = `test ${result.pass ? 'pass' : 'fail'}`;
+            
+            const icon = result.pass ? '✅' : '❌';
+            let content = `${icon} ${result.name}`;
+            if (result.detail) {
+                content += `<br><span style="font-size: 12px; color: #666; margin-left: 20px;">${result.detail}</span>`;
+            }
+            
+            div.innerHTML = content;
+            resultsDiv.appendChild(div);
+        });
+        
+        const passed = results.filter(r => r.pass).length;
+        const total = results.length;
+        const allPassed = passed === total;
+        
+        const summary = document.createElement('div');
+        summary.className = `summary ${allPassed ? 'pass' : 'fail'}`;
+        summary.style.borderLeft = `5px solid ${allPassed ? 'green' : 'red'}`;
+        summary.innerHTML = `
+            <div>${passed}/${total} tests passed</div>
+            <div style="font-size: 14px; font-weight: normal; margin-top: 8px;">
+                ${allPassed ? '🎉 All tests passing! Module is working correctly.' : '⚠️ Some tests failed. Check console for details.'}
+            </div>
+        `;
+        resultsDiv.appendChild(summary);
+        
+        // Console summary
+        console.log('\n' + '='.repeat(50));
+        console.log(`TEST SUMMARY: ${passed}/${total} passed`);
+        console.log('='.repeat(50));
+        
+        if (!allPassed) {
+            console.error('Failed tests:');
+            results.filter(r => !r.pass).forEach(r => {
+                console.error(`  ❌ ${r.name}`);
+            });
+        } else {
+            console.log('✅ All tests passed!');
+        }
+    </script>
+</body>
+</html>
+
