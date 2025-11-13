@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2025-11-13 (Refactoring)
+- optimized vercel deployment configuration - created .vercelignore to exclude test/, docs/, _archive/, and dev files from deployment, updated vercel.json with proper headers for ES6 modules (Content-Type for .js files), added security headers (X-Content-Type-Options, X-Frame-Options), removed unnecessary builds config for cleaner static deployment
 - refined d3 connection line dimming and z-ordering - made dimmed lines even lighter (#efefef instead of #ddd) to fade into background more subtly, added raise() calls to bring active connections to front ensuring black/yellow lines always appear above dimmed gray lines, improves visual hierarchy and focus during hover interactions
 - improved d3 connection line hover states - changed dimmed connection lines from black/yellow with opacity to light gray for better visual focus on active connections, removed blue hover state on port circles (was distracting legacy behavior), changed transitions from opacity to stroke color for smoother effect
 - increased distance between d3 visualization columns and updated visualizer background - reduced columnGap multiplier from 0.25 to 0.15 to push data fields and audio parameter columns further apart for longer more visible patch cables, changed audio visualizer canvas background from light gray (#eee) to near-white (#fafafa) to match overall color scheme

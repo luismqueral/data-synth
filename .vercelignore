@@ -1,0 +1,17 @@
+# Don't deploy development files
+test/
+docs/
+_archive/
+
+# Don't deploy workspace and config files
+.cursor/
+data-synth.code-workspace
+
+# Don't deploy legacy implementation (optional - keep if you want users to access it)
+# json-mapper-v2.html
+
+# Don't deploy unused files from old setup
+metrics.json
+Settings.json
+NODE_BASED_INTERFACE_GUIDE.md
+
