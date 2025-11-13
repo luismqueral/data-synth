@@ -1,159 +1,204 @@
-# Audio Engine Documentation
+# DataSynth Audio Engine Documentation
 
-**Complete technical reference for migrating to React/Next.js/Tailwind/Radix**
+**Complete technical reference for the vanilla JavaScript modular architecture**
 
-This document covers ALL audio processing logic in the DataSynth project, including synthesis, sampling, effects, parameter mapping, and visualization.
+This document explains how DataSynth processes data into sound using Web Audio API, ES6 modules, and D3.js visualization.
 
 ---
 
 ## 📋 Table of Contents
 
 1. [Architecture Overview](#architecture-overview)
-2. [Global State & Audio Context](#global-state--audio-context)
-3. [Effects Chain](#effects-chain)
-4. [Synthesizer Mode](#synthesizer-mode)
-5. [Sampler Mode](#sampler-mode)
-6. [Parameter Mapping System](#parameter-mapping-system)
-7. [Envelope (ADSR)](#envelope-adsr)
-8. [Playback Control](#playback-control)
-9. [Visualization](#visualization)
-10. [Data Processing & Scaling](#data-processing--scaling)
-11. [Helper Functions](#helper-functions)
-12. [Migration Notes](#migration-notes)
+2. [Module Structure](#module-structure)
+3. [AudioEngine Module](#audioengine-module)
+4. [DataProcessor Module](#dataprocessor-module)
+5. [ParameterMapper Module](#parametermapper-module)
+6. [PatchViz Module](#patchviz-module)
+7. [Main Application Coordination](#main-application-coordination)
+8. [Signal Flow](#signal-flow)
+9. [Web Audio API Patterns](#web-audio-api-patterns)
+10. [Parameter Mapping Deep Dive](#parameter-mapping-deep-dive)
+11. [Visualization System](#visualization-system)
+12. [Playback Control](#playback-control)
 
 ---
 
 ## Architecture Overview
 
-### Signal Flow Diagram
+DataSynth uses a **modular vanilla JavaScript architecture** with zero build tools and no frameworks.
+
+### Design Philosophy
+
+- **ES6 Modules**: Native browser imports/exports, no bundler
+- **Pure Functions**: Data processing with no side effects
+- **Class-Based Audio**: AudioEngine manages stateful Web Audio API
+- **D3.js Visualization**: Patch cable interface for mapping data to audio
+- **Static Deployment**: Works offline, no server required
+
+### File Structure
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         DATA SOURCE                              │
-│               (JSON, CSV, GeoJSON, Prose)                        │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    PARAMETER MAPPING                             │
-│  • Extract values from data paths                                │
-│  • Normalize to 0-1 range                                        │
-│  • Apply curves (linear, exponential, cubic, log, inverse)       │
-│  • Scale to audio parameter ranges                               │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    SOUND SOURCE                                  │
-│  ┌──────────────────┐              ┌─────────────────┐          │
-│  │   SYNTHESIZER    │      OR      │     SAMPLER     │          │
-│  │                  │              │                 │          │
-│  │ • Oscillators    │              │ • Audio Buffer  │          │
-│  │ • Noise          │              │ • Playback Rate │          │
-│  │ • FM Synthesis   │              │ • Sample Offset │          │
-│  │ • Additive       │              │ • Crop Duration │          │
-│  └──────────────────┘              └─────────────────┘          │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    PER-NOTE CHAIN                                │
-│                                                                   │
-│    Source → Filter → Panner → Envelope → Effects                │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    GLOBAL EFFECTS                                │
-│                                                                   │
-│            ┌─────────┐         ┌─────────┐                       │
-│  Input ──→ │ REVERB  │  ────→  │  DELAY  │  ────→  Output       │
-│         ↓  │ (wet)   │      ↓  │ (wet)   │      ↓               │
-│         ↓  └─────────┘      ↓  └─────────┘      ↓               │
-│         ↓                   ↓                   ↓               │
-│         ↓─── Dry ───────────↓─── Dry ───────────↓               │
-│            (reverb dry)        (delay dry)                       │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      ANALYSER                                    │
-│              (for waveform visualization)                        │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-                    audioContext.destination
+datasynth/
+├── index.html              # Entry point with UI
+├── main.js                 # Coordinates all modules
+├── lib/
+│   ├── audio-engine.js     # Web Audio API management
+│   ├── data-processor.js   # Data parsing and path extraction
+│   ├── parameter-mapper.js # Data-to-audio mapping logic
+│   └── patch-viz.js        # D3.js node graph visualization
+└── test/                   # Unit tests for each module
+```
+
+### Dependency Flow
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    index.html                        │
+│          (UI structure, styling, controls)           │
+└──────────────────────┬──────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────┐
+│                     main.js                          │
+│        (Coordinates modules, handles events)         │
+└──┬────────┬──────────┬───────────┬──────────────────┘
+   │        │          │           │
+   ▼        ▼          ▼           ▼
+┌──────┐ ┌─────┐ ┌──────────┐ ┌─────────┐
+│data- │ │audio│ │parameter │ │patch-   │
+│proc  │ │eng  │ │mapper    │ │viz      │
+│.js   │ │.js  │ │.js       │ │.js      │
+└──────┘ └─────┘ └──────────┘ └─────────┘
+   │        │          │           │
+   │        │          │           └──→ D3.js (CDN)
+   │        └──────────┴──→ Web Audio API
+   └──→ Pure functions (no dependencies)
 ```
 
 ---
 
-## Global State & Audio Context
+## Module Structure
 
-### State Variables
+### Overview of Each Module
 
-```javascript
-// Core audio state
-let audioContext;              // Web Audio API context
-let isPlaying = false;         // Playback state
-let isPaused = false;          // Pause state
-let currentTimeout;            // For note timing
+| Module | Type | Purpose | Dependencies |
+|--------|------|---------|--------------|
+| `data-processor.js` | Pure functions | Parse data, extract paths | None |
+| `parameter-mapper.js` | Class | Map data to audio params | data-processor.js |
+| `audio-engine.js` | Class | Web Audio API management | None |
+| `patch-viz.js` | Class | D3.js visualization | data-processor.js, D3.js |
+| `main.js` | Coordinator | Wire modules, handle events | All modules |
 
-// Effects nodes (global, shared by all notes)
-let delayNode;                 // Delay effect
-let delayFeedbackGain;         // Delay feedback amount
-let delayWetGain;              // Delay wet signal
-let delayDryGain;              // Delay dry signal
-let reverbNode;                // Convolver reverb
-let reverbWetGain;             // Reverb wet signal
-let reverbDryGain;             // Reverb dry signal
-let previousDelayTime = null;  // Track for analog pitch shifting
+### Module Communication
 
-// Sampler state
-let samplerMode = false;       // false = synth, true = sampler
-let sampleBuffer = null;       // Decoded audio buffer
-let originalSampleRate = null; // For display/info
-
-// Visualization
-let analyser;                  // AnalyserNode for waveform
-let dataArray;                 // Frequency data array
-let animationId;               // requestAnimationFrame ID
-
-// Data & mappings
-let parsedData = null;         // Array of data items
-let mappings = {};             // Parameter mappings
-let numericPaths = [];         // Available data paths
+```
+Data Flow:
+1. User loads JSON/CSV → data-processor extracts paths
+2. parameter-mapper analyzes paths → creates mappings
+3. main.js loops through data items
+4. For each item:
+   - parameter-mapper calculates audio params
+   - audio-engine plays note with params
+   - patch-viz updates visual feedback
 ```
 
-### Audio Context Initialization
+---
+
+## AudioEngine Module
+
+**File:** `lib/audio-engine.js` (~586 lines)
+
+### Purpose
+
+Manages all Web Audio API operations: context initialization, synthesis, effects chain, sample playback, and waveform visualization.
+
+### Class Structure
 
 ```javascript
-function initEffects() {
-    // Create audio context if it doesn't exist
-    if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+export class AudioEngine {
+    constructor()
+    initEffects()
+    createCustomOscillator(frequency, type, duration)
+    createNoiseBuffer(type, duration)
+    createReverbImpulse(duration, decay)
+    loadSample(audioFile)
+    clearSample()
+    setupVisualizer(canvas)
+    drawVisualizer(isPlaying)
+    stopVisualizer()
+    cleanup()
+}
+```
+
+### State Management
+
+The AudioEngine stores:
+
+```javascript
+// Audio context (persistent)
+this.audioContext = null;
+
+// Global effects nodes (shared across all notes)
+this.delayNode = null;
+this.delayFeedbackGain = null;
+this.delayWetGain = null;
+this.delayDryGain = null;
+this.reverbNode = null;
+this.reverbWetGain = null;
+this.reverbDryGain = null;
+
+// Delay pitch shifting state
+this.previousDelayTime = null;
+
+// Sampler state
+this.samplerMode = false;
+this.sampleBuffer = null;
+this.sampleFileName = '';
+this.sampleDuration = 0;
+
+// Visualizer state
+this.analyser = null;
+this.dataArray = null;
+this.animationId = null;
+this.visualizerCanvas = null;
+this.visualizerCtx = null;
+```
+
+### Key Methods
+
+#### `initEffects()`
+
+Initializes Web Audio context and effects chain:
+
+```javascript
+initEffects() {
+    // Create context (Safari compatibility)
+    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // Resume if suspended (mobile Safari)
+    if (this.audioContext.state === 'suspended') {
+        this.audioContext.resume();
     }
     
-    // Initialize delay
-    delayNode = audioContext.createDelay(2.0); // Max 2 seconds
-    delayFeedbackGain = audioContext.createGain();
-    delayWetGain = audioContext.createGain();
-    delayDryGain = audioContext.createGain();
+    // Setup delay with feedback loop
+    this.delayNode = this.audioContext.createDelay(2.0);
+    this.delayFeedbackGain = this.audioContext.createGain();
+    this.delayWetGain = this.audioContext.createGain();
+    this.delayDryGain = this.audioContext.createGain();
     
-    // Delay feedback loop
     delayNode.connect(delayFeedbackGain);
-    delayFeedbackGain.connect(delayNode);
+    delayFeedbackGain.connect(delayNode); // Feedback loop
     delayNode.connect(delayWetGain);
     
-    // Initialize reverb
-    reverbNode = audioContext.createConvolver();
-    reverbNode.buffer = createReverbImpulse(2, 2); // 2s duration, decay=2
-    reverbWetGain = audioContext.createGain();
-    reverbDryGain = audioContext.createGain();
+    // Setup reverb (convolution)
+    this.reverbNode = this.audioContext.createConvolver();
+    this.reverbNode.buffer = this.createReverbImpulse(2, 2);
+    this.reverbWetGain = this.audioContext.createGain();
+    this.reverbDryGain = this.audioContext.createGain();
     
     reverbNode.connect(reverbWetGain);
     
-    // Connect effects chain to destination
-    // Signal flow: Input → Reverb (wet/dry) → Delay (wet/dry) → Output
+    // Connect effects chain
     reverbWetGain.connect(delayNode);
     reverbWetGain.connect(delayDryGain);
     reverbDryGain.connect(delayNode);
@@ -162,35 +207,56 @@ function initEffects() {
 }
 ```
 
-**Key Points:**
-- Audio context created lazily (on first playback or sample load)
-- Effects are global and shared by all notes
-- Delay has feedback loop for infinite repeats
-- Reverb uses convolution with impulse response
+**Signal Flow:**
+```
+Input → Reverb (wet/dry split) → Delay (wet/dry split) → Destination
+```
 
----
+#### `createCustomOscillator(frequency, type, duration)`
 
-## Effects Chain
+Creates audio sources for synthesizer mode:
 
-### Reverb
+**Supported types:**
+- Standard: `sine`, `square`, `sawtooth`, `triangle`
+- Noise: `white-noise`, `pink-noise`, `brown-noise`
+- Synthesis: `fm`, `additive`, `pwm`
 
-**Type:** Convolution reverb  
-**Implementation:** ConvolverNode with synthetic impulse response
+**FM Synthesis Example:**
+```javascript
+if (type === 'fm') {
+    const carrier = audioContext.createOscillator();
+    const modulator = audioContext.createOscillator();
+    const modulatorGain = audioContext.createGain();
+    
+    carrier.frequency.value = frequency;
+    modulator.frequency.value = frequency * 2.5; // Harmonic ratio
+    modulatorGain.gain.value = frequency * 0.8;  // Modulation depth
+    
+    modulator.connect(modulatorGain);
+    modulatorGain.connect(carrier.frequency); // Modulate carrier
+    
+    carrier._modulator = modulator; // Store for start/stop
+    return carrier;
+}
+```
+
+#### `createReverbImpulse(duration, decay)`
+
+Generates synthetic reverb impulse response:
 
 ```javascript
-function createReverbImpulse(duration, decay) {
-    if (!audioContext) return null;
-    
-    const sampleRate = audioContext.sampleRate;
+createReverbImpulse(duration, decay) {
+    const sampleRate = this.audioContext.sampleRate;
     const length = sampleRate * duration;
-    const impulse = audioContext.createBuffer(2, length, sampleRate); // Stereo
+    const impulse = this.audioContext.createBuffer(2, length, sampleRate);
     
-    // Generate impulse response (decaying noise)
     for (let channel = 0; channel < 2; channel++) {
         const channelData = impulse.getChannelData(channel);
         for (let i = 0; i < length; i++) {
-            // Random noise * exponential decay
-            channelData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+            // White noise with exponential decay
+            const noise = Math.random() * 2 - 1;
+            const envelope = Math.pow(1 - i / length, decay);
+            channelData[i] = noise * envelope;
         }
     }
     
@@ -199,1283 +265,1384 @@ function createReverbImpulse(duration, decay) {
 ```
 
 **Parameters:**
-- `reverbDecay` (0.1-10s): Decay time, regenerates impulse when changed >0.5s
-- `reverbMix` (0-1): Wet/dry mix
+- `duration` (0.1-10s): Room size
+- `decay` (1-10): Reflection density (higher = longer tail)
 
-**Signal Flow:**
-```
-Input → reverbNode → reverbWetGain (scaled by mix)
-     ↓
-     → reverbDryGain (scaled by 1-mix)
-```
+#### `loadSample(audioFile)`
 
-### Delay
-
-**Type:** Feedback delay with analog-style pitch shifting  
-**Implementation:** DelayNode with feedback loop
+Decodes audio file for sampler mode:
 
 ```javascript
-// Delay parameter update (happens per note)
-const now = audioContext.currentTime;
-const newDelayTimeSeconds = Math.max(0.001, Math.min(2, delayTime / 1000));
-
-// Analog delay pitch shifting: ramp delay time for pitch bend
-if (previousDelayTime !== null && Math.abs(newDelayTimeSeconds - previousDelayTime) > 0.005) {
-    // Fast ramp creates tape-style pitch shift
-    const rampTime = 0.05; // 50ms creates audible pitch bend
-    delayNode.delayTime.cancelScheduledValues(now);
-    delayNode.delayTime.setValueAtTime(previousDelayTime, now);
-    delayNode.delayTime.linearRampToValueAtTime(newDelayTimeSeconds, now + rampTime);
-} else {
-    delayNode.delayTime.setValueAtTime(newDelayTimeSeconds, now);
+async loadSample(audioFile) {
+    if (!this.audioContext) {
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
+    const arrayBuffer = await audioFile.arrayBuffer();
+    this.sampleBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+    this.sampleFileName = audioFile.name;
+    this.sampleDuration = this.sampleBuffer.duration;
+    
+    return {
+        fileName: this.sampleFileName,
+        duration: this.sampleDuration,
+        channels: this.sampleBuffer.numberOfChannels,
+        sampleRate: this.sampleBuffer.sampleRate
+    };
 }
-previousDelayTime = newDelayTimeSeconds;
-
-// Update feedback and mix
-delayFeedbackGain.gain.setValueAtTime(Math.max(0, Math.min(0.9, delayFeedback)), now);
-delayWetGain.gain.setValueAtTime(delayMix, now);
-delayDryGain.gain.setValueAtTime(1 - delayMix, now);
 ```
 
-**Parameters:**
-- `delayTime` (50-1000ms): Delay time with ±15% random variation per note
-- `delayFeedback` (0.1-0.85): Feedback amount (capped at 0.9 to prevent runaway)
-- `delayMix` (0.1-0.9): Wet/dry mix
+**Format support:** WAV, MP3, OGG, WebM (M4A varies by browser)
 
-**Special Features:**
-- **Analog pitch shifting:** When delay time changes, it ramps over 50ms causing pitch bend (like tape delay)
-- **Organic variation:** Each note gets ±15% random delay time variation
-- **Safe feedback:** Clamped to 0.9 maximum to prevent infinite feedback
+#### `setupVisualizer(canvas)` & `drawVisualizer(isPlaying)`
 
-### Filter
-
-**Type:** Biquad filter (per-note, not global)  
-**Types Available:** lowpass, highpass, bandpass, notch
+Real-time waveform visualization:
 
 ```javascript
-const filter = audioContext.createBiquadFilter();
-filter.type = 'lowpass'; // or highpass, bandpass, notch
-filter.frequency.value = filterFreq; // 200-8000 Hz
-filter.Q.value = filterQ; // 0.1-20
+setupVisualizer(canvas) {
+    this.analyser = this.audioContext.createAnalyser();
+    this.analyser.fftSize = 256; // Low latency
+    this.analyser.smoothingTimeConstant = 0; // Instant response
+    
+    this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+    
+    // Connect to effects output
+    this.reverbWetGain.connect(this.analyser);
+    this.analyser.connect(this.audioContext.destination);
+    
+    // High DPI support
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    this.visualizerCtx.scale(dpr, dpr);
+}
+
+drawVisualizer(isPlaying) {
+    if (!isPlaying) return null;
+    
+    this.animationId = requestAnimationFrame(() => this.drawVisualizer(isPlaying));
+    this.analyser.getByteFrequencyData(this.dataArray);
+    
+    // Draw frequency spectrum as line graph
+    // (see full implementation in audio-engine.js)
+}
 ```
 
-**Parameters:**
-- `filterFreq` (200-8000 Hz): Cutoff frequency
-- `filterQ` (0.1-20): Resonance
-
-### Panner
-
-**Type:** Stereo panner (per-note)
-
-```javascript
-const panner = audioContext.createStereoPanner();
-panner.pan.value = Math.max(-1, Math.min(1, pan)); // -1 (left) to 1 (right)
-```
-
-**Parameters:**
-- `pan` (-1 to 1): Stereo position
+**Performance:**
+- FFT size: 256 (low latency)
+- No smoothing (instant response)
+- Shows first 60% of spectrum (musical content)
+- 2x amplification for visibility
 
 ---
 
-## Synthesizer Mode
+## DataProcessor Module
 
-### Oscillator Types
+**File:** `lib/data-processor.js` (~290 lines)
 
-The synthesizer supports standard and custom waveforms:
+### Purpose
+
+Pure functions for parsing data and extracting numeric paths. No side effects, easy to test.
+
+### Exported Functions
 
 ```javascript
-function createCustomOscillator(audioContext, frequency, type, duration) {
-    // Standard waveforms
-    if (type === 'sine' || type === 'square' || type === 'sawtooth' || type === 'triangle') {
-        const osc = audioContext.createOscillator();
-        osc.frequency.value = frequency;
-        osc.type = type;
-        return osc;
-    }
+export function getValueByPath(obj, path)
+export function safeId(path)
+export function extractPaths(obj, prefix = '', depth = 0)
+export function extractValues(data, path)
+export function analyzeDataVariance(values)
+```
+
+### Key Functions
+
+#### `getValueByPath(obj, path)`
+
+Navigates nested objects using dot notation:
+
+```javascript
+getValueByPath({properties: {mag: 4.5}}, 'properties.mag') // → 4.5
+getValueByPath({user: {name: "Luis"}}, 'user.age')         // → undefined
+```
+
+**Implementation:**
+```javascript
+export function getValueByPath(obj, path) {
+    if (!obj || !path) return undefined;
     
-    // WHITE NOISE
-    if (type === 'white-noise') {
-        const source = audioContext.createBufferSource();
-        source.buffer = createNoiseBuffer(audioContext, 'white-noise', duration);
-        source.loop = false;
-        return source;
-    }
-    
-    // PINK NOISE (1/f spectrum, more bass)
-    if (type === 'pink-noise') {
-        const source = audioContext.createBufferSource();
-        source.buffer = createNoiseBuffer(audioContext, 'pink-noise', duration);
-        source.loop = false;
-        return source;
-    }
-    
-    // BROWN NOISE (1/f² spectrum, even more bass)
-    if (type === 'brown-noise') {
-        const source = audioContext.createBufferSource();
-        source.buffer = createNoiseBuffer(audioContext, 'brown-noise', duration);
-        source.loop = false;
-        return source;
-    }
-    
-    // FM SYNTHESIS (carrier modulated by modulator)
-    if (type === 'fm') {
-        const carrier = audioContext.createOscillator();
-        const modulator = audioContext.createOscillator();
-        const modulatorGain = audioContext.createGain();
-        
-        carrier.frequency.value = frequency;
-        modulator.frequency.value = frequency * 2.5; // Harmonic ratio
-        modulatorGain.gain.value = frequency * 0.8;  // Modulation depth
-        
-        // Connect modulator to carrier frequency
-        modulator.connect(modulatorGain);
-        modulatorGain.connect(carrier.frequency);
-        
-        carrier.type = 'sine';
-        modulator.type = 'sine';
-        
-        // Store references to start/stop together
-        carrier._modulator = modulator;
-        carrier._modulatorGain = modulatorGain;
-        
-        return carrier;
-    }
-    
-    // ADDITIVE SYNTHESIS (multiple harmonics)
-    if (type === 'additive') {
-        const osc = audioContext.createOscillator();
-        osc.frequency.value = frequency;
-        osc.type = 'sine';
-        osc._isAdditive = true; // Flag for special handling
-        return osc;
-    }
-    
-    // PWM (Pulse Width Modulation) - currently just square wave
-    if (type === 'pwm') {
-        const osc = audioContext.createOscillator();
-        osc.frequency.value = frequency;
-        osc.type = 'square';
-        osc._isPWM = true;
-        return osc;
+    try {
+        return path.split('.').reduce((curr, key) => {
+            if (curr === null || curr === undefined) return undefined;
+            return curr[key];
+        }, obj);
+    } catch (e) {
+        console.warn(`Error accessing path ${path}:`, e);
+        return undefined;
     }
 }
 ```
 
-### Noise Generation
+#### `extractPaths(obj, prefix = '', depth = 0)`
+
+Recursively discovers all numeric fields:
 
 ```javascript
-function createNoiseBuffer(audioContext, type, duration) {
-    const bufferSize = audioContext.sampleRate * (duration / 1000);
-    const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-    const data = buffer.getChannelData(0);
-    
-    if (type === 'white-noise') {
-        // Equal power across all frequencies
-        for (let i = 0; i < bufferSize; i++) {
-            data[i] = Math.random() * 2 - 1;
-        }
-    } 
-    else if (type === 'pink-noise') {
-        // 1/f power spectrum (more bass)
-        let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
-        for (let i = 0; i < bufferSize; i++) {
-            const white = Math.random() * 2 - 1;
-            b0 = 0.99886 * b0 + white * 0.0555179;
-            b1 = 0.99332 * b1 + white * 0.0750759;
-            b2 = 0.96900 * b2 + white * 0.1538520;
-            b3 = 0.86650 * b3 + white * 0.3104856;
-            b4 = 0.55000 * b4 + white * 0.5329522;
-            b5 = -0.7616 * b5 - white * 0.0168980;
-            data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
-            b6 = white * 0.115926;
-        }
-    } 
-    else if (type === 'brown-noise') {
-        // 1/f² power spectrum (even more bass)
-        let lastOut = 0;
-        for (let i = 0; i < bufferSize; i++) {
-            const white = Math.random() * 2 - 1;
-            data[i] = (lastOut + (0.02 * white)) / 1.02;
-            lastOut = data[i];
-            data[i] *= 3.5; // Compensate for volume loss
-        }
-    }
-    
-    return buffer;
-}
+const data = [
+  { properties: { mag: 4.5, depth: 10 } },
+  { properties: { mag: 3.2, depth: 15 } }
+];
+
+extractPaths(data);
+// Returns:
+// [
+//   { path: 'properties.mag', type: 'number', coverage: 1.0, sample: 4.5 },
+//   { path: 'properties.depth', type: 'number', coverage: 1.0, sample: 10 }
+// ]
 ```
 
-### Additive Synthesis
+**Coverage calculation:**
+- Samples up to 20 items from arrays
+- Calculates % of items that have each field
+- Filters out fields with <10% coverage (sparse data)
 
-When `_isAdditive` flag is set, creates additional harmonics:
+**Why coverage matters:**
+If "temperature" only exists in 1 out of 100 items, it's not useful for sonification. We need fields that appear consistently.
+
+#### `analyzeDataVariance(values)`
+
+Suggests optimal mapping curve based on data distribution:
 
 ```javascript
-if (!samplerMode && source._isAdditive) {
-    // Reduce fundamental
-    const harmonicGain = audioContext.createGain();
-    harmonicGain.gain.value = 0.6;
-    source.connect(harmonicGain);
-    harmonicGain.connect(filter);
-    
-    // Add harmonics 2x, 3x, 4x with decreasing amplitude
-    const frequency = audioParams.frequency || 440;
-    const transposedFrequency = frequency * Math.pow(2, pitchTranspose / 12);
-    
-    for (let h = 2; h <= 4; h++) {
-        const harmonic = audioContext.createOscillator();
-        const hGain = audioContext.createGain();
-        harmonic.frequency.value = transposedFrequency * h;
-        harmonic.type = 'sine';
-        hGain.gain.value = 0.3 / h; // Amplitude decreases with harmonic number
-        harmonic.connect(hGain);
-        hGain.connect(filter);
-        harmonic.start(now);
-        harmonic.stop(now + durationTime);
-    }
-}
+analyzeDataVariance([1, 2, 3, 4, 5])
+// → { curve: 'linear', coefficient: 0.8 }
+
+analyzeDataVariance([0.01, 0.1, 1, 10, 100])
+// → { curve: 'logarithmic', coefficient: 19.8 }
+
+analyzeDataVariance([99.1, 99.2, 99.3])
+// → { curve: 'cubic', coefficient: 0.002 }
 ```
 
-### Pitch Quantization
-
-Forces frequencies to musical scale:
-
+**Algorithm:**
 ```javascript
-function quantizePitch(frequency) {
-    // Quantize to nearest semitone (12-TET)
-    const midiNote = 12 * Math.log2(frequency / 440) + 69;
-    const roundedMidi = Math.round(midiNote);
-    return 440 * Math.pow(2, (roundedMidi - 69) / 12);
-}
+const coefficientOfVariation = range / Math.abs(mean);
 
-// Usage in playback:
-if (document.getElementById('pitchQuantization')?.checked) {
-    transposedFrequency = quantizePitch(transposedFrequency);
-}
-```
-
-### Synthesizer Parameters
-
-```javascript
-{
-    id: 'frequency',
-    label: 'Frequency (Hz)',
-    min: 200,
-    max: 2000,
-    default: 440
+if (coefficientOfVariation < 0.01) {
+    return 'cubic';        // Amplify tiny differences
+} else if (coefficientOfVariation < 0.1) {
+    return 'exponential';  // Make differences more audible
+} else if (coefficientOfVariation > 5) {
+    return 'logarithmic';  // Compress extreme values
+} else {
+    return 'linear';       // Default for most data
 }
 ```
 
 ---
 
-## Sampler Mode
+## ParameterMapper Module
 
-### Sample Loading
+**File:** `lib/parameter-mapper.js` (~461 lines)
+
+### Purpose
+
+Manages mappings between data fields and audio parameters. Analyzes data to create intelligent default mappings.
+
+### Class Structure
 
 ```javascript
-// Triggered by file input
-async function handleSampleUpload(file) {
-    if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    
-    const arrayBuffer = await file.arrayBuffer();
-    sampleBuffer = await audioContext.decodeAudioData(arrayBuffer);
-    originalSampleRate = sampleBuffer.sampleRate;
-    
-    console.log('Sample loaded:', {
-        duration: sampleBuffer.duration.toFixed(2) + 's',
-        sampleRate: originalSampleRate,
-        channels: sampleBuffer.numberOfChannels
-    });
+export class ParameterMapper {
+    constructor()
+    getAudioParams()
+    intelligentMapping(parsedData, numericPaths)
+    randomizeMappings(numericPaths)
+    randomizeRanges()
+    randomizeAll(numericPaths)
+    initializeMappings()
 }
 ```
 
-### Sample Playback
+### State Management
 
 ```javascript
-// Create buffer source
-const source = audioContext.createBufferSource();
-source.buffer = sampleBuffer;
-
-// Playback rate (pitch)
-const pitchRate = audioParams.pitch || 1; // Data-driven rate
-const pitchTranspose = parseFloat(document.getElementById('pitchControl')?.value || 0);
-const transposeSemitones = Math.pow(2, pitchTranspose / 12); // Convert semitones to rate
-source.playbackRate.value = pitchRate * transposeSemitones;
-
-// Sample offset (where to start in the sample)
-let sampleOffsetSeconds;
-let sampleOffsetNorm; // 0-1 normalized position
-
-// Check Random Chop Mode
-const randomChopMode = document.getElementById('randomChopMode')?.checked || false;
-
-if (randomChopMode) {
-    // RANDOM CHOP MODE: Pick random 1-second increments, play 5 seconds
-    const chunkDuration = 5.0;
-    const startIncrement = 1.0;
-    const maxStartTime = Math.max(0, sampleBuffer.duration - chunkDuration);
-    
-    if (maxStartTime > 0) {
-        const numPositions = Math.floor(maxStartTime / startIncrement) + 1;
-        const randomPosition = Math.floor(Math.random() * numPositions);
-        sampleOffsetSeconds = randomPosition * startIncrement;
-        sampleOffsetNorm = sampleOffsetSeconds / sampleBuffer.duration;
-    } else {
-        sampleOffsetSeconds = 0;
-        sampleOffsetNorm = 0;
-    }
-} else {
-    // NORMAL MODE: Use data-driven offset
-    sampleOffsetNorm = audioParams.sampleOffset || 0; // 0-1 range
-    sampleOffsetSeconds = sampleOffsetNorm * sampleBuffer.duration;
-}
-
-// Crop duration (how long to play from offset)
-const fullNoteDuration = document.getElementById('fullNoteDuration')?.checked || false;
-let cropDurationSeconds;
-
-if (randomChopMode) {
-    cropDurationSeconds = 5.0; // Always 5 seconds in random chop
-} else if (fullNoteDuration) {
-    // Play until next note (use noteSpacing)
-    const noteSpacing = audioParams.noteSpacing || 300;
-    cropDurationSeconds = noteSpacing / 1000;
-} else {
-    // Normal: use duration parameter
-    cropDurationSeconds = duration / 1000;
-}
-
-// Start playback
-source.start(now, sampleOffsetSeconds, cropDurationSeconds);
-```
-
-### Anti-Click Protection
-
-Samples get minimum attack/release to prevent clicks:
-
-```javascript
-// For samples, ensure minimum smoothing
-const minSmoothTime = samplerMode ? 0.003 : 0; // 3ms minimum for samples
-const attackTime = Math.max(minSmoothTime, attack / 1000);
-const releaseTime = Math.max(minSmoothTime, release / 1000);
-```
-
-### Sampler Parameters
-
-```javascript
-{
-    id: 'pitch',
-    label: 'Pitch (Playback Rate)',
-    min: 0.25,   // 2 octaves down
-    max: 4,      // 2 octaves up
-    default: 1
-},
-{
-    id: 'sampleOffset',
-    label: 'Sample Start (0-1)',
-    min: 0,
-    max: 1,
-    default: 0
-}
-```
-
----
-
-## Parameter Mapping System
-
-### Available Parameters
-
-**Synthesizer Mode:**
-- `frequency` (200-2000 Hz): Base pitch
-- `duration` (50-2000ms): Note length
-- `noteSpacing` (50-2000ms): Time between notes (rhythm)
-- `pan` (-1 to 1): Stereo position
-- `filterFreq` (200-8000 Hz): Filter cutoff
-- `filterQ` (0.1-20): Filter resonance
-- `delayTime` (50-1000ms): Delay time
-- `delayFeedback` (0.1-0.85): Delay repeats
-- `delayMix` (0.1-0.9): Delay wet/dry
-- `reverbDecay` (0.1-10s): Reverb length
-- `reverbMix` (0-1): Reverb wet/dry
-- `attack` (1-1000ms): Envelope attack
-- `release` (1-2000ms): Envelope release
-
-**Sampler Mode:**
-- `pitch` (0.25-4): Playback rate (replaces frequency)
-- `sampleOffset` (0-1): Starting position in sample
-- All other parameters same as synthesizer
-
-### Mapping Structure
-
-```javascript
-mappings = {
+this.mappings = {
     frequency: {
-        path: 'properties.mag',     // Data path to extract value from
-        fixed: 440,                  // Default if no path mapped
-        min: 200,                    // Audio parameter minimum
-        max: 2000,                   // Audio parameter maximum
-        curve: 'exponential'         // Scaling curve
+        path: 'properties.mag',  // Data field to map from
+        fixed: 440,              // Default value if no mapping
+        min: 200,                // Audio parameter minimum
+        max: 2000,               // Audio parameter maximum
+        curve: 'exponential'     // Scaling curve
     },
     // ... other parameters
 }
+
+this.samplerMode = false; // Affects available parameters
 ```
 
-### Parameter Calculation Pipeline
+### Mode-Specific Parameters
+
+**Synthesizer Mode:**
+- `frequency` (200-2000 Hz) - Base pitch
+- `duration` (50-2000 ms) - Note length
+- `noteSpacing` (50-2000 ms) - Rhythm
+- `pan` (-1 to 1) - Stereo position
+- `filterFreq` (200-8000 Hz) - Filter cutoff
+- `filterQ` (0.1-20) - Filter resonance
+- `delayTime` (50-1000 ms) - Echo time
+- `delayFeedback` (0.1-0.85) - Echo repeats
+- `delayMix` (0.1-0.9) - Echo wet/dry
+- `reverbDecay` (0.1-10 s) - Reverb length
+- `reverbMix` (0-1) - Reverb wet/dry
+- `attack` (1-1000 ms) - Envelope attack
+- `release` (1-2000 ms) - Envelope release
+
+**Sampler Mode:**
+- `pitch` (0.25-4) - Playback rate (replaces frequency)
+- `sampleOffset` (0-1) - Start position in sample
+- All other parameters same as synthesizer
+
+### Intelligent Mapping Algorithm
+
+The `intelligentMapping()` method analyzes data and assigns fields to parameters based on "interestingness":
+
+**Step 1: Calculate Interest Score**
 
 ```javascript
-function getParamValue(paramName) {
-    const mapping = mappings[paramName];
-    if (!mapping) return null;
-    
-    // 1. Extract raw value from data
-    if (mapping.path && dataRanges[paramName]) {
-        const rawValue = parseFloat(getValueByPath(item, mapping.path));
-        if (isNaN(rawValue)) return mapping.fixed;
-        
-        // 2. Get data range (pre-calculated from entire dataset)
-        const dataMin = dataRanges[paramName].min;
-        const dataMax = dataRanges[paramName].max;
-        
-        if (dataMax === dataMin) return mapping.min;
-        
-        // 3. Normalize to 0-1
-        let normalized = (rawValue - dataMin) / (dataMax - dataMin);
-        normalized = Math.max(0, Math.min(1, normalized)); // Clamp
-        
-        // 4. Apply curve transformation
-        let curved = normalized;
-        switch (mapping.curve) {
-            case 'exponential':
-                curved = Math.pow(normalized, 2);
-                break;
-            case 'cubic':
-                curved = Math.pow(normalized, 3);
-                break;
-            case 'logarithmic':
-                curved = normalized > 0 
-                    ? Math.log(1 + normalized * 9) / Math.log(10) 
-                    : 0;
-                break;
-            case 'inverse':
-                curved = 1 - normalized;
-                break;
-            case 'linear':
-            default:
-                curved = normalized;
-                break;
-        }
-        
-        // 5. Scale to audio parameter range
-        return mapping.min + (curved * (mapping.max - mapping.min));
-    }
-    
-    // No mapping: return fixed value
-    return mapping.fixed;
-}
+// For each numeric path:
+const min = Math.min(...values);
+const max = Math.max(...values);
+const range = max - min;
+const mean = values.reduce((a, b) => a + b) / values.length;
+const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
+const stdDev = Math.sqrt(variance);
+const coefficientOfVariation = Math.abs(mean) > 0 ? stdDev / Math.abs(mean) : 0;
+
+const uniqueValues = new Set(values).size;
+const uniqueRatio = uniqueValues / values.length;
+
+// Interest = variance × uniqueness × log(range)
+const interestScore = coefficientOfVariation * uniqueRatio * Math.log10(range + 1);
 ```
 
-### Curve Types
+**What makes data "interesting"?**
+- High variance (values change a lot)
+- High uniqueness (many distinct values)
+- Wide range (spans large numbers)
 
-**Linear:** `y = x`
-- Direct 1:1 mapping
-- Use for most parameters
+**Step 2: Sort by Interest**
 
-**Exponential:** `y = x²`
-- Emphasizes higher values
-- Good for frequencies (makes changes more perceptible)
+Most interesting fields are prioritized for perceptually important parameters.
 
-**Cubic:** `y = x³`
-- Even more emphasis on higher values
-- Good for very low-variance data (lat/lon)
-
-**Logarithmic:** `y = log₁₀(1 + 9x)`
-- Compresses large ranges
-- Good for magnitude scales (earthquakes, etc.)
-
-**Inverse:** `y = 1 - x`
-- Inverts the mapping
-- Higher data values → lower parameter values
-
-### Data Range Pre-calculation
-
-Ranges calculated once at playback start:
+**Step 3: Parameter Tiers**
 
 ```javascript
-// Calculate data ranges for all mapped parameters ONCE
-const dataRanges = {};
-Object.entries(mappings).forEach(([param, mapping]) => {
-    if (mapping && mapping.path) {
-        const values = dataArray
-            .map(item => getValueByPath(item, mapping.path))
-            .filter(v => v !== undefined && !isNaN(parseFloat(v)))
-            .map(v => parseFloat(v));
-        
-        if (values.length > 0) {
-            dataRanges[param] = {
-                min: Math.min(...values),
-                max: Math.max(...values)
-            };
-        }
+const parameterTiers = {
+    critical: ['noteSpacing', 'frequency', 'duration'],  // Rhythm & pitch
+    important: ['pan', 'filterFreq', 'delayTime', ...],   // Spatial & timbral
+    subtle: ['filterQ', 'reverbDecay', 'reverbMix']      // Fine details
+};
+```
+
+**Step 4: Map Most Interesting → Most Important**
+
+```javascript
+// Map top 3 most interesting fields to critical parameters
+parameterTiers.critical.forEach((param, i) => {
+    if (pathAnalysis[i]) {
+        this.mappings[param].path = pathAnalysis[i].path;
+        this.mappings[param].curve = suggestedCurve;
     }
 });
 ```
 
----
+**Step 5: Auto-Select Curves**
 
-## Envelope (ADSR)
+Based on coefficient of variation:
+- CV < 0.01: `cubic` (amplify tiny differences)
+- CV < 0.1: `exponential` (make differences more obvious)
+- CV > 5: `logarithmic` (compress extremes)
+- Otherwise: `linear`
 
-### Envelope Implementation
-
-Uses exponential ramps for natural-sounding envelopes:
-
-```javascript
-const envelope = audioContext.createGain();
-const now = audioContext.currentTime;
-
-// Minimum smoothing for samples (prevents clicks)
-const minSmoothTime = samplerMode ? 0.003 : 0; // 3ms for samples
-const attackTime = Math.max(minSmoothTime, attack / 1000); // Convert ms to seconds
-const releaseTime = Math.max(minSmoothTime, release / 1000);
-const durationTime = duration / 1000;
-
-// Exponential ramps (can't start at 0, use 0.001)
-envelope.gain.setValueAtTime(0.001, now); // START
-envelope.gain.exponentialRampToValueAtTime(volume, now + attackTime); // ATTACK
-envelope.gain.setValueAtTime(volume, now + Math.max(attackTime, durationTime - releaseTime)); // SUSTAIN
-envelope.gain.exponentialRampToValueAtTime(0.001, now + durationTime); // RELEASE
-```
-
-### Envelope Stages
-
-```
-         Attack    Sustain         Release
-           ↗       ━━━━━━━           ↘
-         ↗                           ↘
-       ↗                             ↘
-     ↗                               ↘
-   ↗_________________________________↘___
-  0ms        attackTime    durationTime-releaseTime    durationTime
-  
-  0.001 → volume (exponential) → volume (hold) → 0.001 (exponential)
-```
-
-**Parameters:**
-- `attack` (1-1000ms): Time to reach full volume
-- `release` (1-2000ms): Time to fade out
-- `volume` (0-1): Master volume from slider
-
-**Key Points:**
-- Exponential ramps sound more natural than linear
-- Must start/end at non-zero for exponential (use 0.001)
-- Samples get minimum 3ms attack/release to prevent clicks
-- Sustain level is just full volume (simplified ADSR, no decay stage)
+**Special handling for `noteSpacing` (rhythm):**
+- Favors exponential curves (more dramatic)
+- Sets wide range (80-1200ms) for rhythmic variation
 
 ---
 
-## Playback Control
+## PatchViz Module
 
-### Main Playback Loop
+**File:** `lib/patch-viz.js` (~603 lines)
+
+### Purpose
+
+D3.js-based node graph visualization showing data-to-audio parameter mappings.
+
+### Class Structure
 
 ```javascript
-async function playDataSonification() {
-    if (!parsedData) return;
+export class PatchViz {
+    constructor(svgElementId)
+    render(numericPaths, mappings, parameterMapper, isPlaying)
+    updateNodeValues(currentItem, audioParams, mappings, isPlaying)
+    clearNodeValues()
+    updateConnections(mappings)
+    resetDebugFlags()
+}
+```
+
+### Visual Design
+
+```
+┌─────────────────────────────────────────────────┐
+│                  Patch View                      │
+├─────────────────────────────────────────────────┤
+│                                                  │
+│  Data Fields          Audio Parameters          │
+│                                                  │
+│  ● properties.mag ═══════════╗                  │
+│                               ║                  │
+│  ● properties.depth           ╠═══════ ● frequency
+│                               ║                  │
+│  ● geometry.lat               ╚═══════ ● pan     │
+│                                                  │
+│  ● geometry.lon ═══════════════════════ ● filterFreq
+│                                                  │
+│  (unmapped fields shown dimmed)                 │
+│                                                  │
+└─────────────────────────────────────────────────┘
+
+Legend:
+● = Node (data field or audio parameter)
+═ = Connection (yellow/black dashed "patch cable")
+```
+
+### Node Types
+
+**Data Nodes (Left Side):**
+- Wider (150-200px) to fit long field names
+- Display current value during playback
+- Dimmed if unmapped
+
+**Audio Nodes (Right Side):**
+- Narrower (110-140px)
+- Progress bar shows parameter value
+- Display current calculated value
+
+### Key Methods
+
+#### `render(numericPaths, mappings, parameterMapper, isPlaying)`
+
+Full visualization redraw:
+
+```javascript
+render(numericPaths, mappings, parameterMapper, isPlaying) {
+    // Clear everything
+    this.svg.selectAll('*').remove();
     
-    // Toggle stop if already playing
+    // Create nodes
+    this._createNodes(numericPaths, parameterMapper, width);
+    
+    // Calculate dynamic height
+    const maxNodes = Math.max(dataNodeCount, audioNodeCount);
+    const dynamicHeight = 50 + (maxNodes * 45) + 50;
+    this.svg.attr('height', dynamicHeight);
+    
+    // Draw connections (behind nodes)
+    this._drawConnections(connectionGroup, mappings, width);
+    
+    // Draw nodes (with hover interactivity)
+    this._drawNodes(nodeGroup, width, mappings, isPlaying);
+}
+```
+
+**D3 Pattern:**
+```javascript
+// D3's data binding pattern
+const nodeGroups = container.selectAll('.node')
+    .data(this.nodes)           // Bind data
+    .enter()                     // Enter selection (new elements)
+    .append('g')                 // Create groups
+    .attr('class', 'node')
+    .attr('transform', d => `translate(${d.x},${d.y})`);
+```
+
+#### `updateNodeValues(currentItem, audioParams, mappings, isPlaying)`
+
+Live value updates during playback:
+
+```javascript
+updateNodeValues(currentItem, audioParams, mappings, isPlaying) {
+    // Update data node values (left side)
+    this.nodes.forEach(node => {
+        if (node.type === 'data') {
+            const value = getValueByPath(currentItem, node.dataPath);
+            const valueEl = document.getElementById(`value_${node.id}`);
+            valueEl.textContent = formatValue(value);
+            
+            // Highlight if mapped
+            if (isMapped(node, mappings)) {
+                d3.select(`[data-node-id="${node.id}"]`).classed('playing', true);
+            }
+        }
+    });
+    
+    // Update audio param values and progress bars (right side)
+    Object.entries(audioParams).forEach(([param, value]) => {
+        updateProgressBar(param, value, mappings);
+        highlightIfMapped(param, mappings);
+    });
+}
+```
+
+**Progress bars:**
+```javascript
+// Calculate fill width based on normalized value
+const normalized = (value - min) / (max - min);
+const fillWidth = normalized * barMaxWidth;
+barEl.attr('width', fillWidth);
+```
+
+### Hover Interactions
+
+```javascript
+nodeGroup.on('mouseenter', function(d) {
+    // Highlight this node
+    d3.select(this).classed('hover-highlight', true);
+    
+    // Find connected nodes
+    const connectedNodeIds = findConnectedNodes(d, mappings);
+    
+    // Dim non-connected nodes
+    d3.selectAll('.node').each(function(otherNode) {
+        if (otherNode.id !== d.id && !connectedNodeIds.includes(otherNode.id)) {
+            d3.select(this).classed('hover-dimmed', true);
+        }
+    });
+    
+    // Highlight related connections
+    d3.selectAll('[data-target]').each(function() {
+        if (isRelatedConnection(this, d)) {
+            d3.select(this).classed('hover-active', true);
+        }
+    });
+});
+```
+
+### Connection Lines
+
+**Yellow/black dashed "patch cable" aesthetic:**
+
+```javascript
+// Draw yellow background path
+container.append('path')
+    .attr('class', 'connection-path-yellow')
+    .attr('d', pathData)
+    .attr('data-target', audioParam);
+
+// Draw black foreground path (offset dasharray creates alternating effect)
+container.append('path')
+    .attr('class', 'connection-path')
+    .attr('d', pathData)
+    .attr('data-target', audioParam);
+```
+
+**CSS (required in index.html):**
+```css
+.connection-path-yellow {
+    stroke: #FFD700;        /* Yellow */
+    stroke-width: 3;
+    stroke-dasharray: 8, 8;
+}
+
+.connection-path {
+    stroke: #000;           /* Black */
+    stroke-width: 3;
+    stroke-dasharray: 8, 8;
+    stroke-dashoffset: 8;   /* Offset creates alternating effect */
+}
+```
+
+**Bezier curve for natural routing:**
+```javascript
+const sourceX = sourceNode.x + dataNodeWidth/2;
+const targetX = targetNode.x - audioNodeWidth/2;
+const midX = (sourceX + targetX) / 2;
+const pathData = `M ${sourceX},${sourceY} C ${midX},${sourceY} ${midX},${targetY} ${targetX},${targetY}`;
+```
+
+---
+
+## Main Application Coordination
+
+**File:** `main.js` (~749 lines)
+
+### Purpose
+
+Wires modules together, handles UI events, coordinates playback loop.
+
+### Module Imports
+
+```javascript
+import { 
+    extractPaths, 
+    extractValues,
+    getValueByPath 
+} from './lib/data-processor.js';
+
+import { AudioEngine } from './lib/audio-engine.js';
+import { ParameterMapper } from './lib/parameter-mapper.js';
+import { PatchViz } from './lib/patch-viz.js';
+```
+
+### Module Instance Creation
+
+```javascript
+const audioEngine = new AudioEngine();
+const parameterMapper = new ParameterMapper();
+const patchViz = new PatchViz('patchViz');
+```
+
+**Why these are global:**
+- `audioEngine`: AudioContext must persist across playback sessions
+- `parameterMapper`: Mappings need to survive UI changes
+- `patchViz`: D3 needs stable reference to SVG
+
+### Application State
+
+```javascript
+let parsedData = null;           // Array of data items
+let numericPaths = [];           // Detected numeric fields
+let isPlaying = false;           // Playback state
+let currentTimeout = null;       // For note timing
+let currentPlaybackId = 0;       // Race condition prevention
+```
+
+### Event Flow
+
+```
+User loads dataset
+  ↓
+handleDatasetSelection()
+  ↓
+processData()
+  ├─→ extractPaths(data) → numericPaths
+  ├─→ parameterMapper.intelligentMapping(data, numericPaths)
+  └─→ patchViz.render(numericPaths, mappings)
+  
+User clicks Play
+  ↓
+handlePlay()
+  ↓
+Playback loop
+  ├─→ calculateAudioParams(item, mappings, dataRanges)
+  ├─→ playNote(audioParams)
+  └─→ patchViz.updateNodeValues(item, audioParams, mappings)
+```
+
+### Data Loading Pipeline
+
+```javascript
+async function handleDatasetSelection(e) {
+    const filePath = e.target.value;
+    
+    // Fetch data
+    const response = await fetch(filePath, { cache: 'no-cache' });
+    const text = await response.text();
+    
+    // Parse based on file type
+    let data;
+    if (filePath.endsWith('.csv')) {
+        data = d3.csvParse(text, d3.autoType);
+    } else {
+        const json = JSON.parse(text);
+        // Handle GeoJSON
+        data = json.type === 'FeatureCollection' && json.features 
+            ? json.features 
+            : json;
+    }
+    
+    processData(data);
+}
+
+function processData(data) {
+    parsedData = data;
+    
+    // Extract numeric paths
+    const allPaths = extractPaths(data);
+    numericPaths = allPaths.filter(p => p.type === 'number');
+    
+    // Initialize mappings
+    parameterMapper.initializeMappings();
+    parameterMapper.intelligentMapping(parsedData, numericPaths);
+    
+    // Render visualization
+    patchViz.render(numericPaths, parameterMapper.mappings, parameterMapper, false);
+    
+    // Enable controls
+    document.getElementById('playDataBtn').disabled = false;
+}
+```
+
+### Playback Loop
+
+```javascript
+async function handlePlay() {
     if (isPlaying) {
         stopPlayback();
         return;
     }
     
-    // Start playback
+    // Start new playback session
     isPlaying = true;
-    isPaused = false;
-    previousDelayTime = null;
+    currentPlaybackId++;
+    const thisPlaybackId = currentPlaybackId;
     
-    // Initialize effects
-    if (!delayNode) {
-        initEffects();
+    // Initialize audio
+    if (!audioEngine.audioContext) {
+        audioEngine.initEffects();
+        audioEngine.setupVisualizer(document.getElementById('audioVisualizer'));
     }
-    
-    // Setup visualizer
-    if (!analyser) {
-        setupVisualizer();
-    }
-    drawVisualizer();
-    
-    const dataArray = Array.isArray(parsedData) ? parsedData : [parsedData];
     
     // Calculate data ranges once
-    const dataRanges = {};
-    Object.entries(mappings).forEach(([param, mapping]) => {
-        if (mapping && mapping.path) {
-            const values = dataArray
-                .map(item => getValueByPath(item, mapping.path))
-                .filter(v => v !== undefined && !isNaN(parseFloat(v)))
-                .map(v => parseFloat(v));
-            
-            if (values.length > 0) {
-                dataRanges[param] = {
-                    min: Math.min(...values),
-                    max: Math.max(...values)
-                };
-            }
-        }
-    });
+    const dataRanges = calculateDataRanges(itemsArray, parameterMapper.mappings);
     
-    // Loop continuously
-    while (isPlaying) {
-        for (let i = 0; i < dataArray.length && isPlaying; i++) {
-            // Wait if paused
-            while (isPaused && isPlaying) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-            if (!isPlaying) break;
+    // Loop continuously (race condition protected)
+    while (isPlaying && thisPlaybackId === currentPlaybackId) {
+        for (let i = 0; i < itemsArray.length && thisPlaybackId === currentPlaybackId; i++) {
+            const item = itemsArray[i];
             
-            const item = dataArray[i];
+            // Calculate audio parameters
+            const audioParams = calculateAudioParams(item, parameterMapper.mappings, dataRanges);
             
-            // Calculate all audio parameters
-            const audioParams = {};
-            // ... (see Parameter Mapping section)
-            
-            // Update global effects
-            updateDelayParameters(audioParams);
-            updateReverbParameters(audioParams);
+            // Update visualization
+            patchViz.updateNodeValues(item, audioParams, parameterMapper.mappings, isPlaying);
             
             // Play note
-            playNote(audioParams);
-            
-            // Calculate note spacing with variation
-            let noteSpacing = calculateNoteSpacing(audioParams);
-            
-            // Apply rhythmic quantization if enabled
-            if (document.getElementById('rhythmicQuantization')?.checked) {
-                noteSpacing = quantizeRhythm(noteSpacing);
-            }
+            await playNote(audioParams);
             
             // Wait for next note
-            await new Promise(resolve => setTimeout(resolve, noteSpacing));
-        }
-    }
-}
-```
-
-### Stop Playback
-
-```javascript
-function stopPlayback() {
-    isPlaying = false;
-    isPaused = false;
-    
-    // Update UI
-    document.getElementById('playIcon').textContent = '▶';
-    document.getElementById('playText').textContent = 'Play';
-    visualizerCanvas.classList.remove('active');
-    
-    // Cancel animation frame
-    if (animationId) {
-        cancelAnimationFrame(animationId);
-        animationId = null;
-    }
-    
-    // Clear visualizer
-    const rect = visualizerCanvas.getBoundingClientRect();
-    visualizerCtx.fillStyle = '#eee';
-    visualizerCtx.fillRect(0, 0, rect.width, rect.height);
-    
-    // Reset node visualization
-    clearNodeVisualization();
-}
-```
-
-### Rhythmic Quantization
-
-Snaps note spacing to musical time divisions:
-
-```javascript
-function quantizeRhythm(spacing) {
-    // Musical time divisions (in ms at 120 BPM)
-    const rhythmGrid = [
-        125,   // 32nd note
-        250,   // 16th note
-        375,   // Dotted 16th
-        500,   // 8th note
-        750,   // Dotted 8th
-        1000,  // Quarter note
-        1500,  // Dotted quarter
-        2000   // Half note
-    ];
-    
-    // Find closest grid value
-    let closest = rhythmGrid[0];
-    let minDiff = Math.abs(spacing - closest);
-    
-    for (const gridValue of rhythmGrid) {
-        const diff = Math.abs(spacing - gridValue);
-        if (diff < minDiff) {
-            minDiff = diff;
-            closest = gridValue;
-        }
-    }
-    
-    return closest;
-}
-```
-
----
-
-## Visualization
-
-### Waveform Visualizer
-
-Real-time frequency spectrum display:
-
-```javascript
-function setupVisualizer() {
-    if (!audioContext) return;
-    
-    // Create analyser
-    analyser = audioContext.createAnalyser();
-    analyser.fftSize = 256; // Smaller FFT = lower latency
-    analyser.smoothingTimeConstant = 0; // No smoothing = instant response
-    analyser.minDecibels = -90;
-    analyser.maxDecibels = -10;
-    
-    const bufferLength = analyser.frequencyBinCount;
-    dataArray = new Uint8Array(bufferLength);
-    
-    // Connect to effects chain output
-    reverbWetGain.connect(analyser);
-    analyser.connect(audioContext.destination);
-    
-    // Set canvas resolution for crisp rendering
-    const dpr = window.devicePixelRatio || 1;
-    const rect = visualizerCanvas.getBoundingClientRect();
-    visualizerCanvas.width = rect.width * dpr;
-    visualizerCanvas.height = rect.height * dpr;
-    visualizerCtx.scale(dpr, dpr);
-}
-
-function drawVisualizer() {
-    if (!isPlaying) return;
-    
-    animationId = requestAnimationFrame(drawVisualizer);
-    
-    // Get frequency data
-    analyser.getByteFrequencyData(dataArray);
-    
-    const rect = visualizerCanvas.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    
-    // Clear with light gray
-    visualizerCtx.fillStyle = '#eee';
-    visualizerCtx.fillRect(0, 0, width, height);
-    
-    // Show only first 60% of spectrum (musical content)
-    const relevantBins = Math.floor(dataArray.length * 0.6);
-    
-    // Draw as line graph
-    visualizerCtx.lineWidth = 2;
-    visualizerCtx.strokeStyle = '#000';
-    visualizerCtx.lineCap = 'round';
-    visualizerCtx.lineJoin = 'round';
-    visualizerCtx.beginPath();
-    
-    const sliceWidth = width / relevantBins;
-    const amplification = 2.0; // 2x for more dramatic movement
-    
-    for (let i = 0; i < relevantBins; i++) {
-        const v = dataArray[i] / 255.0;
-        const y = height - (v * height * amplification);
-        const x = i * sliceWidth;
-        
-        if (i === 0) {
-            visualizerCtx.moveTo(x, y);
-        } else {
-            visualizerCtx.lineTo(x, y);
-        }
-    }
-    
-    visualizerCtx.stroke();
-}
-```
-
-**Key Features:**
-- Low latency (fftSize=256, no smoothing)
-- High DPI support (uses devicePixelRatio)
-- Shows musical range (first 60% of spectrum)
-- 2x amplification for visibility
-
-### Node Visualization
-
-D3.js-based patch cable visualization (see separate D3 section in code)
-
-**Features:**
-- Data nodes (left) → Audio parameter nodes (right)
-- Connection lines show active mappings
-- Real-time progress bars on parameter nodes
-- Active/hover states
-
----
-
-## Data Processing & Scaling
-
-### Path Extraction
-
-Recursively extracts all numeric paths from data:
-
-```javascript
-function extractPaths(obj, prefix = '', depth = 0) {
-    const paths = [];
-    const maxDepth = 5;
-    
-    if (depth > maxDepth) return paths;
-    
-    if (Array.isArray(obj)) {
-        // Sample first few items of array
-        for (let i = 0; i < Math.min(3, obj.length); i++) {
-            paths.push(...extractPaths(obj[i], prefix, depth + 1));
-        }
-    } else if (obj && typeof obj === 'object') {
-        // Recurse into object properties
-        for (const [key, value] of Object.entries(obj)) {
-            const newPrefix = prefix ? `${prefix}.${key}` : key;
+            const noteSpacing = audioParams.noteSpacing || 300;
+            const speed = parseFloat(document.getElementById('speedControl').value) || 1;
+            const finalDelay = noteSpacing / speed;
             
-            if (typeof value === 'number') {
-                paths.push({ path: newPrefix, type: 'number' });
-            } else if (typeof value === 'object') {
-                paths.push(...extractPaths(value, newPrefix, depth + 1));
+            await new Promise(resolve => {
+                currentTimeout = setTimeout(resolve, finalDelay);
+            });
+            
+            // Check if still current session
+            if (thisPlaybackId !== currentPlaybackId) {
+                return; // Graceful exit
             }
         }
     }
-    
-    return paths;
 }
 ```
 
-### Value Extraction
+**Race condition protection:**
+Each playback session gets a unique ID. If user clicks Play again while playing, the new session increments `currentPlaybackId`, and the old loop exits gracefully.
 
-Gets value from nested path:
+---
+
+## Signal Flow
+
+### Complete Audio Path
+
+```
+┌──────────────────────────────────────────────────────┐
+│                    DATA SOURCE                        │
+│          (JSON, CSV, GeoJSON from URL or file)        │
+└───────────────────────┬──────────────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────────────┐
+│              DATA PROCESSOR MODULE                    │
+│  extractPaths() → Find all numeric fields            │
+│  analyzeDataVariance() → Suggest curves              │
+└───────────────────────┬──────────────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────────────┐
+│           PARAMETER MAPPER MODULE                     │
+│  intelligentMapping() → Data → Audio params          │
+│  - Analyze interest scores                           │
+│  - Assign to parameter tiers                         │
+│  - Select optimal curves                             │
+└───────────────────────┬──────────────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────────────┐
+│              MAIN.JS PLAYBACK LOOP                    │
+│  For each data item:                                 │
+│  1. getValueByPath() → Extract values                │
+│  2. Normalize to 0-1                                 │
+│  3. Apply curve transformation                       │
+│  4. Scale to audio parameter range                   │
+└───────────────────────┬──────────────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────────────┐
+│                AUDIO ENGINE MODULE                    │
+│                                                       │
+│  SYNTHESIZER MODE:                                   │
+│  createCustomOscillator() → Source                   │
+│    ↓                                                  │
+│  BiquadFilter (tone shaping)                         │
+│    ↓                                                  │
+│  StereoPanner (spatial position)                     │
+│    ↓                                                  │
+│  GainNode (envelope ADSR)                            │
+│    ↓                                                  │
+│  Effects Chain (reverb → delay)                      │
+│    ↓                                                  │
+│  AnalyserNode (visualization)                        │
+│    ↓                                                  │
+│  audioContext.destination (speakers)                 │
+│                                                       │
+│  SAMPLER MODE:                                       │
+│  BufferSource (loaded sample)                        │
+│    - playbackRate (pitch control)                    │
+│    - offset (start position)                         │
+│    - duration (crop length)                          │
+│    ↓                                                  │
+│  (same per-note chain as synthesizer)                │
+└───────────────────────┬──────────────────────────────┘
+                        │
+                        ▼
+┌──────────────────────────────────────────────────────┐
+│                PATCH VIZ MODULE                       │
+│  updateNodeValues() → Live visual feedback           │
+│  - Data node values                                  │
+│  - Audio param values                                │
+│  - Progress bars                                     │
+│  - Connection highlighting                           │
+└──────────────────────────────────────────────────────┘
+```
+
+### Per-Note Signal Chain (Detailed)
+
+```
+SYNTHESIZER MODE:
+┌─────────────────┐
+│  Oscillator     │  Frequency from data
+│  (sine/square/  │  Duration from data
+│   sawtooth/etc) │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  BiquadFilter   │  filterFreq from data
+│  (lowpass/etc)  │  filterQ from data
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  StereoPanner   │  pan from data (-1 to 1)
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  GainNode       │  Envelope (ADSR)
+│  (Envelope)     │  - Attack from data
+│                 │  - Release from data
+│                 │  - Master volume from UI
+└────────┬────────┘
+         │
+         ├─────→ reverbNode (ConvolverNode)
+         │        ├→ reverbWetGain (reverbMix from data)
+         │        └→ reverbDryGain (1 - reverbMix)
+         │              ↓
+         └─────────────→ delayNode
+                         ├→ delayFeedbackGain (feedback loop)
+                         ├→ delayWetGain (delayMix from data)
+                         └→ delayDryGain (1 - delayMix)
+                              ↓
+                         analyserNode (for visualization)
+                              ↓
+                         audioContext.destination
+
+
+SAMPLER MODE:
+┌─────────────────┐
+│  BufferSource   │  pitch (playback rate) from data
+│  (loaded sample)│  sampleOffset (0-1) from data
+│                 │  duration (crop) from data
+└────────┬────────┘
+         │
+         └────→ (same per-note chain as synthesizer)
+```
+
+---
+
+## Web Audio API Patterns
+
+### Why Class vs Functions?
+
+**AudioEngine uses a class because:**
+- AudioContext must persist across playback sessions
+- Effects nodes are global and shared
+- State needs cleanup (close context, cancel animations)
+- Multiple methods operate on same context/nodes
+
+**DataProcessor uses pure functions because:**
+- No state to maintain
+- Same input = same output (testable)
+- Can be used independently
+- No side effects
+
+### Browser Compatibility
 
 ```javascript
-function getValueByPath(obj, path) {
-    if (!path || !obj) return undefined;
+// Safari compatibility
+this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+// Resume context if suspended (mobile Safari requirement)
+if (this.audioContext.state === 'suspended') {
+    this.audioContext.resume();
+}
+```
+
+### User Gesture Requirement
+
+Modern browsers require user interaction before audio:
+
+```javascript
+// Initialize on first Play button click
+if (!audioEngine.audioContext) {
+    audioEngine.initEffects(); // Creates context
+}
+```
+
+**Why:** Prevents annoying autoplay ads. Must be called from user event (click, touch, keypress).
+
+### Memory Management
+
+```javascript
+cleanup() {
+    // Stop visualizer
+    this.stopVisualizer();
     
-    const parts = path.split('.');
-    let current = obj;
-    
-    for (const part of parts) {
-        if (current === null || current === undefined) {
-            return undefined;
-        }
-        current = current[part];
+    // Close audio context (frees resources)
+    if (this.audioContext) {
+        this.audioContext.close();
+        this.audioContext = null;
     }
     
-    return current;
+    // Clear all references
+    this.delayNode = null;
+    this.reverbNode = null;
+    this.sampleBuffer = null;
 }
 ```
 
-### Intelligent Mapping
+**When to call:** App shutdown, switching to sampler mode, memory constraints.
 
-Auto-assigns data to parameters based on "interestingness":
+### Exponential Ramps for Natural Sound
 
 ```javascript
-function intelligentMapping() {
-    const dataArray = Array.isArray(parsedData) ? parsedData : [parsedData];
-    
-    // Analyze each path
-    const pathAnalysis = numericPaths.map(pathObj => {
-        const values = extractValues(dataArray, pathObj.path);
-        const numericValues = values.map(v => parseFloat(v)).filter(v => !isNaN(v));
+// Exponential ramps sound more natural than linear
+// But can't start/end at 0 (use 0.001)
+
+envelope.gain.setValueAtTime(0.001, now);
+envelope.gain.exponentialRampToValueAtTime(volume, now + attackTime);
+envelope.gain.setValueAtTime(volume, now + sustainTime);
+envelope.gain.exponentialRampToValueAtTime(0.001, now + totalTime);
+```
+
+### Analog Delay Pitch Shifting
+
+```javascript
+// Ramping delay time creates pitch bend (tape delay effect)
+if (Math.abs(newDelayTime - previousDelayTime) > 0.005) {
+    delayNode.delayTime.linearRampToValueAtTime(newDelayTime, now + 0.05);
+    // 50ms ramp creates audible pitch shift
+}
+```
+
+**Effect:** When data changes delay time, you hear a pitch bend like analog tape.
+
+---
+
+## Parameter Mapping Deep Dive
+
+### Mapping Pipeline
+
+```
+1. EXTRACT
+   Raw value from data
+   getValueByPath(item, 'properties.mag') → 4.5
+
+2. NORMALIZE
+   Scale to 0-1 based on data range
+   (4.5 - 0.5) / (8.5 - 0.5) → 0.5
+
+3. CURVE
+   Apply transformation
+   exponential: 0.5² → 0.25
+   cubic: 0.5³ → 0.125
+   logarithmic: log₁₀(1 + 0.5×9) / log₁₀(10) → 0.681
+   inverse: 1 - 0.5 → 0.5
+   linear: 0.5 → 0.5
+
+4. SCALE
+   Map to audio parameter range
+   200 + (0.25 × (2000 - 200)) → 650 Hz
+```
+
+### Curve Comparison
+
+Given input 0.5 (middle of range):
+
+| Curve | Output | Use Case |
+|-------|--------|----------|
+| linear | 0.5 | Evenly distributed data |
+| exponential | 0.25 | Emphasize high values (frequencies) |
+| cubic | 0.125 | Amplify tiny differences (lat/lon) |
+| logarithmic | 0.681 | Compress large ranges (magnitudes) |
+| inverse | 0.5 | Flip mapping direction |
+
+**Visual representation:**
+```
+1.0 ┤                                    ╱─ exponential
+    │                                ╱───
+    │                            ╱───
+0.5 ┤           ╱────────────────  linear
+    │       ╱───
+    │   ╱───
+0.0 ┤───                                     cubic
+    └───────────────────────────────────►
+   0.0                                 1.0
+```
+
+### Data Range Pre-calculation
+
+Ranges calculated **once** at playback start for efficiency:
+
+```javascript
+const dataRanges = {};
+Object.entries(mappings).forEach(([param, mapping]) => {
+    if (mapping.path) {
+        const values = itemsArray
+            .map(item => getValueByPath(item, mapping.path))
+            .filter(v => !isNaN(parseFloat(v)))
+            .map(v => parseFloat(v));
         
-        if (numericValues.length === 0) return null;
-        
-        const min = Math.min(...numericValues);
-        const max = Math.max(...numericValues);
-        const range = max - min;
-        const mean = numericValues.reduce((a, b) => a + b, 0) / numericValues.length;
-        const variance = numericValues.reduce((sum, v) => 
-            sum + Math.pow(v - mean, 2), 0) / numericValues.length;
-        const stdDev = Math.sqrt(variance);
-        const coefficientOfVariation = Math.abs(mean) > 0 ? stdDev / Math.abs(mean) : 0;
-        
-        const uniqueValues = new Set(numericValues).size;
-        const uniqueRatio = uniqueValues / numericValues.length;
-        
-        // Interest score: variance + uniqueness + range
-        const interestScore = coefficientOfVariation * uniqueRatio * Math.log10(range + 1);
-        
-        return {
-            path: pathObj.path,
-            values: numericValues,
-            min, max, range, mean, stdDev,
-            coefficientOfVariation,
-            uniqueRatio,
-            interestScore
+        dataRanges[param] = {
+            min: Math.min(...values),
+            max: Math.max(...values)
         };
-    }).filter(a => a !== null);
-    
-    // Sort by interest score (most interesting first)
-    pathAnalysis.sort((a, b) => b.interestScore - a.interestScore);
-    
-    // Assign top paths to key parameters
-    const priorityParams = samplerMode 
-        ? ['pitch', 'sampleOffset', 'filterFreq', 'pan', 'delayTime']
-        : ['frequency', 'filterFreq', 'pan', 'reverbMix', 'delayTime'];
-    
-    priorityParams.forEach((param, i) => {
-        if (pathAnalysis[i]) {
-            const analysis = pathAnalysis[i];
-            
-            // Auto-select curve based on coefficient of variation
-            let curve = 'linear';
-            if (analysis.coefficientOfVariation < 0.01) {
-                curve = 'cubic'; // Very low variance
-            } else if (analysis.coefficientOfVariation < 0.1) {
-                curve = 'exponential'; // Low variance
-            } else if (analysis.coefficientOfVariation > 5) {
-                curve = 'logarithmic'; // High variance
-            }
-            
-            // Update mapping
-            mappings[param].path = analysis.path;
-            mappings[param].curve = curve;
-            
-            // Update UI
-            document.getElementById(`map_${param}`).value = analysis.path;
-            document.getElementById(`curve_${param}`).value = curve;
-        }
-    });
-    
-    updatePatchVisualization();
-}
-```
-
----
-
-## Helper Functions
-
-### Extract Values from Array
-
-```javascript
-function extractValues(data, path) {
-    if (Array.isArray(data)) {
-        return data.map(item => getValueByPath(item, path)).filter(v => v !== undefined);
     }
-    return [getValueByPath(data, path)].filter(v => v !== undefined);
-}
+});
 ```
 
-### Sample Info Display
+**Why pre-calculate:**
+- Avoids recalculating min/max for every data item
+- Ensures consistent scaling across entire dataset
+- ~100x faster than recalculating per item
+
+### Special Parameter: noteSpacing (Rhythm)
+
+Note spacing gets special treatment because rhythm is perceptually important:
 
 ```javascript
-function displaySampleInfo() {
-    if (!sampleBuffer) return;
-    
-    document.getElementById('sampleDuration').textContent = 
-        sampleBuffer.duration.toFixed(2) + 's';
-    document.getElementById('sampleRate').textContent = 
-        originalSampleRate + ' Hz';
+// Wide range for dramatic variation
+mapping.min = 80;    // Rapid-fire
+mapping.max = 1200;  // Spacious
+
+// Favor exponential curves
+if (coefficientOfVariation < 0.5) {
+    mapping.curve = 'exponential';
 }
+
+// Apply ±20% random variation for organic feel
+const baseSpacing = calculateSpacing(item);
+const variation = (Math.random() - 0.5) * 0.4; // ±20%
+const finalSpacing = baseSpacing * (1 + variation);
 ```
 
----
+### Quantization Options
 
-## Migration Notes
-
-### React/Next.js Architecture Recommendations
-
-#### **1. State Management**
-
-Use React Context or Zustand for global audio state:
-
-```typescript
-// audioStore.ts (Zustand example)
-interface AudioState {
-    audioContext: AudioContext | null;
-    isPlaying: boolean;
-    isPaused: boolean;
-    samplerMode: boolean;
-    sampleBuffer: AudioBuffer | null;
-    delayNode: DelayNode | null;
-    reverbNode: ConvolverNode | null;
-    mappings: Record<string, Mapping>;
-    parsedData: any[] | null;
-    
-    initAudioContext: () => void;
-    setIsPlaying: (playing: boolean) => void;
-    // ... other actions
-}
-
-export const useAudioStore = create<AudioState>((set) => ({
-    audioContext: null,
-    isPlaying: false,
-    // ... other state
-    
-    initAudioContext: () => set((state) => {
-        if (!state.audioContext) {
-            return { 
-                audioContext: new (window.AudioContext || window.webkitAudioContext)() 
-            };
-        }
-        return state;
-    }),
-    // ... other actions
-}));
-```
-
-#### **2. Custom Hooks**
-
-Break functionality into hooks:
-
-```typescript
-// useAudioEngine.ts
-export function useAudioEngine() {
-    const { audioContext, initAudioContext } = useAudioStore();
-    
-    useEffect(() => {
-        initAudioContext();
-    }, []);
-    
-    const playNote = useCallback((params: AudioParams) => {
-        // ... playback logic
-    }, [audioContext]);
-    
-    return { playNote };
-}
-
-// useEffectsChain.ts
-export function useEffectsChain() {
-    const { audioContext } = useAudioStore();
-    const [delayNode, setDelayNode] = useState<DelayNode | null>(null);
-    const [reverbNode, setReverbNode] = useState<ConvolverNode | null>(null);
-    
-    useEffect(() => {
-        if (audioContext) {
-            initEffects(audioContext);
-        }
-    }, [audioContext]);
-    
-    return { delayNode, reverbNode };
-}
-
-// useVisualizer.ts
-export function useVisualizer(canvasRef: React.RefObject<HTMLCanvasElement>) {
-    const { analyser, isPlaying } = useAudioStore();
-    
-    useEffect(() => {
-        if (isPlaying && analyser) {
-            const animationLoop = () => {
-                drawVisualizer(canvasRef.current, analyser);
-                requestAnimationFrame(animationLoop);
-            };
-            const id = requestAnimationFrame(animationLoop);
-            return () => cancelAnimationFrame(id);
-        }
-    }, [isPlaying, analyser]);
-}
-```
-
-#### **3. Component Structure**
-
-```
-src/
-├── components/
-│   ├── audio/
-│   │   ├── AudioEngine.tsx         // Main audio controller
-│   │   ├── Synthesizer.tsx         // Synth controls
-│   │   ├── Sampler.tsx             // Sample controls
-│   │   ├── EffectsPanel.tsx        // Reverb/delay controls
-│   │   └── Visualizer.tsx          // Waveform canvas
-│   ├── data/
-│   │   ├── DataLoader.tsx          // File upload/dataset selector
-│   │   ├── DataTable.tsx           // Data preview
-│   │   └── PathSelector.tsx        // Path extraction UI
-│   ├── mapping/
-│   │   ├── ParameterMapping.tsx    // Mapping controls
-│   │   ├── PatchVisualization.tsx  // D3 node graph
-│   │   └── IntelligentMapper.tsx   // Auto-mapping
-│   └── playback/
-│       ├── PlaybackControls.tsx    // Play/pause/stop
-│       └── GlobalSettings.tsx      // Volume/speed/pitch
-├── lib/
-│   ├── audio/
-│   │   ├── audioEngine.ts          // Core audio logic
-│   │   ├── synthesizer.ts          // Synth functions
-│   │   ├── sampler.ts              // Sampler functions
-│   │   ├── effects.ts              // Effects creation
-│   │   └── envelope.ts             // ADSR logic
-│   ├── data/
-│   │   ├── dataExtractor.ts        // Path extraction
-│   │   ├── dataMapper.ts           // Parameter mapping
-│   │   └── dataScaler.ts           // Normalization/curves
-│   └── visualization/
-│       ├── waveform.ts             // Visualizer logic
-│       └── patchGraph.ts           // D3 patch visualization
-├── hooks/
-│   ├── useAudioEngine.ts
-│   ├── useEffectsChain.ts
-│   ├── useVisualizer.ts
-│   ├── useDataMapping.ts
-│   └── usePlayback.ts
-└── stores/
-    └── audioStore.ts               // Zustand store
-```
-
-#### **4. TypeScript Types**
-
-```typescript
-// types/audio.ts
-
-export interface AudioParams {
-    frequency?: number;
-    pitch?: number;
-    sampleOffset?: number;
-    duration: number;
-    noteSpacing: number;
-    pan: number;
-    filterFreq: number;
-    filterQ: number;
-    delayTime: number;
-    delayFeedback: number;
-    delayMix: number;
-    reverbDecay: number;
-    reverbMix: number;
-    attack: number;
-    release: number;
-}
-
-export interface Mapping {
-    path: string;
-    fixed: number;
-    min: number;
-    max: number;
-    curve: 'linear' | 'exponential' | 'cubic' | 'logarithmic' | 'inverse';
-}
-
-export type WaveformType = 
-    | 'sine' | 'square' | 'sawtooth' | 'triangle'
-    | 'white-noise' | 'pink-noise' | 'brown-noise'
-    | 'fm' | 'additive' | 'pwm';
-
-export type FilterType = 'lowpass' | 'highpass' | 'bandpass' | 'notch';
-
-export interface DataPath {
-    path: string;
-    type: 'number' | 'string';
-    coverage?: number;
-}
-
-export interface DataRange {
-    min: number;
-    max: number;
-}
-```
-
-#### **5. Web Audio API Cleanup**
-
-Important for React lifecycle:
-
-```typescript
-// useAudioCleanup.ts
-export function useAudioCleanup() {
-    const { audioContext, delayNode, reverbNode } = useAudioStore();
-    
-    useEffect(() => {
-        return () => {
-            // Cleanup on unmount
-            if (delayNode) delayNode.disconnect();
-            if (reverbNode) reverbNode.disconnect();
-            if (audioContext && audioContext.state !== 'closed') {
-                audioContext.close();
-            }
-        };
-    }, [audioContext, delayNode, reverbNode]);
-}
-```
-
-#### **6. Radix UI Integration**
-
-Use Radix for controls:
-
-```tsx
-import * as Slider from '@radix-ui/react-slider';
-import * as Select from '@radix-ui/react-select';
-import * as Switch from '@radix-ui/react-switch';
-
-// Example: Volume Slider
-<Slider.Root
-    value={[volume]}
-    onValueChange={([value]) => setVolume(value)}
-    min={0}
-    max={1}
-    step={0.01}
-    className="w-full"
->
-    <Slider.Track className="h-2 bg-gray-200 rounded">
-        <Slider.Range className="h-full bg-black rounded" />
-    </Slider.Track>
-    <Slider.Thumb className="block w-4 h-4 bg-black rounded-full" />
-</Slider.Root>
-
-// Example: Waveform Select
-<Select.Root value={waveform} onValueChange={setWaveform}>
-    <Select.Trigger className="px-4 py-2 border">
-        <Select.Value />
-    </Select.Trigger>
-    <Select.Content>
-        <Select.Item value="sine">Sine</Select.Item>
-        <Select.Item value="square">Square</Select.Item>
-        <Select.Item value="sawtooth">Sawtooth</Select.Item>
-        <Select.Item value="triangle">Triangle</Select.Item>
-    </Select.Content>
-</Select.Root>
-```
-
-#### **7. Performance Considerations**
-
-- Move Web Audio operations outside React render cycle
-- Use `useMemo` for data range calculations
-- Debounce UI slider changes to audio parameters
-- Use Web Workers for heavy data processing (prose embeddings)
-- Canvas rendering should use `useRef` + `useEffect`, not state
-
-```typescript
-// Good: useRef for canvas
-const canvasRef = useRef<HTMLCanvasElement>(null);
-
-useEffect(() => {
-    if (!canvasRef.current || !analyser) return;
-    
-    const drawFrame = () => {
-        drawVisualizer(canvasRef.current!, analyser);
-        animationId = requestAnimationFrame(drawFrame);
+**Pitch Quantization:**
+```javascript
+function quantizePitch(frequency) {
+    const scales = {
+        pentatonic: [0, 2, 4, 7, 9],
+        major: [0, 2, 4, 5, 7, 9, 11],
+        minor: [0, 2, 3, 5, 7, 8, 10],
+        // ... more scales
     };
     
-    const animationId = requestAnimationFrame(drawFrame);
-    return () => cancelAnimationFrame(animationId);
-}, [analyser]);
-
-// Bad: state for canvas (causes re-renders)
-const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null);
+    const midiNote = 69 + 12 * Math.log2(frequency / 440);
+    const octave = Math.floor(midiNote / 12);
+    const noteInOctave = midiNote % 12;
+    
+    // Snap to nearest scale degree
+    const closestDegree = findClosest(noteInOctave, scale);
+    const quantizedMidi = octave * 12 + closestDegree;
+    
+    return 440 * Math.pow(2, (quantizedMidi - 69) / 12);
+}
 ```
+
+**Rhythmic Quantization:**
+```javascript
+function quantizeRhythm(spacing) {
+    // Musical divisions at 120 BPM
+    const rhythmGrid = [125, 250, 375, 500, 750, 1000, 1500, 2000];
+    return findClosest(spacing, rhythmGrid);
+}
+```
+
+---
+
+## Visualization System
+
+### Two-Part Visualization
+
+**1. Waveform Visualizer (Canvas)**
+- Real-time frequency spectrum
+- Shows musical content (first 60% of FFT)
+- Black line on light gray background
+- Low latency, instant response
+
+**2. Patch Visualization (D3.js + SVG)**
+- Node graph showing mappings
+- Data nodes → Audio parameter nodes
+- Connection lines (yellow/black patch cables)
+- Live value updates and progress bars
+
+### Waveform Implementation
+
+```javascript
+// Setup (once)
+analyser.fftSize = 256;              // Low latency
+analyser.smoothingTimeConstant = 0;  // Instant response
+dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+// Draw loop (60fps)
+analyser.getByteFrequencyData(dataArray);
+
+const relevantBins = Math.floor(dataArray.length * 0.6);
+const sliceWidth = width / relevantBins;
+const amplification = 2.0;
+
+for (let i = 0; i < relevantBins; i++) {
+    const v = Math.min(1, (dataArray[i] / 255.0) * amplification);
+    const y = height - (v * height);
+    const x = i * sliceWidth;
+    
+    if (i === 0) {
+        ctx.moveTo(x, y);
+    } else {
+        ctx.lineTo(x, y);
+    }
+}
+ctx.stroke();
+```
+
+**Why only 60% of spectrum?**
+Higher frequencies (above ~5kHz) contain mostly noise and harmonics, not useful musical information.
+
+### D3.js Patterns
+
+**Clear and redraw vs incremental update:**
+
+DataSynth uses **clear and redraw** for simplicity:
+```javascript
+render() {
+    this.svg.selectAll('*').remove();  // Clear everything
+    // ... rebuild from scratch
+}
+```
+
+**When to use incremental:**
+- Large graphs (>100 nodes)
+- Frequent updates (>60fps)
+- Complex animations
+
+**For DataSynth:** Clear/redraw is fine (<20 nodes, updates on mapping changes only).
+
+**D3 Data Binding:**
+```javascript
+// Select, bind data, create elements
+const nodeGroups = container.selectAll('.node')
+    .data(this.nodes, d => d.id)  // Key function for object constancy
+    .enter()                       // New elements
+    .append('g')
+    .attr('class', 'node');
+
+// Update existing elements
+nodeGroups.attr('transform', d => `translate(${d.x},${d.y})`);
+
+// Remove old elements
+nodeGroups.exit().remove();
+```
+
+### Responsive Design
+
+```javascript
+// Adjust node sizing based on viewport
+const audioNodeWidth = svgWidth < 600 ? 110 : 140;
+const dataNodeWidth = svgWidth < 600 ? 150 : 200;
+const nodeHeight = svgWidth < 600 ? 36 : 40;
+```
+
+---
+
+## Playback Control
+
+### States
+
+```javascript
+isPlaying = false;  // Main playback state
+isPaused = false;   // Pause (not implemented yet)
+currentPlaybackId = 0; // Race condition prevention
+```
+
+### Race Condition Protection
+
+```javascript
+// Each playback session gets unique ID
+currentPlaybackId++;
+const thisPlaybackId = currentPlaybackId;
+
+// Check if still current session
+while (isPlaying && thisPlaybackId === currentPlaybackId) {
+    // ... playback loop
+    
+    if (thisPlaybackId !== currentPlaybackId) {
+        return; // Graceful exit, new session started
+    }
+}
+```
+
+**Problem solved:** If user clicks Play → Stop → Play rapidly, old loop exits cleanly instead of overlapping with new loop.
+
+### Speed Control
+
+```javascript
+const noteSpacing = audioParams.noteSpacing || 300;  // From data
+const speed = parseFloat(document.getElementById('speedControl').value) || 1;
+const actualDelay = noteSpacing / speed;
+
+// Speed 0.5x → 2× slower (600ms)
+// Speed 1.0x → normal (300ms)
+// Speed 2.0x → 2× faster (150ms)
+```
+
+### Master Controls
+
+**Volume:**
+```javascript
+const volume = parseFloat(document.getElementById('masterVolume').value) || 0.2;
+envelope.gain.exponentialRampToValueAtTime(volume, now + attackTime);
+```
+
+**Pitch Transpose:**
+```javascript
+const pitchTranspose = parseFloat(document.getElementById('pitchControl').value) || 0;
+const transposeSemitones = Math.pow(2, pitchTranspose / 12);
+
+// Synthesizer: multiply frequency
+frequency = frequency * transposeSemitones;
+
+// Sampler: multiply playback rate
+source.playbackRate.value = pitchRate * transposeSemitones;
+```
+
+---
+
+## Best Practices
+
+### Module Design
+
+✅ **DO:**
+- Use pure functions for data transformation
+- Use classes when state must persist
+- Export minimal public API
+- Document purpose at top of file
+- Include usage examples in comments
+
+❌ **DON'T:**
+- Mix concerns (keep modules focused)
+- Create circular dependencies
+- Mutate imported state
+- Skip error handling
+
+### Web Audio API
+
+✅ **DO:**
+- Initialize context from user gesture
+- Resume suspended context
+- Use exponential ramps for envelopes
+- Disconnect/cleanup nodes when done
+- Check browser compatibility
+
+❌ **DON'T:**
+- Start oscillators before connecting
+- Close context during playback
+- Use linear ramps for volume (sounds robotic)
+- Create new context per note
+- Forget about mobile Safari quirks
+
+### Performance
+
+✅ **DO:**
+- Pre-calculate data ranges once
+- Reuse audio nodes when possible
+- Use requestAnimationFrame for visualization
+- Cancel animation frames on stop
+- Debounce UI parameter changes
+
+❌ **DON'T:**
+- Recalculate ranges per item
+- Create nodes in hot loops
+- Use setInterval for animation
+- Update visualization faster than 60fps
+- Apply every slider change immediately
+
+### D3.js
+
+✅ **DO:**
+- Let D3 own its DOM elements
+- Use data binding pattern
+- Clear and redraw for simplicity (small graphs)
+- Store D3 selections, not raw elements
+- Use CSS classes for styling
+
+❌ **DON'T:**
+- Mix vanilla JS and D3 DOM manipulation
+- Update individual elements manually
+- Skip key functions in data binding
+- Inline styles (use CSS classes)
+- Create unnecessary enter/update/exit complexity
+
+---
+
+## Testing
+
+Each module has unit tests in `test/`:
+
+```
+test/
+├── audio-engine.test.html       (19 tests)
+├── data-processor.test.html     (25 tests)
+├── parameter-mapper.test.html   (14 tests)
+├── patch-viz.test.html          (8 tests)
+└── integration-verification.html (full pipeline)
+```
+
+### Running Tests
+
+```bash
+# Start server
+python3 -m http.server 8000
+
+# Open in browser
+http://localhost:8000/test/data-processor.test.html
+http://localhost:8000/test/integration-verification.html
+```
+
+### Test Structure
+
+```html
+<script type="module">
+import { functionToTest } from '../lib/module.js';
+
+const results = [];
+
+// Test 1: Normal case
+const test1 = functionToTest(validInput) === expectedOutput;
+results.push({ name: 'Test description', pass: test1 });
+
+// Test 2: Edge case
+const test2 = functionToTest(null) === undefined;
+results.push({ name: 'Edge case handling', pass: test2 });
+
+// Display results
+results.forEach(result => {
+    console.log(result.pass ? '✅' : '❌', result.name);
+});
+</script>
+```
+
+---
+
+## Deployment
+
+### Static Deployment
+
+DataSynth works as static files:
+
+```bash
+# No build step required
+# Just upload these files to any static host:
+index.html
+main.js
+lib/
+  ├── audio-engine.js
+  ├── data-processor.js
+  ├── parameter-mapper.js
+  └── patch-viz.js
+datasets/ (optional)
+```
+
+### CDN Dependencies
+
+Loaded from CDN (no local copies needed):
+- Tachyons CSS: https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css
+- D3.js: https://d3js.org/d3.v7.min.js
+- Google Fonts: IBM Plex Mono
+
+### Offline Support
+
+To make it work offline:
+1. Download CDN files locally
+2. Update URLs in index.html
+3. Add service worker (optional)
 
 ---
 
 ## Summary
 
-This document covers:
-- ✅ Audio context initialization
-- ✅ Effects chain (reverb, delay, filter, pan)
-- ✅ Synthesizer mode (oscillators, noise, FM, additive)
-- ✅ Sampler mode (buffer playback, pitch, offset, anti-click)
-- ✅ Parameter mapping system (paths, ranges, curves)
-- ✅ Envelope (ADSR)
-- ✅ Playback control
-- ✅ Visualization (waveform, node graph)
-- ✅ Data processing (extraction, scaling, intelligent mapping)
-- ✅ Migration guidance for React/Next.js
+### Key Takeaways
 
-All audio logic is documented with code examples ready for migration. The Web Audio API calls remain the same in React - only the state management and component structure change.
+**Architecture:**
+- 4 ES6 modules + main coordinator
+- Pure functions for data processing
+- Classes for stateful audio management
+- D3.js for interactive visualization
 
+**Audio Processing:**
+- Web Audio API for synthesis and effects
+- Dual mode: synthesizer (oscillators) or sampler (audio files)
+- Global effects: reverb → delay
+- Per-note chain: filter → pan → envelope
+
+**Parameter Mapping:**
+- Intelligent auto-mapping based on data analysis
+- 5 curve types for different data distributions
+- Pre-calculated ranges for performance
+- Real-time visual feedback
+
+**Design Principles:**
+- No frameworks, no build tools
+- Browser-native ES6 modules
+- Incremental development
+- Test continuously
+- Keep it deployable
+
+### Module Reference
+
+| Module | Lines | Purpose | Key Exports |
+|--------|-------|---------|-------------|
+| data-processor.js | ~290 | Data parsing | extractPaths, getValueByPath |
+| parameter-mapper.js | ~461 | Mapping logic | ParameterMapper class |
+| audio-engine.js | ~586 | Web Audio API | AudioEngine class |
+| patch-viz.js | ~603 | D3 visualization | PatchViz class |
+| main.js | ~749 | Coordination | Event handlers, playback loop |
+
+---
+
+*Last updated: 2025-11-13*
+*Version: Modular refactor (post-extraction from json-mapper-v2.html)*
