@@ -175,6 +175,23 @@ function setupEventListeners() {
     if (document.getElementById('pitchQuantization').checked) {
         document.getElementById('scaleContainer').style.display = 'block';
     }
+    
+    // ========================================================================
+    // WINDOW RESIZE (Responsive D3 visualization)
+    // ========================================================================
+    
+    // Debounced resize handler for D3 patch visualization
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            // Re-render D3 visualization if data is loaded
+            if (numericPaths.length > 0) {
+                console.log('↔️ Window resized, re-rendering patch visualization');
+                patchViz.render(numericPaths, parameterMapper.mappings, parameterMapper, isPlaying);
+            }
+        }, 250); // 250ms debounce
+    });
 }
 
 // ============================================================================

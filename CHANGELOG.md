@@ -1,6 +1,8 @@
 # Changelog
 
 ## 2025-11-13 (Refactoring)
+- made d3 patch visualization responsive to window resizing - added debounced resize listener (250ms) that re-renders patch visualization when window width changes, ensures nodes and connections reposition correctly on viewport changes, improves mobile and responsive experience
+- reduced main container width for better readability - changed max-width from 1100px to 900px for more focused layout and better typography line lengths
 - improved ui layout and visual design - moved audio visualizer to appear below settings drawer instead of above it for better visual hierarchy, changed d3 patch visualization svg background from transparent to near-white (#fafafa) for better contrast and readability
 - created comprehensive audio-engine test suite with 77 unit tests - new test/audio-engine.test.html covers all AudioEngine methods (context initialization, reverb impulse generation, noise buffers, oscillator creation, sample loading, visualizer setup, cleanup), tests uncovered and fixed canvas DPI scaling bug where hidden canvases would get 0 dimensions
 - fixed canvas dimension bug in visualizer setup - audio-engine.js now handles hidden canvas elements by falling back to offsetWidth/Height or default dimensions (800x120) when getBoundingClientRect returns 0, prevents canvas from being initialized with 0 width/height which breaks visualization
