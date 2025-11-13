@@ -102,6 +102,42 @@ This directory contains rich, multi-dimensional datasets perfect for audio sonif
 
 ---
 
+### 6. 📚 **Prose & Literature - EMBEDDINGS** ⭐ NEW
+**Method:** Client-side text embeddings (semantic analysis)  
+**Guide:** [PROSE_EMBEDDINGS_GUIDE.md](PROSE_EMBEDDINGS_GUIDE.md)
+
+**Processing:** Text → 384D embeddings → 8-20D synth parameters  
+**Model:** Transformers.js (all-MiniLM-L6-v2)  
+**No API required:** Runs entirely in browser
+
+**Why it's revolutionary:**
+- **Sonify meaning, not just structure** - semantic understanding creates coherent soundscapes
+- **Narrative arcs** - track thematic development through a text
+- **Character/emotion detection** - different concepts produce different timbres
+- **Context-aware** - same word in different contexts sounds different
+- **Literary analysis** - compare authors, track motifs, identify callbacks
+
+**How it works:**
+1. Split prose into sentences
+2. Generate semantic embeddings (captures meaning)
+3. Reduce to 8-20 dimensions using UMAP
+4. Map dimensions to synth parameters
+
+**Perfect for:**
+- Classic literature (Shakespeare, Poe, Hemingway)
+- Poetry (sonnets, free verse)
+- Speeches (MLK, Lincoln, political rhetoric)
+- Historical documents (Declaration of Independence, etc.)
+- Modern fiction/non-fiction
+
+**Example texts:**
+- Moby Dick opening ("Call me Ishmael...")
+- "The Raven" by Edgar Allan Poe
+- "I Have a Dream" speech
+- Your own creative writing!
+
+---
+
 ## 🎯 Quick Start Guide
 
 ### Real-Time Data (Start Here!)
@@ -121,6 +157,7 @@ This directory contains rich, multi-dimensional datasets perfect for audio sonif
 
 | Dataset | Records | Fields | Update Frequency | Complexity | Drama | Best For |
 |---------|---------|--------|------------------|------------|-------|----------|
+| **Prose Embeddings** ⭐ NEW | Unlimited | **384→8-20** | Any text | High | ⭐⭐⭐⭐⭐ | **Literary analysis**, semantic journeys, creative writing |
 | **Earthquakes (Real-time)** | ~500/day | 26+ | Every minute | Medium | ⭐⭐⭐⭐⭐ | **Real-time monitoring**, pattern detection |
 | **ISS Location** | Continuous | 4 | Every second | Low | ⭐⭐⭐⭐ | **Live tracking**, orbital mechanics |
 | **NEO (Asteroids)** | 10-20/day | 15+ | Daily | Medium | ⭐⭐⭐⭐ | **Daily drama**, space hazards |
@@ -130,6 +167,31 @@ This directory contains rich, multi-dimensional datasets perfect for audio sonif
 ---
 
 ## 🎵 Sonification Strategy by Dataset
+
+### Prose Embeddings: "Literary Soundscapes" ⭐ NEW
+**Best mappings:**
+- `dim[0]` → Frequency (semantic "pitch")
+- `dim[1]` → Filter cutoff (conceptual "brightness")
+- `dim[2]` → Filter resonance (emphasis)
+- `dim[3]` → Reverb mix (abstraction level)
+- `dim[4]` → Reverb decay (temporal spread)
+- `dim[5]` → Pan (perspective shift)
+- `dim[6]` → Attack (sentence onset)
+- `dim[7]` → Release (sentence decay)
+
+**Listen for:** 
+- Topic shifts (dramatic sonic changes)
+- Thematic callbacks (similar timbres returning)
+- Emotional arcs (harmonic tension/release)
+- Narrative rhythm (temporal pacing)
+
+**Advanced techniques:**
+- Measure semantic distance between sentences → dissonance
+- Find similar sentences → recurring motifs
+- Track distance from opening → tension curve
+- Cluster by theme → assign different instruments
+
+---
 
 ### Earthquakes: "Earth's Drama"
 **Best mappings:**
@@ -213,7 +275,9 @@ This directory contains rich, multi-dimensional datasets perfect for audio sonif
 datasets/
 ├── README.md (this file)
 │
-├── USGS_FEEDS_GUIDE.md ⭐ NEW - Complete guide to 16 earthquake feeds
+├── PROSE_EMBEDDINGS_GUIDE.md ⭐ NEW - Client-side semantic text analysis
+│
+├── USGS_FEEDS_GUIDE.md - Complete guide to 16 earthquake feeds
 ├── EARTHQUAKES_DATA_GUIDE.md
 ├── earthquakes-week.geojson (1600+ events, local archive)
 │
@@ -225,10 +289,11 @@ datasets/
 │
 └── WEATHER_DATA_GUIDE.md
 
-Note: Real-time data is loaded directly via API endpoints:
+Note: Real-time/dynamic data sources:
 - USGS Earthquake Feeds (16 feeds: all magnitudes, M4.5+, M2.5+, significant)
 - NASA NEO API (daily asteroid updates)
 - ISS Tracking API (real-time orbital position)
+- Prose Embeddings (any text, client-side processing via Transformers.js)
 ```
 
 ---

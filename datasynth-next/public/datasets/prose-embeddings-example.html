@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prose to Sound - Embeddings Example</title>
+    <style>
+        * {
+            font-family: 'Courier New', monospace;
+            box-sizing: border-box;
+        }
+        
+        body {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        button {
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #333;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        #status {
+            margin: 20px 0;
+            padding: 10px;
+            background: #e8f4f8;
+            border-left: 4px solid #2196F3;
+        }
+        
+        #output {
+            background: #f9f9f9;
+            padding: 15px;
+            border: 1px solid #ddd;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-box {
+            background: #f0f0f0;
+            padding: 15px;
+            border-left: 3px solid #000;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .example-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .example-link {
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .example-link:hover {
+            background: #e0e0e0;
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>📚 Prose to Sound Embeddings</h1>
+    <p class="subtitle">Convert text to sonifiable data using client-side semantic embeddings</p>
+    
+    <div class="section">
+        <h2>1. Enter Your Text</h2>
+        <p class="help-text">
+            Paste any prose text below. Each sentence will be converted to an 8-dimensional 
+            vector that can be mapped to synth parameters.
+        </p>
+        
+        <div class="example-links">
+            <button class="example-link" onclick="loadExample('moby-dick')">Moby Dick</button>
+            <button class="example-link" onclick="loadExample('poe')">The Raven</button>
+            <button class="example-link" onclick="loadExample('mlk')">I Have a Dream</button>
+            <button class="example-link" onclick="loadExample('hemingway')">Hemingway</button>
+        </div>
+        
+        <textarea id="textInput" placeholder="Call me Ishmael. Some years ago—never mind how long precisely—having little or no money in my purse..."></textarea>
+        
+        <button id="processBtn" onclick="processText()">Generate Embeddings</button>
+    </div>
+    
+    <div id="status" style="display: none;"></div>
+    
+    <div id="resultsSection" style="display: none;">
+        <div class="section">
+            <h2>2. Statistics</h2>
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-label">Sentences Processed</div>
+                    <div class="stat-value" id="sentenceCount">-</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Original Dimensions</div>
+                    <div class="stat-value" id="originalDims">-</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Reduced Dimensions</div>
+                    <div class="stat-value" id="reducedDims">-</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Processing Time</div>
+                    <div class="stat-value" id="processingTime">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>3. JSON Output</h2>
+            <p class="help-text">
+                Copy this JSON and load it into your synth. Each object represents one sentence 
+                with 8 sound parameters derived from semantic meaning.
+            </p>
+            <button onclick="copyOutput()">Copy JSON</button>
+            <button onclick="downloadOutput()">Download JSON</button>
+            <pre id="output"></pre>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Transformers.js for embeddings
+        import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1';
+        
+        // Import UMAP for dimensionality reduction
+        import { UMAP } from 'https://cdn.jsdelivr.net/npm/umap-js@1.4.0/+esm';
+        
+        // Store in window for other functions to access
+        window.Transformers = { pipeline };
+        window.UMAP = UMAP;
+        
+        let embedder = null;
+        let isReady = false;
+        
+        // Initialize model on page load
+        async function initialize() {
+            updateStatus('Initializing embedding model... (~30MB download on first load)', 'loading');
+            
+            try {
+                embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+                isReady = true;
+                updateStatus('Ready! Model loaded successfully.', 'success');
+                document.getElementById('processBtn').disabled = false;
+                
+                // Auto-hide status after 2 seconds
+                setTimeout(() => {
+                    document.getElementById('status').style.display = 'none';
+                }, 2000);
+            } catch (error) {
+                updateStatus('Error loading model: ' + error.message, 'error');
+            }
+        }
+        
+        function updateStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.style.display = 'block';
+            status.style.background = type === 'error' ? '#ffebee' : 
+                                     type === 'success' ? '#e8f5e9' : '#e8f4f8';
+            status.style.borderLeftColor = type === 'error' ? '#f44336' : 
+                                          type === 'success' ? '#4caf50' : '#2196F3';
+        }
+        
+        function splitIntoSentences(text) {
+            return text.match(/[^.!?]+[.!?]+/g)?.map(s => s.trim()).filter(s => s.length > 0) || [text];
+        }
+        
+        async function getEmbeddings(sentences) {
+            const embeddings = [];
+            
+            for (let i = 0; i < sentences.length; i++) {
+                const output = await embedder(sentences[i], {
+                    pooling: 'mean',
+                    normalize: true
+                });
+                embeddings.push(Array.from(output.data));
+                
+                if ((i + 1) % 5 === 0 || i === sentences.length - 1) {
+                    updateStatus(`Processing sentence ${i + 1}/${sentences.length}...`, 'loading');
+                }
+            }
+            
+            return embeddings;
+        }
+        
+        function reduceDimensions(embeddings, targetDims = 8) {
+            const umap = new window.UMAP({
+                nComponents: targetDims,
+                nNeighbors: Math.min(15, embeddings.length - 1),
+                minDist: 0.1,
+                spread: 1.0
+            });
+            
+            return umap.fit(embeddings);
+        }
+        
+        function normalize(value, inMin, inMax, outMin, outMax) {
+            value = Math.max(inMin, Math.min(inMax, value));
+            const normalized = (value - inMin) / (inMax - inMin);
+            return normalized * (outMax - outMin) + outMin;
+        }
+        
+        function embeddingsToSynthData(reducedEmbeddings, sentences) {
+            return reducedEmbeddings.map((dims, i) => ({
+                index: i,
+                sentence: sentences[i],
+                frequency: Math.round(normalize(dims[0], -3, 3, 200, 2000)),
+                filter_cutoff: Math.round(normalize(dims[1], -3, 3, 500, 8000)),
+                filter_resonance: parseFloat(normalize(dims[2], -3, 3, 0, 15).toFixed(2)),
+                reverb_mix: parseFloat(normalize(dims[3], -3, 3, 0, 0.7).toFixed(2)),
+                reverb_decay: parseFloat(normalize(dims[4], -3, 3, 0.5, 4).toFixed(2)),
+                pan: parseFloat(normalize(dims[5], -3, 3, -0.9, 0.9).toFixed(2)),
+                attack: parseFloat(normalize(dims[6], -3, 3, 0.005, 0.3).toFixed(3)),
+                release: parseFloat(normalize(dims[7], -3, 3, 0.1, 2.0).toFixed(2))
+            }));
+        }
+        
+        window.processText = async function() {
+            if (!isReady) {
+                alert('Model not ready yet. Please wait...');
+                return;
+            }
+            
+            const text = document.getElementById('textInput').value.trim();
+            
+            if (!text) {
+                alert('Please enter some text first!');
+                return;
+            }
+            
+            const startTime = performance.now();
+            
+            try {
+                // Split into sentences
+                updateStatus('Splitting text into sentences...', 'loading');
+                const sentences = splitIntoSentences(text);
+                
+                if (sentences.length === 0) {
+                    alert('No sentences found in text!');
+                    return;
+                }
+                
+                // Generate embeddings
+                updateStatus('Generating semantic embeddings...', 'loading');
+                const embeddings = await getEmbeddings(sentences);
+                
+                // Reduce dimensions
+                updateStatus('Reducing dimensions with UMAP...', 'loading');
+                const reduced = reduceDimensions(embeddings, 8);
+                
+                // Map to synth parameters
+                updateStatus('Mapping to synth parameters...', 'loading');
+                const synthData = embeddingsToSynthData(reduced, sentences);
+                
+                const endTime = performance.now();
+                const processingTime = ((endTime - startTime) / 1000).toFixed(2);
+                
+                // Display results
+                document.getElementById('sentenceCount').textContent = sentences.length;
+                document.getElementById('originalDims').textContent = embeddings[0].length;
+                document.getElementById('reducedDims').textContent = 8;
+                document.getElementById('processingTime').textContent = processingTime + 's';
+                
+                const output = {
+                    metadata: {
+                        source: 'prose-embeddings',
+                        model: 'all-MiniLM-L6-v2',
+                        sentence_count: sentences.length,
+                        processing_time_seconds: parseFloat(processingTime),
+                        timestamp: new Date().toISOString()
+                    },
+                    data: synthData
+                };
+                
+                document.getElementById('output').textContent = JSON.stringify(output, null, 2);
+                document.getElementById('resultsSection').style.display = 'block';
+                
+                updateStatus('Complete! Ready to sonify.', 'success');
+                
+                // Scroll to results
+                document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                updateStatus('Error processing text: ' + error.message, 'error');
+                console.error(error);
+            }
+        };
+        
+        window.copyOutput = function() {
+            const output = document.getElementById('output').textContent;
+            navigator.clipboard.writeText(output).then(() => {
+                updateStatus('JSON copied to clipboard!', 'success');
+            });
+        };
+        
+        window.downloadOutput = function() {
+            const output = document.getElementById('output').textContent;
+            const blob = new Blob([output], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'prose-sonification-' + Date.now() + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+        
+        window.loadExample = function(example) {
+            const examples = {
+                'moby-dick': `Call me Ishmael. Some years ago—never mind how long precisely—having little or no money in my purse, and nothing particular to interest me on shore, I thought I would sail about a little and see the watery part of the world. It is a way I have of driving off the spleen and regulating the circulation.`,
+                
+                'poe': `Once upon a midnight dreary, while I pondered, weak and weary, Over many a quaint and curious volume of forgotten lore— While I nodded, nearly napping, suddenly there came a tapping, As of some one gently rapping, rapping at my chamber door. "'Tis some visitor," I muttered, "tapping at my chamber door— Only this and nothing more."`,
+                
+                'mlk': `I have a dream that one day this nation will rise up and live out the true meaning of its creed: "We hold these truths to be self-evident, that all men are created equal." I have a dream that one day on the red hills of Georgia, the sons of former slaves and the sons of former slave owners will be able to sit down together at the table of brotherhood.`,
+                
+                'hemingway': `For sale: baby shoes, never worn. The old man was thin and gaunt with deep wrinkles in the back of his neck. The brown blotches of the benevolent skin cancer the sun brings from its reflection on the tropic sea were on his cheeks.`
+            };
+            
+            document.getElementById('textInput').value = examples[example];
+        };
+        
+        // Initialize on load
+        document.getElementById('processBtn').disabled = true;
+        initialize();
+    </script>
+</body>
+</html>
+

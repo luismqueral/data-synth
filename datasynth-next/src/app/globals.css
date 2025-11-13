@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+* {
+  font-family: var(--font-ibm-plex-mono), 'Courier New', monospace;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #fff;
+  color: #000;
+}
+
+/* Connection lines for D3 visualization */
+.connection-path {
+  stroke: #999;
+  stroke-width: 3;
+  fill: none;
+  cursor: pointer;
+  stroke-dasharray: none;
+}
+
+.connection-path:hover {
+  stroke: #666;
+  stroke-width: 4;
+}
+
+.connection-path.active {
+  stroke: #000;
+  stroke-width: 3;
+  stroke-dasharray: 8, 8;
+  stroke-dashoffset: 8;
+}
+
+.connection-path-yellow {
+  stroke: transparent;
+  stroke-width: 3;
+  fill: none;
+  pointer-events: none;
+  stroke-dasharray: 8, 8;
+}
+
+.connection-path-yellow.active {
+  stroke: #FFD700;
+}
