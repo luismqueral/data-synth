@@ -1,7 +1,7 @@
 # Changelog
 
 ## 2025-11-14
-- reduced column spacing for tighter patch cables - decreased columnGap multiplier from 0.15 to 0.11 (27% reduction), brings data fields and audio parameters columns closer together, shorter and cleaner patch cable connections, more compact and focused visualization, better use of horizontal space
+- optimized patch view container and column spacing - simplified DOM structure by removing unnecessary nested divs for true full width, moved nodeView id to outer container, adjusted columnGap to 0.25 for balanced spacing that prevents overlap at all viewport sizes, cleaner structure enables better width calculations
 - made entire site full-width layout - removed max-width: 900px constraint from main content wrapper, site now spans full viewport width for more spacious feel, removed 'Patch View' heading, patch view has near-white background (#fafafa) with 20px padding, simplified patch view styling without negative margin hacks, entire interface feels more open and integrated
 - widened audio parameter nodes to match data fields - increased audio node width from 110-140px to 150-200px (now matches data nodes), both columns have same width for visual balance and symmetry, more space for node labels and progress bars
 - fixed patch visualization width calculation during panel transitions - changed width detection from svg.style('width') to parentElement.getBoundingClientRect() for more reliable width calculation during CSS transitions, updated all three width calculations in patch-viz.js for consistency, increased redraw timeout to 400ms to ensure transition completes, D3 visualization now renders correctly when settings panel opens/closes, maintains proper responsive layout throughout
