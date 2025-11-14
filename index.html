@@ -55,18 +55,19 @@
             top: 20px;
             left: 20px;
             z-index: 1001;
-            background: #000;
-            color: #fff;
-            border: none;
-            padding: 12px 16px;
+            background: transparent;
+            color: #999;
+            border: 1px solid #ddd;
+            padding: 8px 12px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 13px;
+            font-weight: 400;
             transition: all 0.3s ease-in-out;
         }
         
         .settings-trigger:hover {
-            background: #333;
+            color: #000;
+            border-color: #000;
         }
         
         .settings-trigger.shifted {
@@ -103,9 +104,9 @@
         }
         
         .settings-panel-header {
-            padding: 20px;
-            background: #000;
-            color: #fff;
+            padding: 20px 20px 16px 20px;
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -114,27 +115,30 @@
         
         .settings-panel-header h2 {
             margin: 0;
-            font-size: 18px;
+            font-size: 12px;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
         }
         
         .settings-close-btn {
             background: none;
             border: none;
-            color: #fff;
-            font-size: 24px;
+            color: #999;
+            font-size: 20px;
             cursor: pointer;
             padding: 0;
-            width: 32px;
-            height: 32px;
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: opacity 0.2s;
+            transition: color 0.2s;
         }
         
         .settings-close-btn:hover {
-            opacity: 0.7;
+            color: #000;
         }
         
         .settings-panel-content {
@@ -196,7 +200,7 @@
             .settings-trigger {
                 top: 12px;
                 left: 12px;
-                padding: 10px 12px;
+                padding: 6px 10px;
                 font-size: 12px;
             }
             
@@ -365,7 +369,7 @@
     <!-- Settings Panel -->
     <div id="settingsPanel" class="settings-panel">
         <div class="settings-panel-header">
-            <h2>Global Settings</h2>
+            <h2>Settings</h2>
             <button id="settingsCloseBtn" class="settings-close-btn">×</button>
         </div>
         <div class="settings-panel-content" id="settingsPanelContent">
