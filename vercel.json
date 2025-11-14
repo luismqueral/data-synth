@@ -1,7 +1,15 @@
 {
   "version": 2,
-  "cleanUrls": true,
+  "cleanUrls": false,
   "trailingSlash": false,
+  "routes": [
+    {
+      "src": "/(.*\\.js)",
+      "headers": {
+        "Content-Type": "application/javascript; charset=utf-8"
+      }
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -17,7 +25,16 @@
       ]
     },
     {
-      "source": "/lib/(.*).js",
+      "source": "/(.*\\.js)",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/lib/(.*\\.js)",
       "headers": [
         {
           "key": "Content-Type",
