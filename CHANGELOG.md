@@ -1,7 +1,7 @@
 # Changelog
 
 ## 2025-11-14
-- fixed vercel deployment 404 errors for ES6 modules - disabled cleanUrls setting in vercel.json (was stripping .js extensions), added explicit routes for all JavaScript files, enhanced headers to ensure proper MIME type (application/javascript) for both root and lib/ directory modules, resolves issue where audio-engine.js, parameter-mapper.js, patch-viz.js, and main.js were returning 404 on Vercel but working locally
+- configured vercel for static ES6 module serving - added @vercel/static build configuration to explicitly treat project as static site, created package.json with "type": "module" declaration, simplified vercel.json to essential MIME type headers for .js files, ensures all modules (audio-engine.js, parameter-mapper.js, patch-viz.js, main.js) served correctly as static assets with proper text/javascript content-type
 
 ## 2025-11-13 (Refactoring)
 - optimized vercel deployment configuration - created .vercelignore to exclude test/, docs/, _archive/, and dev files from deployment, updated vercel.json with proper headers for ES6 modules (Content-Type for .js files), added security headers (X-Content-Type-Options, X-Frame-Options), removed unnecessary builds config for cleaner static deployment
