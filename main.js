@@ -155,15 +155,31 @@ function setupEventListeners() {
     document.getElementById('clearSampleBtn').addEventListener('click', handleClearSample);
     
     // ========================================================================
-    // UI INTERACTIONS (Drawers, toggles, show/hide)
+    // UI INTERACTIONS (Slide-out panels, toggles, show/hide)
     // ========================================================================
     
-    // Settings drawer toggle
-    document.getElementById('settingsDrawerToggle').addEventListener('click', () => {
-        const content = document.getElementById('settingsDrawerContent');
-        const icon = document.getElementById('drawerToggleIcon');
-        content.classList.toggle('open');
-        icon.classList.toggle('open');
+    // Settings panel - slide out from left
+    const settingsPanel = document.getElementById('settingsPanel');
+    const settingsBackdrop = document.getElementById('settingsBackdrop');
+    const settingsTrigger = document.getElementById('settingsTriggerBtn');
+    const settingsClose = document.getElementById('settingsCloseBtn');
+    
+    // Open settings panel
+    settingsTrigger.addEventListener('click', () => {
+        settingsPanel.classList.add('open');
+        settingsBackdrop.classList.add('open');
+    });
+    
+    // Close settings panel (via close button)
+    settingsClose.addEventListener('click', () => {
+        settingsPanel.classList.remove('open');
+        settingsBackdrop.classList.remove('open');
+    });
+    
+    // Close settings panel (via backdrop click)
+    settingsBackdrop.addEventListener('click', () => {
+        settingsPanel.classList.remove('open');
+        settingsBackdrop.classList.remove('open');
     });
     
     // Pitch quantization toggle (show/hide scale selector)
