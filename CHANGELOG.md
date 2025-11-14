@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2025-11-14
+- replaced Font Awesome with Material Icons inline SVGs - removed Font Awesome CDN dependency (~70KB saved), using Material Icons Tune and Close SVGs directly in HTML, added Shuffle SVG to randomize button, zero icon library dependencies, added Settings text to button that stays visible in both states, adjusted close icon positioning, added padding-top to prevent content overlap with button in panel
 - cleaned up settings panel design - removed white spacing margins around panel (back to full edge-to-edge), removed border-bottom from settings header, removed waveform category labels (Classic, Noise, Synthesis), removed divider lines between waveform groups, cleaner flatter waveform list with just visual icons and names, more minimal and cohesive settings design
 - fixed horizontal scrollbars on patch visualization - changed SVG width from HTML attribute to CSS style, added display: block to prevent inline spacing, added overflow-x: hidden to nodeView container, ensures SVG respects container bounds at all viewport sizes
 - added Lucida Blackletter custom font files - included woff2 and woff formats in fonts/ directory, created @font-face declaration with proper fallbacks, font-display: swap for better performance, DataSynth title now displays in authentic Lucida Blackletter instead of system fallback, custom typography properly integrated
