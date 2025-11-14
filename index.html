@@ -138,9 +138,7 @@
             transform: rotate(0deg);
         }
         
-        .settings-trigger.shifted .settings-text {
-            opacity: 0;
-        }
+        /* Keep Settings text visible when open */
         
         .settings-panel {
             position: fixed;
@@ -172,6 +170,7 @@
         
         .settings-panel-content {
             padding: 20px;
+            padding-top: 80px; /* Push content below button */
             flex: 1;
             overflow-y: auto;
         }
