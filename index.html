@@ -158,6 +158,58 @@
             scrollbar-width: none;  /* Firefox */
         }
         
+        /* Visual waveform selector styling */
+        .waveform-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            margin-bottom: 4px;
+            border: 1px solid transparent;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .waveform-option:hover {
+            background: #f0f0f0;
+            border-color: #ddd;
+        }
+        
+        .waveform-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .waveform-option input[type="radio"]:checked + .waveform-visual {
+            opacity: 1;
+        }
+        
+        .waveform-option input[type="radio"]:checked ~ span {
+            font-weight: 600;
+            color: #000;
+        }
+        
+        .waveform-option:has(input[type="radio"]:checked) {
+            background: #f0f0f0;
+            border-color: #000;
+        }
+        
+        .waveform-visual {
+            width: 40px;
+            height: 20px;
+            opacity: 0.3;
+            transition: opacity 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .waveform-option span {
+            color: #666;
+            transition: all 0.2s;
+        }
+        
         .settings-backdrop {
             display: none;
         }
@@ -468,41 +520,82 @@
                 <div class="b mb2 f6">Waveform</div>
                 <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #ddd;">
                     <div class="f7 mb1" style="color: #666;">Classic</div>
-                    <label class="db mb1 f6">
-                        <input type="radio" name="waveform" value="sine" checked class="mr1"> Sine
+                    <label class="waveform-option">
+                        <input type="radio" name="waveform" value="sine" checked>
+                        <svg class="waveform-visual" viewBox="0 0 40 20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M 0,10 Q 5,0 10,10 T 20,10 T 30,10 T 40,10" />
+                        </svg>
+                        <span>Sine</span>
                     </label>
-                    <label class="db mb1 f6">
-                        <input type="radio" name="waveform" value="square" class="mr1"> Square
+                    <label class="waveform-option">
+                        <input type="radio" name="waveform" value="square">
+                        <svg class="waveform-visual" viewBox="0 0 40 20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M 0,15 L 0,5 L 10,5 L 10,15 L 20,15 L 20,5 L 30,5 L 30,15 L 40,15" />
+                        </svg>
+                        <span>Square</span>
                     </label>
-                    <label class="db mb1 f6">
-                        <input type="radio" name="waveform" value="sawtooth" class="mr1"> Sawtooth
+                    <label class="waveform-option">
+                        <input type="radio" name="waveform" value="sawtooth">
+                        <svg class="waveform-visual" viewBox="0 0 40 20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M 0,15 L 10,5 L 10,15 L 20,5 L 20,15 L 30,5 L 30,15 L 40,5" />
+                        </svg>
+                        <span>Sawtooth</span>
                     </label>
-                    <label class="db mb1 f6">
-                        <input type="radio" name="waveform" value="triangle" class="mr1"> Triangle
+                    <label class="waveform-option">
+                        <input type="radio" name="waveform" value="triangle">
+                        <svg class="waveform-visual" viewBox="0 0 40 20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M 0,15 L 5,5 L 15,15 L 25,5 L 35,15 L 40,10" />
+                        </svg>
+                        <span>Triangle</span>
                     </label>
                 </div>
                 <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #ddd;">
                     <div class="f7 mb1" style="color: #666;">Noise</div>
-                    <label class="db mb1 f6">
-                        <input type="radio" name="waveform" value="white-noise" class="mr1"> White Noise
+                    <label class="waveform-option">
+                        <input type="radio" name="waveform" value="white-noise">
+                        <svg class="waveform-visual" viewBox="0 0 40 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M 0,10 L 2,8 L 4,12 L 6,7 L 8,14 L 10,9 L 12,13 L 14,6 L 16,11 L 18,8 L 20,15 L 22,10 L 24,7 L 26,13 L 28,9 L 30,12 L 32,8 L 34,14 L 36,10 L 38,11 L 40,10" />
+                        </svg>
+                        <span>White Noise</span>
                     </label>
-                    <label class="db mb1 f6">
-                        <input type="radio" name="waveform" value="pink-noise" class="mr1"> Pink Noise
+                    <label class="waveform-option">
+                        <input type="radio" name="waveform" value="pink-noise">
+                        <svg class="waveform-visual" viewBox="0 0 40 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M 0,10 L 3,9 L 6,11 L 9,8 L 12,12 L 15,10 L 18,11 L 21,9 L 24,10 L 27,11 L 30,9 L 33,10 L 36,11 L 40,10" />
+                        </svg>
+                        <span>Pink Noise</span>
                     </label>
-                    <label class="db mb1 f6">
-                        <input type="radio" name="waveform" value="brown-noise" class="mr1"> Brown Noise
+                    <label class="waveform-option">
+                        <input type="radio" name="waveform" value="brown-noise">
+                        <svg class="waveform-visual" viewBox="0 0 40 20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M 0,10 L 4,11 L 8,10 L 12,11 L 16,10 L 20,11 L 24,10 L 28,11 L 32,10 L 36,11 L 40,10" />
+                        </svg>
+                        <span>Brown Noise</span>
                     </label>
                 </div>
                 <div>
                     <div class="f7 mb1" style="color: #666;">Synthesis</div>
-                    <label class="db mb1 f6">
-                        <input type="radio" name="waveform" value="fm" class="mr1"> FM Synthesis
+                    <label class="waveform-option">
+                        <input type="radio" name="waveform" value="fm">
+                        <svg class="waveform-visual" viewBox="0 0 40 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M 0,10 Q 3,5 6,10 Q 9,15 12,10 Q 13,7 14,10 Q 15,13 16,10 Q 19,5 22,10 Q 25,15 28,10 Q 29,7 30,10 Q 31,13 32,10 Q 35,5 38,10 L 40,10" />
+                        </svg>
+                        <span>FM Synthesis</span>
                     </label>
-                    <label class="db mb1 f6">
-                        <input type="radio" name="waveform" value="additive" class="mr1"> Additive (Harmonics)
+                    <label class="waveform-option">
+                        <input type="radio" name="waveform" value="additive">
+                        <svg class="waveform-visual" viewBox="0 0 40 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M 0,10 Q 5,2 10,10 T 20,10 T 30,10 T 40,10" />
+                            <path d="M 0,10 Q 2.5,6 5,10 T 10,10 T 15,10 T 20,10 T 25,10 T 30,10 T 35,10 T 40,10" opacity="0.5" />
+                        </svg>
+                        <span>Additive</span>
                     </label>
-                    <label class="db mb1 f6">
-                        <input type="radio" name="waveform" value="pwm" class="mr1"> Pulse Width Mod
+                    <label class="waveform-option">
+                        <input type="radio" name="waveform" value="pwm">
+                        <svg class="waveform-visual" viewBox="0 0 40 20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M 0,15 L 0,5 L 6,5 L 6,15 L 14,15 L 14,5 L 18,5 L 18,15 L 26,15 L 26,5 L 32,5 L 32,15 L 40,15" />
+                        </svg>
+                        <span>PWM</span>
                     </label>
                 </div>
             </div>
