@@ -1,0 +1,28 @@
+[
+  {"rank": 1, "player": "Aaron Judge", "team": "New York Yankees", "home_runs": 58, "avg": 0.322, "rbi": 144, "ops": 1.159, "games": 158, "strikeouts": 179, "walks": 133},
+  {"rank": 2, "player": "Shohei Ohtani", "team": "Los Angeles Dodgers", "home_runs": 54, "avg": 0.310, "rbi": 130, "ops": 1.036, "games": 159, "strikeouts": 199, "walks": 81},
+  {"rank": 3, "player": "Juan Soto", "team": "New York Yankees", "home_runs": 41, "avg": 0.288, "rbi": 109, "ops": 0.989, "games": 157, "strikeouts": 119, "walks": 129},
+  {"rank": 4, "player": "Kyle Schwarber", "team": "Philadelphia Phillies", "home_runs": 38, "avg": 0.250, "rbi": 104, "ops": 0.842, "games": 150, "strikeouts": 215, "walks": 87},
+  {"rank": 5, "player": "Marcell Ozuna", "team": "Atlanta Braves", "home_runs": 39, "avg": 0.302, "rbi": 104, "ops": 0.948, "games": 162, "strikeouts": 144, "walks": 55},
+  {"rank": 6, "player": "Anthony Santander", "team": "Baltimore Orioles", "home_runs": 44, "avg": 0.235, "rbi": 102, "ops": 0.814, "games": 155, "strikeouts": 147, "walks": 45},
+  {"rank": 7, "player": "Gunnar Henderson", "team": "Baltimore Orioles", "home_runs": 37, "avg": 0.281, "rbi": 92, "ops": 0.893, "games": 159, "strikeouts": 153, "walks": 82},
+  {"rank": 8, "player": "Francisco Lindor", "team": "New York Mets", "home_runs": 33, "avg": 0.273, "rbi": 91, "ops": 0.844, "games": 152, "strikeouts": 142, "walks": 71},
+  {"rank": 9, "player": "Freddie Freeman", "team": "Los Angeles Dodgers", "home_runs": 35, "avg": 0.282, "rbi": 102, "ops": 0.857, "games": 147, "strikeouts": 122, "walks": 75},
+  {"rank": 10, "player": "Matt Olson", "team": "Atlanta Braves", "home_runs": 29, "avg": 0.247, "rbi": 98, "ops": 0.788, "games": 162, "strikeouts": 168, "walks": 75},
+  {"rank": 11, "player": "Pete Alonso", "team": "New York Mets", "home_runs": 34, "avg": 0.240, "rbi": 88, "ops": 0.788, "games": 162, "strikeouts": 171, "walks": 69},
+  {"rank": 12, "player": "Yordan Alvarez", "team": "Houston Astros", "home_runs": 35, "avg": 0.308, "rbi": 86, "ops": 0.990, "games": 147, "strikeouts": 127, "walks": 69},
+  {"rank": 13, "player": "Teoscar Hernandez", "team": "Los Angeles Dodgers", "home_runs": 33, "avg": 0.272, "rbi": 99, "ops": 0.840, "games": 154, "strikeouts": 167, "walks": 52},
+  {"rank": 14, "player": "Salvador Perez", "team": "Kansas City Royals", "home_runs": 27, "avg": 0.271, "rbi": 104, "ops": 0.788, "games": 158, "strikeouts": 94, "walks": 24},
+  {"rank": 15, "player": "Bobby Witt Jr.", "team": "Kansas City Royals", "home_runs": 32, "avg": 0.332, "rbi": 109, "ops": 0.977, "games": 161, "strikeouts": 135, "walks": 53},
+  {"rank": 16, "player": "Mookie Betts", "team": "Los Angeles Dodgers", "home_runs": 19, "avg": 0.289, "rbi": 75, "ops": 0.893, "games": 116, "strikeouts": 98, "walks": 68},
+  {"rank": 17, "player": "Bryce Harper", "team": "Philadelphia Phillies", "home_runs": 30, "avg": 0.285, "rbi": 87, "ops": 0.899, "games": 145, "strikeouts": 119, "walks": 79},
+  {"rank": 18, "player": "Austin Riley", "team": "Atlanta Braves", "home_runs": 19, "avg": 0.256, "rbi": 56, "ops": 0.803, "games": 110, "strikeouts": 115, "walks": 50},
+  {"rank": 19, "player": "Corey Seager", "team": "Texas Rangers", "home_runs": 30, "avg": 0.278, "rbi": 74, "ops": 0.844, "games": 123, "strikeouts": 83, "walks": 49},
+  {"rank": 20, "player": "Josh Naylor", "team": "Cleveland Guardians", "home_runs": 31, "avg": 0.243, "rbi": 108, "ops": 0.745, "games": 152, "strikeouts": 140, "walks": 36},
+  {"rank": 21, "player": "Rafael Devers", "team": "Boston Red Sox", "home_runs": 28, "avg": 0.272, "rbi": 83, "ops": 0.827, "games": 138, "strikeouts": 120, "walks": 60},
+  {"rank": 22, "player": "Jurickson Profar", "team": "San Diego Padres", "home_runs": 24, "avg": 0.280, "rbi": 85, "ops": 0.839, "games": 158, "strikeouts": 134, "walks": 86},
+  {"rank": 23, "player": "Vladimir Guerrero Jr.", "team": "Toronto Blue Jays", "home_runs": 30, "avg": 0.323, "rbi": 103, "ops": 0.940, "games": 159, "strikeouts": 96, "walks": 75},
+  {"rank": 24, "player": "Jose Ramirez", "team": "Cleveland Guardians", "home_runs": 39, "avg": 0.279, "rbi": 118, "ops": 0.863, "games": 158, "strikeouts": 90, "walks": 64},
+  {"rank": 25, "player": "William Contreras", "team": "Milwaukee Brewers", "home_runs": 23, "avg": 0.281, "rbi": 92, "ops": 0.833, "games": 155, "strikeouts": 123, "walks": 59}
+]
+

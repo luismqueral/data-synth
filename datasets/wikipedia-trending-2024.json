@@ -1,0 +1,18 @@
+[
+  {"rank": 1, "article": "Deaths in 2024", "views_millions": 88.7, "peak_date": "2024-01-01", "category": "Reference", "edits": 52847, "daily_average_views": 243178, "pageviews_trend": "steady"},
+  {"rank": 2, "article": "ChatGPT", "views_millions": 78.3, "peak_date": "2024-05-14", "category": "Technology", "edits": 4289, "daily_average_views": 214521, "pageviews_trend": "increasing"},
+  {"rank": 3, "article": "2024 United States presidential election", "views_millions": 72.1, "peak_date": "2024-11-05", "category": "Politics", "edits": 18934, "daily_average_views": 197534, "pageviews_trend": "spiking"},
+  {"rank": 4, "article": "Donald Trump", "views_millions": 69.5, "peak_date": "2024-11-06", "category": "Politics", "edits": 9872, "daily_average_views": 190410, "pageviews_trend": "spiking"},
+  {"rank": 5, "article": "Russia", "views_millions": 54.2, "peak_date": "2024-02-24", "category": "Geography", "edits": 7821, "daily_average_views": 148493, "pageviews_trend": "steady"},
+  {"rank": 6, "article": "Israel", "views_millions": 51.8, "peak_date": "2024-10-07", "category": "Geography", "edits": 11234, "daily_average_views": 141917, "pageviews_trend": "spiking"},
+  {"rank": 7, "article": "United States", "views_millions": 49.3, "peak_date": "2024-07-04", "category": "Geography", "edits": 6543, "daily_average_views": 135068, "pageviews_trend": "steady"},
+  {"rank": 8, "article": "India", "views_millions": 47.6, "peak_date": "2024-08-15", "category": "Geography", "edits": 5892, "daily_average_views": 130410, "pageviews_trend": "steady"},
+  {"rank": 9, "article": "Elon Musk", "views_millions": 45.9, "peak_date": "2024-01-25", "category": "Biography", "edits": 8234, "daily_average_views": 125753, "pageviews_trend": "fluctuating"},
+  {"rank": 10, "article": "2024 Summer Olympics", "views_millions": 44.2, "peak_date": "2024-07-26", "category": "Sports", "edits": 15678, "daily_average_views": 121095, "pageviews_trend": "spiking"},
+  {"rank": 11, "article": "Joe Biden", "views_millions": 42.7, "peak_date": "2024-07-21", "category": "Politics", "edits": 7456, "daily_average_views": 116986, "pageviews_trend": "declining"},
+  {"rank": 12, "article": "Taylor Swift", "views_millions": 41.3, "peak_date": "2024-02-11", "category": "Music", "edits": 6789, "daily_average_views": 113150, "pageviews_trend": "steady"},
+  {"rank": 13, "article": "Israel–Hamas war", "views_millions": 39.8, "peak_date": "2024-10-08", "category": "History", "edits": 23456, "daily_average_views": 109041, "pageviews_trend": "fluctuating"},
+  {"rank": 14, "article": "2024 in film", "views_millions": 38.4, "peak_date": "2024-12-31", "category": "Entertainment", "edits": 12345, "daily_average_views": 105205, "pageviews_trend": "increasing"},
+  {"rank": 15, "article": "Artificial intelligence", "views_millions": 37.1, "peak_date": "2024-03-15", "category": "Technology", "edits": 4567, "daily_average_views": 101643, "pageviews_trend": "increasing"}
+]
+

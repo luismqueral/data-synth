@@ -1,0 +1,18 @@
+[
+  {"rank": 1, "language": "JavaScript", "repos_millions": 3.8, "stars_millions": 12.4, "contributors_thousands": 8900, "pull_requests_millions": 5.2, "issues_millions": 3.1, "growth_rate_percent": 8.3, "primary_use": "Web Development"},
+  {"rank": 2, "language": "Python", "repos_millions": 3.2, "stars_millions": 14.7, "contributors_thousands": 7600, "pull_requests_millions": 4.8, "issues_millions": 2.9, "growth_rate_percent": 22.5, "primary_use": "Data Science/ML"},
+  {"rank": 3, "language": "Java", "repos_millions": 2.4, "stars_millions": 8.9, "contributors_thousands": 5800, "pull_requests_millions": 3.2, "issues_millions": 2.1, "growth_rate_percent": 3.2, "primary_use": "Enterprise Apps"},
+  {"rank": 4, "language": "TypeScript", "repos_millions": 1.9, "stars_millions": 11.2, "contributors_thousands": 4300, "pull_requests_millions": 3.8, "issues_millions": 1.9, "growth_rate_percent": 37.8, "primary_use": "Web Development"},
+  {"rank": 5, "language": "C#", "repos_millions": 1.7, "stars_millions": 6.4, "contributors_thousands": 3900, "pull_requests_millions": 2.4, "issues_millions": 1.5, "growth_rate_percent": 5.7, "primary_use": "Gaming/Enterprise"},
+  {"rank": 6, "language": "C++", "repos_millions": 1.5, "stars_millions": 7.8, "contributors_thousands": 4100, "pull_requests_millions": 2.1, "issues_millions": 1.7, "growth_rate_percent": 4.1, "primary_use": "Systems/Gaming"},
+  {"rank": 7, "language": "PHP", "repos_millions": 1.4, "stars_millions": 4.2, "contributors_thousands": 2800, "pull_requests_millions": 1.8, "issues_millions": 1.3, "growth_rate_percent": -2.4, "primary_use": "Web Backend"},
+  {"rank": 8, "language": "Go", "repos_millions": 1.1, "stars_millions": 5.9, "contributors_thousands": 2100, "pull_requests_millions": 1.9, "issues_millions": 0.9, "growth_rate_percent": 18.6, "primary_use": "Cloud/Backend"},
+  {"rank": 9, "language": "Rust", "repos_millions": 0.8, "stars_millions": 6.3, "contributors_thousands": 1600, "pull_requests_millions": 1.4, "issues_millions": 0.7, "growth_rate_percent": 34.2, "primary_use": "Systems/WebAssembly"},
+  {"rank": 10, "language": "Ruby", "repos_millions": 1.2, "stars_millions": 3.8, "contributors_thousands": 2400, "pull_requests_millions": 1.5, "issues_millions": 1.1, "growth_rate_percent": -5.8, "primary_use": "Web Development"},
+  {"rank": 11, "language": "Shell", "repos_millions": 1.0, "stars_millions": 2.4, "contributors_thousands": 1900, "pull_requests_millions": 0.8, "issues_millions": 0.5, "growth_rate_percent": 2.1, "primary_use": "DevOps/Scripting"},
+  {"rank": 12, "language": "Swift", "repos_millions": 0.7, "stars_millions": 4.1, "contributors_thousands": 1200, "pull_requests_millions": 1.1, "issues_millions": 0.6, "growth_rate_percent": 12.4, "primary_use": "iOS Development"},
+  {"rank": 13, "language": "Kotlin", "repos_millions": 0.6, "stars_millions": 3.7, "contributors_thousands": 1100, "pull_requests_millions": 1.0, "issues_millions": 0.5, "growth_rate_percent": 19.3, "primary_use": "Android/Backend"},
+  {"rank": 14, "language": "Dart", "repos_millions": 0.4, "stars_millions": 2.8, "contributors_thousands": 780, "pull_requests_millions": 0.7, "issues_millions": 0.4, "growth_rate_percent": 28.7, "primary_use": "Flutter/Mobile"},
+  {"rank": 15, "language": "Scala", "repos_millions": 0.3, "stars_millions": 1.9, "contributors_thousands": 650, "pull_requests_millions": 0.5, "issues_millions": 0.3, "growth_rate_percent": -3.2, "primary_use": "Big Data/Backend"}
+]
+

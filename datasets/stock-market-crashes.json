@@ -1,0 +1,23 @@
+[
+  {"name": "Wall Street Crash of 1929", "date": "1929-10-28", "dow_change_percent": -12.82, "close": 260.64, "volume_millions": 16.4, "market_cap_loss_billions": 14, "cause": "Speculative bubble burst", "recovery_years": 25},
+  {"name": "Black Monday 1929", "date": "1929-10-29", "dow_change_percent": -11.73, "close": 230.07, "volume_millions": 16.4, "market_cap_loss_billions": 10, "cause": "Panic selling continuation", "recovery_years": 25},
+  {"name": "Kennedy Slide", "date": "1962-05-28", "dow_change_percent": -5.71, "close": 576.93, "volume_millions": 9.35, "market_cap_loss_billions": 20.8, "cause": "Market correction", "recovery_years": 1},
+  {"name": "Black Monday 1987", "date": "1987-10-19", "dow_change_percent": -22.61, "close": 1738.74, "volume_millions": 604, "market_cap_loss_billions": 500, "cause": "Program trading, portfolio insurance", "recovery_years": 2},
+  {"name": "Mini-Crash 1989", "date": "1989-10-13", "dow_change_percent": -6.91, "close": 2569.26, "volume_millions": 251, "market_cap_loss_billions": 160, "cause": "Failed buyout, computerized selling", "recovery_years": 0.5},
+  {"name": "Asian Financial Crisis", "date": "1997-10-27", "dow_change_percent": -7.18, "close": 7161.15, "volume_millions": 685, "market_cap_loss_billions": 554, "cause": "Asian currency devaluations", "recovery_years": 1},
+  {"name": "Russian Financial Crisis", "date": "1998-08-31", "dow_change_percent": -6.37, "close": 7539.07, "volume_millions": 1.2, "market_cap_loss_billions": 512, "cause": "Russian debt default, LTCM collapse", "recovery_years": 0.5},
+  {"name": "Dot-com Bubble Burst", "date": "2000-04-14", "dow_change_percent": -5.66, "close": 10305.77, "volume_millions": 1.4, "market_cap_loss_billions": 1000, "cause": "Tech stock overvaluation", "recovery_years": 7},
+  {"name": "September 11 Attacks", "date": "2001-09-17", "dow_change_percent": -7.13, "close": 8920.70, "volume_millions": 2.4, "market_cap_loss_billions": 1400, "cause": "Terrorist attacks", "recovery_years": 5},
+  {"name": "Financial Crisis 2008", "date": "2008-09-29", "dow_change_percent": -7.87, "close": 10365.45, "volume_millions": 7.3, "market_cap_loss_billions": 1200, "cause": "Subprime mortgage crisis, Lehman collapse", "recovery_years": 5},
+  {"name": "Financial Crisis Day 2", "date": "2008-10-15", "dow_change_percent": -7.87, "close": 8577.91, "volume_millions": 8.2, "market_cap_loss_billions": 700, "cause": "Credit crisis continuation", "recovery_years": 5},
+  {"name": "Flash Crash", "date": "2010-05-06", "dow_change_percent": -6.98, "close": 10520.32, "volume_millions": 19, "market_cap_loss_billions": 862, "cause": "Algorithmic trading error", "recovery_years": 0.02},
+  {"name": "EU Debt Crisis", "date": "2011-08-08", "dow_change_percent": -5.55, "close": 10809.85, "volume_millions": 8.4, "market_cap_loss_billions": 2500, "cause": "European sovereign debt concerns", "recovery_years": 2},
+  {"name": "China Stock Market Crash", "date": "2015-08-24", "dow_change_percent": -3.57, "close": 15871.35, "volume_millions": 6.1, "market_cap_loss_billions": 530, "cause": "Chinese market devaluation", "recovery_years": 1},
+  {"name": "Brexit Vote", "date": "2016-06-24", "dow_change_percent": -3.39, "close": 17400.75, "volume_millions": 5.7, "market_cap_loss_billions": 2000, "cause": "UK referendum to leave EU", "recovery_years": 0.1},
+  {"name": "COVID-19 Crash Day 1", "date": "2020-03-09", "dow_change_percent": -7.79, "close": 23851.02, "volume_millions": 6.4, "market_cap_loss_billions": 2100, "cause": "Pandemic declaration, oil price war", "recovery_years": 0.5},
+  {"name": "COVID-19 Black Thursday", "date": "2020-03-12", "dow_change_percent": -9.99, "close": 21200.62, "volume_millions": 10.3, "market_cap_loss_billions": 2300, "cause": "COVID-19 pandemic escalation", "recovery_years": 0.5},
+  {"name": "COVID-19 Crash Day 3", "date": "2020-03-16", "dow_change_percent": -12.93, "close": 20188.52, "volume_millions": 13.5, "market_cap_loss_billions": 3000, "cause": "Pandemic shutdown measures", "recovery_years": 0.5},
+  {"name": "Silicon Valley Bank Collapse", "date": "2023-03-13", "dow_change_percent": -4.44, "close": 31909.64, "volume_millions": 5.2, "market_cap_loss_billions": 1300, "cause": "Bank run, interest rate risk", "recovery_years": 0.1},
+  {"name": "August 2024 Selloff", "date": "2024-08-05", "dow_change_percent": -2.60, "close": 38703.27, "volume_millions": 4.8, "market_cap_loss_billions": 1500, "cause": "Recession fears, yen carry trade unwind", "recovery_years": 0.05}
+]
+

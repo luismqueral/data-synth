@@ -1,0 +1,23 @@
+[
+  {"rank": 1, "country": "India", "population": 1428627663, "growth_rate": 0.81, "density_per_km2": 464, "urban_percent": 35.9, "median_age": 28.2, "fertility_rate": 2.0, "life_expectancy": 70.8, "gdp_billions": 3732},
+  {"rank": 2, "country": "China", "population": 1425671352, "growth_rate": -0.02, "density_per_km2": 153, "urban_percent": 64.6, "median_age": 39.0, "fertility_rate": 1.2, "life_expectancy": 78.2, "gdp_billions": 17963},
+  {"rank": 3, "country": "United States", "population": 339996563, "growth_rate": 0.50, "density_per_km2": 37, "urban_percent": 83.3, "median_age": 38.5, "fertility_rate": 1.7, "life_expectancy": 79.3, "gdp_billions": 27360},
+  {"rank": 4, "country": "Indonesia", "population": 277534122, "growth_rate": 0.74, "density_per_km2": 153, "urban_percent": 57.9, "median_age": 30.2, "fertility_rate": 2.2, "life_expectancy": 72.0, "gdp_billions": 1319},
+  {"rank": 5, "country": "Pakistan", "population": 240485658, "growth_rate": 1.91, "density_per_km2": 312, "urban_percent": 37.7, "median_age": 20.6, "fertility_rate": 3.3, "life_expectancy": 67.3, "gdp_billions": 374},
+  {"rank": 6, "country": "Nigeria", "population": 223804632, "growth_rate": 2.41, "density_per_km2": 246, "urban_percent": 53.5, "median_age": 18.1, "fertility_rate": 5.2, "life_expectancy": 54.7, "gdp_billions": 507},
+  {"rank": 7, "country": "Brazil", "population": 216422446, "growth_rate": 0.52, "density_per_km2": 25, "urban_percent": 88.0, "median_age": 33.2, "fertility_rate": 1.6, "life_expectancy": 76.0, "gdp_billions": 2126},
+  {"rank": 8, "country": "Bangladesh", "population": 172954319, "growth_rate": 1.03, "density_per_km2": 1329, "urban_percent": 40.5, "median_age": 27.9, "fertility_rate": 2.0, "life_expectancy": 73.2, "gdp_billions": 460},
+  {"rank": 9, "country": "Russia", "population": 144444359, "growth_rate": -0.19, "density_per_km2": 9, "urban_percent": 75.3, "median_age": 39.2, "fertility_rate": 1.5, "life_expectancy": 73.2, "gdp_billions": 1862},
+  {"rank": 10, "country": "Mexico", "population": 128455567, "growth_rate": 0.75, "density_per_km2": 66, "urban_percent": 81.2, "median_age": 29.3, "fertility_rate": 1.8, "life_expectancy": 75.1, "gdp_billions": 1811},
+  {"rank": 11, "country": "Ethiopia", "population": 126527060, "growth_rate": 2.55, "density_per_km2": 127, "urban_percent": 22.7, "median_age": 19.5, "fertility_rate": 4.0, "life_expectancy": 67.8, "gdp_billions": 126},
+  {"rank": 12, "country": "Japan", "population": 123294513, "growth_rate": -0.53, "density_per_km2": 333, "urban_percent": 92.0, "median_age": 49.1, "fertility_rate": 1.3, "life_expectancy": 84.8, "gdp_billions": 4230},
+  {"rank": 13, "country": "Philippines", "population": 117337368, "growth_rate": 1.54, "density_per_km2": 394, "urban_percent": 47.9, "median_age": 25.7, "fertility_rate": 2.5, "life_expectancy": 71.2, "gdp_billions": 440},
+  {"rank": 14, "country": "Egypt", "population": 112716598, "growth_rate": 1.56, "density_per_km2": 113, "urban_percent": 43.1, "median_age": 24.1, "fertility_rate": 2.8, "life_expectancy": 72.4, "gdp_billions": 476},
+  {"rank": 15, "country": "Vietnam", "population": 98858950, "growth_rate": 0.68, "density_per_km2": 319, "urban_percent": 38.8, "median_age": 32.8, "fertility_rate": 1.9, "life_expectancy": 75.4, "gdp_billions": 433},
+  {"rank": 16, "country": "DR Congo", "population": 102262808, "growth_rate": 3.28, "density_per_km2": 45, "urban_percent": 46.9, "median_age": 16.7, "fertility_rate": 5.6, "life_expectancy": 60.7, "gdp_billions": 64},
+  {"rank": 17, "country": "Turkey", "population": 85816199, "growth_rate": 0.71, "density_per_km2": 113, "urban_percent": 77.5, "median_age": 33.1, "fertility_rate": 1.9, "life_expectancy": 78.6, "gdp_billions": 1029},
+  {"rank": 18, "country": "Iran", "population": 89172767, "growth_rate": 0.70, "density_per_km2": 55, "urban_percent": 76.8, "median_age": 33.1, "fertility_rate": 1.7, "life_expectancy": 76.7, "gdp_billions": 1107},
+  {"rank": 19, "country": "Germany", "population": 83294633, "growth_rate": -0.09, "density_per_km2": 240, "urban_percent": 77.8, "median_age": 47.8, "fertility_rate": 1.5, "life_expectancy": 82.0, "gdp_billions": 4430},
+  {"rank": 20, "country": "Thailand", "population": 71801279, "growth_rate": 0.15, "density_per_km2": 141, "urban_percent": 52.9, "median_age": 40.1, "fertility_rate": 1.3, "life_expectancy": 78.7, "gdp_billions": 514}
+]
+

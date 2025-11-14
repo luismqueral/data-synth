@@ -1,0 +1,1 @@
+{"code":400,"http_error":"BAD_REQUEST","error_message":"Date Format Exception - Expected format (yyyy-mm-dd) - The Feed date limit is only 7 Days","request":"http://api.nasa.gov/rest/v1/feed?start_date=2024-11-01&end_date=2024-11-14"}

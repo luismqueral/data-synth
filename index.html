@@ -11,7 +11,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400;1,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- D3.js for visualization -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -48,6 +48,143 @@
             font-family: 'IBM Plex Mono', monospace;
         }
         
+        /* Tachyons-style utility: IBM Plex Mono font family */
+        .ibm-mono { font-family: 'IBM Plex Mono', monospace; }
+        .ibm-mono-i { font-family: 'IBM Plex Mono', monospace; font-style: italic; }
+        
+        /* Hover underline effect */
+        .hover-underline:hover {
+            text-decoration: underline !important;
+        }
+        
+        /* Play random dataset link press effect */
+        #playRandomDatasetLink:active {
+            transform: translateY(1px);
+        }
+        
+        /* Randomize mappings header area states */
+        #randomizeMappingsBtnHeader[style*="opacity: 1"] {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+        
+        #randomizeMappingsBtnHeader[style*="opacity: 1"]:hover {
+            background: #f5f5f5 !important;
+        }
+        
+        #randomizeMappingsBtnHeader[style*="opacity: 1"]:hover .randomize-text {
+            color: #000 !important;
+        }
+        
+        #randomizeMappingsBtnHeader[style*="opacity: 1"]:active {
+            transform: translateY(1px) !important;
+        }
+        
+        /* Custom tooltip styling */
+        .tooltip-container {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .tooltip-icon {
+            cursor: help;
+            transition: opacity 0.2s;
+        }
+        
+        .tooltip-icon:hover {
+            opacity: 0.7;
+        }
+        
+        .tooltip-text {
+            visibility: hidden;
+            opacity: 0;
+            width: 240px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 4px;
+            padding: 8px 12px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            line-height: 1.4;
+            font-weight: normal;
+            transition: opacity 0.2s, visibility 0.2s;
+            pointer-events: none;
+        }
+        
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+        
+        .tooltip-container:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Play visualizer button states */
+        #playDataBtn {
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        }
+        
+        #playDataBtn.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+        
+        #playDataBtn:not(.disabled):hover {
+            transform: translateY(2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        #playDataBtn:not(.disabled):hover canvas {
+            border-color: #999;
+        }
+        
+        #playDataBtn:not(.disabled):hover #playOverlay > div {
+            background: rgba(0,0,0,0.85);
+            transform: scale(1.1);
+        }
+        
+        #playDataBtn:not(.disabled):active {
+            transform: translateY(3px);
+        }
+        
+        #playOverlay {
+            opacity: 1;
+            transition: opacity 0.2s ease;
+        }
+        
+        /* Hide overlay during playback, show on hover */
+        #playDataBtn.playing #playOverlay {
+            opacity: 0;
+        }
+        
+        #playDataBtn.playing:hover #playOverlay {
+            opacity: 1;
+        }
+        
+        #playOverlay > div {
+            transition: all 0.2s ease;
+        }
+        
+        canvas {
+            transition: border-color 0.15s ease;
+        }
+        
+        
         body {
             margin: 0;
             padding: 0;
@@ -77,7 +214,7 @@
             left: 20px;
             z-index: 1001;
             background: transparent;
-            color: #999;
+            color: #000;
             border: none;
             padding: 10px 14px;
             cursor: pointer;
@@ -89,7 +226,6 @@
         }
         
         .settings-trigger:hover {
-            color: #000;
             background: #f5f5f5;
         }
         
@@ -675,117 +811,125 @@
     </div>
     
     <div class="pa3 content-wrapper main-content-wrapper">
-        <h1 class="f1 mb2 mt0 tc" style="font-family: 'Lucida Blackletter', 'Blackletter686', serif; font-weight: normal;">DataSynth</h1>
+        <h1 class="f1 mb2 mt4 tc" style="font-family: 'Lucida Blackletter', 'Blackletter686', serif; font-weight: normal;">DataSynth</h1>
         <p class="tc f6 gray mb3" style="max-width: 600px; margin-left: auto; margin-right: auto; font-family: 'IBM Plex Sans', sans-serif;">
-            Turn any dataset into sound. <a href="https://github.com/luismqueral/data-2-sound" target="_blank" class="black underline">Learn More</a>
+            Turn any dataset into sound. <a href="https://github.com/luismqueral/data-synth" target="_blank" class="black underline">Learn More</a>
         </p>
         
-        <!-- Data Selection -->
-        <div class="mb4">
-            <div class="tc mb2">
-                <select id="templateSelector" class="pa2 ba b--black f6" style="width: 480px; max-width: 90%;">
-                    <option value="">-- Select Dataset --</option>
-                    
-                    <optgroup label="🌍 Earthquakes - All Magnitudes (USGS Live)">
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson">All Earthquakes: Past Hour (Real-time)</option>
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson">All Earthquakes: Past Day</option>
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson">All Earthquakes: Past Week</option>
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson">All Earthquakes: Past Month</option>
-                    </optgroup>
-                    
-                    <optgroup label="🔴 Earthquakes - Magnitude 4.5+ (USGS Live)">
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_hour.geojson">M4.5+: Past Hour</option>
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson">M4.5+: Past Day</option>
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson">M4.5+: Past Week</option>
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_month.geojson">M4.5+: Past Month</option>
-                    </optgroup>
-                    
-                    <optgroup label="🟠 Earthquakes - Magnitude 2.5+ (USGS Live)">
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_hour.geojson">M2.5+: Past Hour</option>
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson">M2.5+: Past Day</option>
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson">M2.5+: Past Week</option>
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_month.geojson">M2.5+: Past Month</option>
-                    </optgroup>
-                    
-                    <optgroup label="⚠️ Earthquakes - Significant Only (USGS Live)">
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_hour.geojson">Significant: Past Hour</option>
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_day.geojson">Significant: Past Day</option>
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson">Significant: Past Week</option>
-                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson">Significant: Past Month</option>
-                    </optgroup>
-                    
-                    <optgroup label="📦 Earthquakes - Archived">
-                        <option value="datasets/earthquakes-week.geojson">Local Archive: Weekly Snapshot (1600+ events)</option>
-                    </optgroup>
-                    
-                    <optgroup label="🌌 Space">
-                        <option value="datasets/exoplanets.csv">NASA Exoplanets (6000+ planets)</option>
-                        <option value="https://api.nasa.gov/neo/rest/v1/feed?start_date=2024-11-12&end_date=2024-11-12&api_key=DEMO_KEY">NASA: Near Earth Objects - Today</option>
-                        <option value="http://api.open-notify.org/iss-now.json">ISS Location (Real-time)</option>
-                        <option value="http://api.open-notify.org/astros.json">Astronauts in Space (Real-time)</option>
-                    </optgroup>
-                    
-                    <optgroup label="🎵 Sonic Experiments">
-                        <option value="datasets/pulsar-vortex.json">Pulsar Vortex (12 oscillations)</option>
-                        <option value="datasets/nebula-cascade.json">Nebula Cascade (12 formations)</option>
-                        <option value="datasets/temporal-flux.json">Temporal Flux (12 moments)</option>
-                        <option value="datasets/aether-wave.json">Aether Wave (12 cycles)</option>
-                        <option value="datasets/quantum-drift.json">Quantum Drift (12 states)</option>
-                    </optgroup>
-                </select>
-            </div>
-            <div class="tc f6 gray mb3">
-                Drag-and-drop JSON/CSV file to upload your own
-            </div>
-            <div class="tc mb2">
-                <span id="parseStatus" class="f6 gray"></span>
-            </div>
-        </div>
-        
-        <!-- Control Buttons -->
-        <div class="mb3 flex items-center justify-center">
-            <button id="playDataBtn" disabled class="mr2 ba b--black bg-black white pointer hover-bg-white hover-black" style="width: 240px; padding: 16px 24px; font-size: 24px; height: 64px;">
-                <span class="mr2" id="playIcon" style="font-size: 24px;">▶</span>
-                <span id="playText">Play Data</span>
-            </button>
-            <div class="mr2 ba b--black-10 flex items-center justify-center" id="itemLabel" style="background: #f5f5f5; padding: 16px 24px; min-width: 120px; height: 64px;">
-                <div class="tc">
-                    <div style="font-size: 9px; color: #999; letter-spacing: 0.5px; margin-bottom: 2px;">ITEM</div>
-                    <div class="playback-value" id="itemValue" style="font-size: 16px; font-weight: 600; color: #000;">--</div>
+        <!-- Audio Visualizer / Play Button -->
+        <div class="center mt5 mb4" style="max-width: 900px;">
+            <div id="playDataBtn" class="pointer disabled" style="position: relative;">
+                <canvas id="audioVisualizer" style="width: 100%; height: 160px; border: 1px solid #ddd; border-radius: 3px 3px 0 0; cursor: pointer; background: #fff;"></canvas>
+                <div id="playOverlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;">
+                    <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;">
+                        <!-- Material Icons: Play Arrow -->
+                        <svg id="playIcon" width="32" height="32" viewBox="0 0 24 24" fill="white" style="margin-left: 3px;">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                        <!-- Material Icons: Stop -->
+                        <svg id="stopIcon" width="28" height="28" viewBox="0 0 24 24" fill="white" style="display: none;">
+                            <path d="M6 6h12v12H6z"/>
+                        </svg>
+                    </div>
                 </div>
             </div>
-            <button id="randomizeMappingsBtn" disabled class="ba b--black bg-white pointer hover-bg-black hover-white" style="padding: 16px 24px; font-size: 24px; min-width: 180px; height: 64px;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px; vertical-align: middle;">
-                    <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/>
-                </svg>Randomize
-            </button>
+            
+            <!-- Data Selection -->
+            <div class="pa3" style="background: #f5f5f5; border: 1px solid #ddd; border-top: none; border-radius: 0 0 3px 3px; padding-top: 24px;">
+                <div class="mb3 flex items-center justify-between" style="max-width: 480px; margin-left: auto; margin-right: auto;">
+                    <div class="b f6 black">Source</div>
+                    <a href="#" id="playRandomDatasetLink" class="f7 black ibm-mono pointer hover-underline" style="text-decoration: none; transition: transform 0.05s ease;">Play Random Dataset</a>
+                </div>
+                <div class="mb2 tc">
+                    <select id="templateSelector" class="pa2 ba b--black f6" style="width: 480px; max-width: 90%; border-radius: 3px;">
+                        <option value="">-- select dataset --</option>
+                    
+                    <optgroup label="🌍 earth stuff">
+                        <option value="datasets/earthquakes-week.geojson">earthquakes-week.geojson (1600 events)</option>
+                        <option value="datasets/earthquakes-all-month.geojson">earthquakes-all-month.geojson (9000 events)</option>
+                        <option value="datasets/earthquakes-major-month.geojson">earthquakes-major-month.geojson (M4.5+)</option>
+                        <option value="datasets/earthquakes-significant-month.geojson">earthquakes-significant-month.geojson</option>
+                        <option value="datasets/hurricanes-atlantic-2023.json">hurricanes-atlantic-2023.json (20 storms)</option>
+                        <option value="datasets/wildfire-california-2020.json">wildfire-california-2020.json (16 fires)</option>
+                        <option value="datasets/volcanic-eruptions-recent.json">volcanic-eruptions-recent.json (14 eruptions)</option>
+                        <option value="datasets/air-quality-global-cities.json">air-quality-global-cities.json (16 cities)</option>
+                        <option value="datasets/ocean-buoy-measurements.json">ocean-buoy-measurements.json (15 buoys)</option>
+                    </optgroup>
+                    
+                    <optgroup label="⚾ baseball">
+                        <option value="datasets/baseball-home-runs-2024.json">baseball-home-runs-2024.json (25 players)</option>
+                        <option value="datasets/baseball-world-series-2024.json">baseball-world-series-2024.json (5 games)</option>
+                    </optgroup>
+                    
+                    <optgroup label="💰 money">
+                        <option value="datasets/bitcoin-historical-2024.json">bitcoin-historical-2024.json (365 days)</option>
+                        <option value="datasets/crypto-top-100.json">crypto-top-100.json (100 currencies)</option>
+                        <option value="datasets/stock-market-crashes.json">stock-market-crashes.json (20 crashes)</option>
+                    </optgroup>
+                    
+                    <optgroup label="🚀 space">
+                        <option value="datasets/solar-system-planets.json">solar-system-planets.json (9 planets)</option>
+                        <option value="datasets/exoplanets.csv">exoplanets.csv (6000+ planets)</option>
+                        <option value="datasets/asteroid-close-approaches-2024.json">asteroid-close-approaches-2024.json (11 asteroids)</option>
+                        <option value="datasets/meteorite-landings.json">meteorite-landings.json (1000 impacts)</option>
+                        <option value="datasets/iss-location-tracking.json">iss-location-tracking.json</option>
+                    </optgroup>
+                    
+                    <optgroup label="🎲 misc">
+                        <option value="datasets/world-population-countries.json">world-population-countries.json (20 countries)</option>
+                        <option value="datasets/wikipedia-trending-2024.json">wikipedia-trending-2024.json (15 articles)</option>
+                        <option value="datasets/github-languages-popularity.json">github-languages-popularity.json (15 languages)</option>
+                        <option value="datasets/pulsar-vortex.json">pulsar-vortex.json (sonic experiment)</option>
+                        <option value="datasets/nebula-cascade.json">nebula-cascade.json (sonic experiment)</option>
+                        <option value="datasets/temporal-flux.json">temporal-flux.json (sonic experiment)</option>
+                        <option value="datasets/aether-wave.json">aether-wave.json (sonic experiment)</option>
+                        <option value="datasets/quantum-drift.json">quantum-drift.json (sonic experiment)</option>
+                    </optgroup>
+                    
+                    <optgroup label="🔴 live data (requires internet)">
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson">usgs earthquakes - past hour (real-time)</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson">usgs earthquakes - past day</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_month.geojson">usgs earthquakes M4.5+ - past month</option>
+                        <option value="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson">usgs earthquakes significant - past month</option>
+                    </optgroup>
+                </select>
+                </div>
+                <div class="mt2">
+                    <span id="parseStatus" class="f6 gray"></span>
+                </div>
+            </div>
         </div>
         
         <!-- Patch View (Full Width) -->
         <div id="nodeView" style="margin-bottom: 20px; padding: 20px; width: 100%; overflow-x: hidden;">
-            <!-- Audio Visualizer (Oscilloscope) -->
-            <div class="center mw6 mb4" style="display: none;" id="audioVisualizerContainer">
-                <canvas id="audioVisualizer" style="width: 100%; height: 160px;"></canvas>
-            </div>
             
-            <div id="columnHeaders" style="position: relative; height: 24px; margin-bottom: 24px; padding-top: 20px;">
-                <div id="leftHeader" class="b f6" style="position: absolute; color: #000; transform: translateX(-50%);">Data Fields</div>
-                <div id="rightHeader" class="b f6" style="position: absolute; color: #000; transform: translateX(-50%);">Audio Parameters</div>
+            <div id="columnHeaders" style="position: relative; height: 48px; margin-bottom: 20px; padding-top: 0px;">
+                <div id="leftHeader" style="position: absolute; transform: translateX(-50%);">
+                    <div class="b f5 black tc">Data Fields</div>
+                    <div class="f5 mt2 tc">
+                        <span id="itemCounter" class="black ibm-mono">--/--</span>
+                    </div>
+                </div>
+                <div id="rightHeader" style="position: absolute; transform: translateX(-50%);">
+                    <a id="randomizeMappingsBtnHeader" href="#" class="pointer" style="text-decoration: none; opacity: 0.3; pointer-events: none; display: flex; flex-direction: column; align-items: center; padding: 12px 24px; border-radius: 4px; transition: background 0.15s ease, transform 0.05s ease; margin: -12px -24px;">
+                        <div class="b f5 black tc mb2">Audio Parameters</div>
+                        <div class="f6 tc">
+                            <span class="randomize-text gray">click to randomize</span>
+                        </div>
+                    </a>
+                </div>
             </div>
             <svg id="patchViz" style="width: 100%; display: block;"></svg>
-        </div>
-        
-        <!-- Dataset Source Link -->
-        <div class="tc mb4">
-            <a id="datasetSourceLink" href="#" target="_blank" class="f7 gray underline" style="display: none;">View dataset source →</a>
+            
+            <div class="tc mt4">
+                <a id="datasetSourceLinkHeader" href="#" target="_blank" class="f7 gray ibm-mono hover-underline" style="display: none; text-decoration: none;"></a>
+            </div>
         </div>
         
         <!-- Footer -->
         <div class="tc mt4 pt3 bt b--light-gray">
-            <p class="f6 gray">
-                DataSynth v2.0 (Modular) • 
-                <a href="json-mapper-v2.html" class="blue no-underline hover-underline">View Legacy Version</a> • 
-                <a href="docs/AUDIO_ENGINE_DOCUMENTATION.md" class="blue no-underline hover-underline">Docs</a>
+            <p class="f6 black ibm-mono">
+                A project by <a href="https://queral.studio" target="_blank" class="black underline ibm-mono">Luis Queral</a>.
             </p>
         </div>
     </div>

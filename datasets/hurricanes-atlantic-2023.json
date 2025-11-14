@@ -1,0 +1,23 @@
+[
+  {"name": "Arlene", "category": 0, "wind_speed_mph": 40, "pressure_mb": 1005, "damage_millions": 0, "fatalities": 0, "formation": "2023-06-02", "dissipation": "2023-06-03", "areas_affected": ["Gulf of Mexico", "Florida"]},
+  {"name": "Bret", "category": 1, "wind_speed_mph": 70, "pressure_mb": 995, "damage_millions": 2, "fatalities": 0, "formation": "2023-06-19", "dissipation": "2023-06-24", "areas_affected": ["Lesser Antilles", "Caribbean"]},
+  {"name": "Cindy", "category": 1, "wind_speed_mph": 80, "pressure_mb": 992, "damage_millions": 0, "fatalities": 0, "formation": "2023-06-22", "dissipation": "2023-06-25", "areas_affected": ["Central Atlantic"]},
+  {"name": "Don", "category": 0, "wind_speed_mph": 50, "pressure_mb": 1006, "damage_millions": 0, "fatalities": 0, "formation": "2023-07-14", "dissipation": "2023-07-24", "areas_affected": ["Eastern Atlantic"]},
+  {"name": "Emily", "category": 0, "wind_speed_mph": 45, "pressure_mb": 1008, "damage_millions": 0, "fatalities": 0, "formation": "2023-08-20", "dissipation": "2023-08-21", "areas_affected": ["Western Atlantic"]},
+  {"name": "Franklin", "category": 1, "wind_speed_mph": 85, "pressure_mb": 986, "damage_millions": 3, "fatalities": 1, "formation": "2023-08-20", "dissipation": "2023-09-01", "areas_affected": ["Hispaniola", "Bermuda"]},
+  {"name": "Gert", "category": 0, "wind_speed_mph": 40, "pressure_mb": 1009, "damage_millions": 0, "fatalities": 0, "formation": "2023-08-20", "dissipation": "2023-08-22", "areas_affected": ["Eastern Atlantic"]},
+  {"name": "Harold", "category": 0, "wind_speed_mph": 50, "pressure_mb": 1000, "damage_millions": 1, "fatalities": 0, "formation": "2023-08-22", "dissipation": "2023-08-23", "areas_affected": ["Texas"]},
+  {"name": "Idalia", "category": 3, "wind_speed_mph": 130, "pressure_mb": 940, "damage_millions": 3600, "fatalities": 12, "formation": "2023-08-26", "dissipation": "2023-09-01", "areas_affected": ["Florida", "Georgia", "Carolinas"]},
+  {"name": "Jose", "category": 0, "wind_speed_mph": 45, "pressure_mb": 1006, "damage_millions": 0, "fatalities": 0, "formation": "2023-08-30", "dissipation": "2023-09-05", "areas_affected": ["Bermuda"]},
+  {"name": "Katia", "category": 0, "wind_speed_mph": 50, "pressure_mb": 1004, "damage_millions": 0, "fatalities": 0, "formation": "2023-09-02", "dissipation": "2023-09-04", "areas_affected": ["Eastern Atlantic"]},
+  {"name": "Lee", "category": 5, "wind_speed_mph": 165, "pressure_mb": 926, "damage_millions": 32, "fatalities": 3, "formation": "2023-09-05", "dissipation": "2023-09-16", "areas_affected": ["Lesser Antilles", "Bermuda", "New England", "Eastern Canada"]},
+  {"name": "Margot", "category": 1, "wind_speed_mph": 75, "pressure_mb": 991, "damage_millions": 0, "fatalities": 0, "formation": "2023-09-07", "dissipation": "2023-09-15", "areas_affected": ["Central Atlantic", "Azores"]},
+  {"name": "Nigel", "category": 1, "wind_speed_mph": 85, "pressure_mb": 980, "damage_millions": 0, "fatalities": 0, "formation": "2023-09-15", "dissipation": "2023-09-20", "areas_affected": ["Eastern Atlantic"]},
+  {"name": "Ophelia", "category": 0, "wind_speed_mph": 70, "pressure_mb": 981, "damage_millions": 475, "fatalities": 1, "formation": "2023-09-22", "dissipation": "2023-09-23", "areas_affected": ["North Carolina", "Mid-Atlantic"]},
+  {"name": "Philippe", "category": 1, "wind_speed_mph": 80, "pressure_mb": 986, "damage_millions": 10, "fatalities": 2, "formation": "2023-09-23", "dissipation": "2023-10-06", "areas_affected": ["Lesser Antilles", "Bermuda", "New England"]},
+  {"name": "Rina", "category": 0, "wind_speed_mph": 50, "pressure_mb": 996, "damage_millions": 0, "fatalities": 0, "formation": "2023-09-28", "dissipation": "2023-10-01", "areas_affected": ["Central Atlantic"]},
+  {"name": "Sean", "category": 0, "wind_speed_mph": 45, "pressure_mb": 1007, "damage_millions": 0, "fatalities": 0, "formation": "2023-10-11", "dissipation": "2023-10-14", "areas_affected": ["Western Atlantic"]},
+  {"name": "Tammy", "category": 2, "wind_speed_mph": 100, "pressure_mb": 965, "damage_millions": 25, "fatalities": 0, "formation": "2023-10-18", "dissipation": "2023-10-27", "areas_affected": ["Lesser Antilles", "Bermuda"]},
+  {"name": "Vince", "category": 0, "wind_speed_mph": 50, "pressure_mb": 1002, "damage_millions": 0, "fatalities": 0, "formation": "2023-11-09", "dissipation": "2023-11-11", "areas_affected": ["Eastern Atlantic"]}
+]
+

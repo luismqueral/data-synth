@@ -1,0 +1,12 @@
+[
+  {"name": "Mercury", "diameter_km": 4879, "mass_earth": 0.055, "orbit_period_days": 88, "rotation_hours": 1407.6, "temp_kelvin": 440, "distance_au": 0.39, "gravity_ms2": 3.7, "moons": 0, "density_gcm3": 5.43, "escape_velocity_kms": 4.3},
+  {"name": "Venus", "diameter_km": 12104, "mass_earth": 0.815, "orbit_period_days": 225, "rotation_hours": 5832.5, "temp_kelvin": 737, "distance_au": 0.72, "gravity_ms2": 8.9, "moons": 0, "density_gcm3": 5.24, "escape_velocity_kms": 10.4},
+  {"name": "Earth", "diameter_km": 12756, "mass_earth": 1.0, "orbit_period_days": 365, "rotation_hours": 24, "temp_kelvin": 288, "distance_au": 1.0, "gravity_ms2": 9.8, "moons": 1, "density_gcm3": 5.52, "escape_velocity_kms": 11.2},
+  {"name": "Mars", "diameter_km": 6792, "mass_earth": 0.107, "orbit_period_days": 687, "rotation_hours": 24.7, "temp_kelvin": 210, "distance_au": 1.52, "gravity_ms2": 3.7, "moons": 2, "density_gcm3": 3.93, "escape_velocity_kms": 5.0},
+  {"name": "Jupiter", "diameter_km": 142984, "mass_earth": 317.8, "orbit_period_days": 4333, "rotation_hours": 9.9, "temp_kelvin": 165, "distance_au": 5.2, "gravity_ms2": 23.1, "moons": 95, "density_gcm3": 1.33, "escape_velocity_kms": 59.5},
+  {"name": "Saturn", "diameter_km": 120536, "mass_earth": 95.2, "orbit_period_days": 10759, "rotation_hours": 10.7, "temp_kelvin": 134, "distance_au": 9.54, "gravity_ms2": 9.0, "moons": 146, "density_gcm3": 0.69, "escape_velocity_kms": 35.5},
+  {"name": "Uranus", "diameter_km": 51118, "mass_earth": 14.5, "orbit_period_days": 30687, "rotation_hours": 17.2, "temp_kelvin": 76, "distance_au": 19.19, "gravity_ms2": 8.7, "moons": 28, "density_gcm3": 1.27, "escape_velocity_kms": 21.3},
+  {"name": "Neptune", "diameter_km": 49528, "mass_earth": 17.1, "orbit_period_days": 60190, "rotation_hours": 16.1, "temp_kelvin": 72, "distance_au": 30.07, "gravity_ms2": 11.0, "moons": 16, "density_gcm3": 1.64, "escape_velocity_kms": 23.5},
+  {"name": "Pluto", "diameter_km": 2376, "mass_earth": 0.0022, "orbit_period_days": 90560, "rotation_hours": 153.3, "temp_kelvin": 44, "distance_au": 39.48, "gravity_ms2": 0.7, "moons": 5, "density_gcm3": 1.88, "escape_velocity_kms": 1.3}
+]
+

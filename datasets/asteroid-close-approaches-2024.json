@@ -1,0 +1,14 @@
+[
+  {"name": "2024 BJ", "date": "2024-01-27", "miss_distance_km": 354000, "miss_distance_lunar": 0.92, "diameter_m": 190, "velocity_kms": 11.8, "potentially_hazardous": false, "absolute_magnitude": 21.9, "estimated_mass_tonnes": 13000},
+  {"name": "2007 YV56", "date": "2024-02-08", "miss_distance_km": 2900000, "miss_distance_lunar": 7.54, "diameter_m": 1200, "velocity_kms": 6.3, "potentially_hazardous": true, "absolute_magnitude": 18.8, "estimated_mass_tonnes": 3200000},
+  {"name": "2024 DK1", "date": "2024-02-28", "miss_distance_km": 1100000, "miss_distance_lunar": 2.86, "diameter_m": 450, "velocity_kms": 8.9, "potentially_hazardous": true, "absolute_magnitude": 20.1, "estimated_mass_tonnes": 170000},
+  {"name": "2024 FF3", "date": "2024-03-26", "miss_distance_km": 6700000, "miss_distance_lunar": 17.4, "diameter_m": 180, "velocity_kms": 12.4, "potentially_hazardous": false, "absolute_magnitude": 22.0, "estimated_mass_tonnes": 11000},
+  {"name": "2024 JG15", "date": "2024-05-19", "miss_distance_km": 450000, "miss_distance_lunar": 1.17, "diameter_m": 320, "velocity_kms": 7.2, "potentially_hazardous": false, "absolute_magnitude": 20.8, "estimated_mass_tonnes": 60000},
+  {"name": "2024 KF1", "date": "2024-05-29", "miss_distance_km": 9200000, "miss_distance_lunar": 23.9, "diameter_m": 860, "velocity_kms": 15.6, "potentially_hazardous": false, "absolute_magnitude": 19.2, "estimated_mass_tonnes": 1180000},
+  {"name": "99942 Apophis", "date": "2024-06-22", "miss_distance_km": 44000000, "miss_distance_lunar": 114.4, "diameter_m": 370, "velocity_kms": 5.8, "potentially_hazardous": true, "absolute_magnitude": 19.7, "estimated_mass_tonnes": 61000},
+  {"name": "2024 MK", "date": "2024-06-27", "miss_distance_km": 295000, "miss_distance_lunar": 0.77, "diameter_m": 150, "velocity_kms": 14.2, "potentially_hazardous": false, "absolute_magnitude": 22.4, "estimated_mass_tonnes": 6300},
+  {"name": "2024 ON", "date": "2024-07-30", "miss_distance_km": 1700000, "miss_distance_lunar": 4.42, "diameter_m": 580, "velocity_kms": 9.7, "potentially_hazardous": true, "absolute_magnitude": 19.6, "estimated_mass_tonnes": 360000},
+  {"name": "2024 PT5", "date": "2024-09-29", "miss_distance_km": 2400000, "miss_distance_lunar": 6.24, "diameter_m": 11, "velocity_kms": 3.5, "potentially_hazardous": false, "absolute_magnitude": 27.6, "estimated_mass_tonnes": 2.5},
+  {"name": "2024 RW1", "date": "2024-09-04", "miss_distance_km": 0, "miss_distance_lunar": 0, "diameter_m": 1, "velocity_kms": 16.5, "potentially_hazardous": false, "absolute_magnitude": 33.0, "estimated_mass_tonnes": 0.002, "note": "Entered atmosphere over Philippines"}
+]
+

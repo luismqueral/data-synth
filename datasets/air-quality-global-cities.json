@@ -1,0 +1,19 @@
+[
+  {"city": "Delhi", "country": "India", "aqi": 178, "pm25": 97.3, "pm10": 165.2, "no2": 48.6, "o3": 12.3, "so2": 9.7, "co": 1.8, "population": 32941000, "latitude": 28.6139, "longitude": 77.2090},
+  {"city": "Beijing", "country": "China", "aqi": 156, "pm25": 74.2, "pm10": 134.8, "no2": 52.1, "o3": 18.4, "so2": 14.2, "co": 1.5, "population": 21540000, "latitude": 39.9042, "longitude": 116.4074},
+  {"city": "Dhaka", "country": "Bangladesh", "aqi": 164, "pm25": 88.5, "pm10": 147.3, "no2": 34.7, "o3": 9.8, "so2": 7.3, "co": 2.1, "population": 22478000, "latitude": 23.8103, "longitude": 90.4125},
+  {"city": "Mumbai", "country": "India", "aqi": 142, "pm25": 68.9, "pm10": 118.4, "no2": 42.3, "o3": 15.7, "so2": 11.2, "co": 1.6, "population": 20961000, "latitude": 19.0760, "longitude": 72.8777},
+  {"city": "Los Angeles", "country": "USA", "aqi": 67, "pm25": 18.4, "pm10": 32.7, "no2": 31.8, "o3": 58.2, "so2": 2.1, "co": 0.4, "population": 12488000, "latitude": 34.0522, "longitude": -118.2437},
+  {"city": "London", "country": "UK", "aqi": 54, "pm25": 14.2, "pm10": 25.3, "no2": 38.4, "o3": 31.7, "so2": 3.8, "co": 0.5, "population": 9648000, "latitude": 51.5074, "longitude": -0.1278},
+  {"city": "Paris", "country": "France", "aqi": 61, "pm25": 16.8, "pm10": 28.9, "no2": 35.2, "o3": 34.1, "so2": 2.9, "co": 0.4, "population": 11060000, "latitude": 48.8566, "longitude": 2.3522},
+  {"city": "Tokyo", "country": "Japan", "aqi": 48, "pm25": 12.1, "pm10": 21.7, "no2": 28.4, "o3": 42.3, "so2": 4.2, "co": 0.6, "population": 37393000, "latitude": 35.6762, "longitude": 139.6503},
+  {"city": "Mexico City", "country": "Mexico", "aqi": 89, "pm25": 31.4, "pm10": 54.8, "no2": 41.7, "o3": 48.9, "so2": 8.3, "co": 1.2, "population": 21919000, "latitude": 19.4326, "longitude": -99.1332},
+  {"city": "São Paulo", "country": "Brazil", "aqi": 73, "pm25": 21.8, "pm10": 38.2, "no2": 44.6, "o3": 36.4, "so2": 6.7, "co": 0.9, "population": 22237000, "latitude": -23.5505, "longitude": -46.6333},
+  {"city": "Cairo", "country": "Egypt", "aqi": 137, "pm25": 64.3, "pm10": 112.7, "no2": 46.8, "o3": 21.2, "so2": 18.4, "co": 2.3, "population": 21750000, "latitude": 30.0444, "longitude": 31.2357},
+  {"city": "Lagos", "country": "Nigeria", "aqi": 118, "pm25": 52.7, "pm10": 91.3, "no2": 38.2, "o3": 24.8, "so2": 15.6, "co": 1.7, "population": 15946000, "latitude": 6.5244, "longitude": 3.3792},
+  {"city": "Jakarta", "country": "Indonesia", "aqi": 126, "pm25": 58.4, "pm10": 98.6, "no2": 37.9, "o3": 19.3, "so2": 12.8, "co": 1.9, "population": 35362000, "latitude": -6.2088, "longitude": 106.8456},
+  {"city": "Seoul", "country": "South Korea", "aqi": 94, "pm25": 36.2, "pm10": 62.4, "no2": 44.3, "o3": 38.7, "so2": 7.9, "co": 0.8, "population": 25514000, "latitude": 37.5665, "longitude": 126.9780},
+  {"city": "New York", "country": "USA", "aqi": 52, "pm25": 13.7, "pm10": 24.1, "no2": 32.6, "o3": 42.8, "so2": 3.2, "co": 0.5, "population": 18867000, "latitude": 40.7128, "longitude": -74.0060},
+  {"city": "Sydney", "country": "Australia", "aqi": 38, "pm25": 8.9, "pm10": 15.7, "no2": 21.3, "o3": 48.2, "so2": 1.8, "co": 0.3, "population": 5312000, "latitude": -33.8688, "longitude": 151.2093}
+]
+

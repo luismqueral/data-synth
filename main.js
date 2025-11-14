@@ -109,6 +109,14 @@ function init() {
     // Wire up event listeners
     setupEventListeners();
     
+    // Initialize visualizer with idle animation (doesn't require audio context)
+    // Visualizer is now always visible as the play button
+    const visualizerCanvas = document.getElementById('audioVisualizer');
+    if (visualizerCanvas) {
+        audioEngine.setupVisualizer(visualizerCanvas);
+        console.log('✅ Visualizer started in idle mode');
+    }
+    
     // Auto-load default dataset
     setTimeout(() => {
         const selector = document.getElementById('templateSelector');
@@ -135,7 +143,60 @@ function setupEventListeners() {
     // PLAYBACK CONTROLS
     // ========================================================================
     document.getElementById('playDataBtn').addEventListener('click', handlePlay);
-    document.getElementById('randomizeMappingsBtn').addEventListener('click', handleRandomize);
+    document.getElementById('playRandomDatasetLink').addEventListener('click', (e) => {
+        e.preventDefault();
+        handleRandomDataset();
+    });
+    document.getElementById('randomizeMappingsBtnHeader').addEventListener('click', handleRandomize);
+    
+    // Scramble effect for Audio Parameters header on hover
+    const randomizeHeaderBtn = document.getElementById('randomizeMappingsBtnHeader');
+    let scrambleInterval = null;
+    const originalText = 'Audio Parameters';
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    
+    function scrambleText(element, targetText, duration = 600) {
+        let frame = 0;
+        const frames = 15;
+        const letters = targetText.split('');
+        const specialChars = ['@', '#', '$', '%', '&', '*', '!', '?'];
+        
+        clearInterval(scrambleInterval);
+        
+        scrambleInterval = setInterval(() => {
+            // Shuffle all letters randomly with occasional special chars
+            const shuffled = [...letters]
+                .map(value => ({ 
+                    value: Math.random() < 0.15 ? specialChars[Math.floor(Math.random() * specialChars.length)] : value, 
+                    sort: Math.random() 
+                }))
+                .sort((a, b) => a.sort - b.sort)
+                .map(({ value }) => value)
+                .join('');
+            
+            element.textContent = shuffled;
+            
+            frame++;
+            
+            if (frame >= frames) {
+                clearInterval(scrambleInterval);
+                element.textContent = targetText;
+            }
+        }, duration / frames);
+    }
+    
+    randomizeHeaderBtn.addEventListener('mouseenter', () => {
+        if (randomizeHeaderBtn.style.opacity === '1') {
+            const headerTitle = randomizeHeaderBtn.querySelector('.b.f5');
+            scrambleText(headerTitle, originalText);
+        }
+    });
+    
+    randomizeHeaderBtn.addEventListener('mouseleave', () => {
+        clearInterval(scrambleInterval);
+        const headerTitle = randomizeHeaderBtn.querySelector('.b.f5');
+        headerTitle.textContent = originalText;
+    });
     
     // ========================================================================
     // GLOBAL SETTINGS (Volume, Pitch, Speed)
@@ -229,7 +290,7 @@ function setupEventListeners() {
 async function handleDatasetSelection(e) {
     const filePath = e.target.value;
     if (!filePath) {
-        document.getElementById('datasetSourceLink').style.display = 'none';
+        document.getElementById('datasetSourceLinkHeader').style.display = 'none';
         return;
     }
     
@@ -237,10 +298,12 @@ async function handleDatasetSelection(e) {
     parseStatus.textContent = 'Loading...';
     parseStatus.style.color = '#666';
     
-    // Show source link
-    const sourceLink = document.getElementById('datasetSourceLink');
-    sourceLink.href = filePath;
-    sourceLink.style.display = 'inline';
+    // Show source link in header with dataset name
+    const sourceLinkHeader = document.getElementById('datasetSourceLinkHeader');
+    sourceLinkHeader.href = filePath;
+    const datasetName = filePath.split('/').pop(); // Get filename from path
+    sourceLinkHeader.innerHTML = `${datasetName} <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="margin-left: 4px; vertical-align: middle;"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>`;
+    sourceLinkHeader.style.display = 'inline';
     
     try {
         // Fetch with cache busting for APIs
@@ -316,9 +379,35 @@ function processData(data) {
     // Render patch visualization
     patchViz.render(numericPaths, parameterMapper.mappings, parameterMapper, isPlaying);
     
+    // Show first item in visualization to avoid null data state
+    const itemsArray = Array.isArray(parsedData) ? parsedData : [parsedData];
+    if (itemsArray.length > 0) {
+        const firstItem = itemsArray[0];
+        // Calculate data ranges for the first item display
+        const initialDataRanges = calculateDataRanges(itemsArray, parameterMapper.mappings);
+        const firstAudioParams = calculateAudioParams(firstItem, parameterMapper.mappings, initialDataRanges);
+        patchViz.updateNodeValues(firstItem, firstAudioParams, parameterMapper.mappings, false);
+    }
+    
+    // Update item counter with total (showing item 1)
+    const itemCount = Array.isArray(data) ? data.length : 1;
+    document.getElementById('itemCounter').innerHTML = `<span class="b">1</span>/${itemCount}`;
+    
     // Enable controls
-    document.getElementById('playDataBtn').disabled = false;
-    document.getElementById('randomizeMappingsBtn').disabled = false;
+    const playBtn = document.getElementById('playDataBtn');
+    playBtn.classList.remove('disabled');
+    playBtn.style.opacity = '1';
+    playBtn.style.pointerEvents = 'auto';
+    // randomizeMappingsBtn is always enabled (picks random dataset)
+    const randomizeLink = document.getElementById('randomizeMappingsBtnHeader');
+    randomizeLink.style.opacity = '1';
+    randomizeLink.style.pointerEvents = 'auto';
+    
+    // Auto-play if requested (from "Play Random Dataset" link)
+    if (window.autoPlayAfterLoad) {
+        window.autoPlayAfterLoad = false;
+        setTimeout(() => handlePlay(), 100); // Small delay to ensure UI is ready
+    }
 }
 
 // ============================================================================
@@ -356,9 +445,9 @@ function setupFileDropZone() {
                     data = JSON.parse(text); // Try as JSON
                 }
                 
-                // Clear dropdown
+                // Clear dropdown and source link
                 document.getElementById('templateSelector').value = '';
-                document.getElementById('datasetSourceLink').style.display = 'none';
+                document.getElementById('datasetSourceLinkHeader').style.display = 'none';
                 
                 processData(data);
             } catch (error) {
@@ -395,9 +484,10 @@ async function handlePlay() {
     
     console.log(`🎵 Starting playback session #${thisPlaybackId}`);
     
-    document.getElementById('playIcon').textContent = '⏹';
-    document.getElementById('playText').textContent = 'Stop';
-    document.getElementById('audioVisualizerContainer').style.display = 'block';
+    // Switch to stop icon
+    document.getElementById('playIcon').style.display = 'none';
+    document.getElementById('stopIcon').style.display = 'block';
+    document.getElementById('playDataBtn').classList.add('playing');
     
     // Initialize audio engine if needed
     if (!audioEngine.audioContext) {
@@ -445,7 +535,7 @@ async function handlePlay() {
             await playNote(audioParams);
             
             // Update item counter
-            document.getElementById('itemValue').textContent = `${i + 1} / ${itemsArray.length}`;
+            document.getElementById('itemCounter').innerHTML = `<span class="b">${i + 1}</span>/${itemsArray.length}`;
             
             // Wait for next note
             const noteSpacing = audioParams.noteSpacing || 300;
@@ -472,9 +562,10 @@ async function handlePlay() {
     // Only update UI if we're still the current playback session
     if (thisPlaybackId === currentPlaybackId) {
         isPlaying = false;
-        document.getElementById('playIcon').textContent = '▶';
-        document.getElementById('playText').textContent = 'Play Data';
-        document.getElementById('audioVisualizerContainer').style.display = 'none';
+        // Switch back to play icon
+        document.getElementById('playIcon').style.display = 'block';
+        document.getElementById('stopIcon').style.display = 'none';
+        document.getElementById('playDataBtn').classList.remove('playing');
         audioEngine.stopVisualizer();
         patchViz.clearNodeValues();
         console.log(`✅ Playback session #${thisPlaybackId} completed`);
@@ -491,12 +582,23 @@ function stopPlayback() {
     if (currentTimeout) clearTimeout(currentTimeout);
     
     audioEngine.stopVisualizer();
-    patchViz.clearNodeValues();
     
-    document.getElementById('playIcon').textContent = '▶';
-    document.getElementById('playText').textContent = 'Play Data';
-    document.getElementById('audioVisualizerContainer').style.display = 'none';
-    document.getElementById('itemValue').textContent = '--';
+    // Switch back to play icon
+    document.getElementById('playIcon').style.display = 'block';
+    document.getElementById('stopIcon').style.display = 'none';
+    document.getElementById('playDataBtn').classList.remove('playing');
+    
+    // Reset to first item instead of clearing
+    const itemCount = Array.isArray(parsedData) ? parsedData.length : 1;
+    document.getElementById('itemCounter').innerHTML = `<span class="b">1</span>/${itemCount}`;
+    
+    // Show first item in visualization
+    const itemsArray = Array.isArray(parsedData) ? parsedData : [parsedData];
+    if (itemsArray.length > 0) {
+        const firstItem = itemsArray[0];
+        const firstAudioParams = calculateAudioParams(firstItem, parameterMapper.mappings, dataRanges);
+        patchViz.updateNodeValues(firstItem, firstAudioParams, parameterMapper.mappings, false);
+    }
     
     console.log(`⏹ Playback stopped, invalidated session (now at #${currentPlaybackId})`);
 }
@@ -803,7 +905,8 @@ function quantizePitch(frequency) {
 // Update UI feedback and coordinate module state
 // ============================================================================
 
-function handleRandomize() {
+function handleRandomize(e) {
+    if (e) e.preventDefault();
     if (!numericPaths.length) return;
     
     parameterMapper.randomizeMappings(numericPaths);
@@ -817,6 +920,22 @@ function handleRandomize() {
     const filterTypes = ['lowpass', 'highpass', 'bandpass', 'notch'];
     const randomFilter = filterTypes[Math.floor(Math.random() * filterTypes.length)];
     document.querySelector(`input[name="filterType"][value="${randomFilter}"]`).checked = true;
+}
+
+function handleRandomDataset() {
+    const selector = document.getElementById('templateSelector');
+    const options = Array.from(selector.options).filter(opt => opt.value !== '');
+    
+    if (options.length === 0) return;
+    
+    const randomOption = options[Math.floor(Math.random() * options.length)];
+    selector.value = randomOption.value;
+    
+    // Set flag to auto-play after loading
+    window.autoPlayAfterLoad = true;
+    
+    // Trigger change event to load the dataset
+    selector.dispatchEvent(new Event('change'));
 }
 
 function handleVolumeChange(e) {
