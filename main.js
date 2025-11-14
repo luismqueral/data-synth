@@ -685,6 +685,12 @@ async function playNote(audioParams) {
 }
 
 function updateDelayParameters(audioParams) {
+    // Check if delay nodes are initialized
+    if (!audioEngine.delayNode || !audioEngine.delayFeedbackGain || !audioEngine.delayWetGain || !audioEngine.delayDryGain) {
+        console.warn('⚠️ Delay nodes not initialized - skipping delay parameter update');
+        return;
+    }
+    
     const delayTime = (audioParams.delayTime || 200) / 1000;
     const delayFeedback = audioParams.delayFeedback !== null && audioParams.delayFeedback !== undefined ? 
         audioParams.delayFeedback : 0.3;
@@ -707,6 +713,12 @@ function updateDelayParameters(audioParams) {
 }
 
 function updateReverbParameters(audioParams) {
+    // Check if reverb nodes are initialized
+    if (!audioEngine.reverbNode || !audioEngine.reverbWetGain || !audioEngine.reverbDryGain) {
+        console.warn('⚠️ Reverb nodes not initialized - skipping reverb parameter update');
+        return;
+    }
+    
     const reverbDecay = audioParams.reverbDecay || 2;
     const reverbMix = audioParams.reverbMix !== null && audioParams.reverbMix !== undefined ? 
         audioParams.reverbMix : 0.3;
