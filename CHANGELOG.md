@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2025-11-14
+- converted settings ui to slide-out panel from left - replaced accordion dropdown with modern drawer pattern, added fixed trigger button (top-left with gear icon and black background), implemented smooth 300ms slide animations with semi-transparent backdrop overlay, panel closes via X button or backdrop click, full-width on mobile devices, cleaner main view since settings no longer occupy vertical space in content flow, follows modern UX patterns like Spotify and Figma
 - configured vercel for static ES6 module serving - added @vercel/static build configuration to explicitly treat project as static site, created package.json with "type": "module" declaration, simplified vercel.json to essential MIME type headers for .js files, ensures all modules (audio-engine.js, parameter-mapper.js, patch-viz.js, main.js) served correctly as static assets with proper text/javascript content-type
 
 ## 2025-11-13 (Refactoring)
