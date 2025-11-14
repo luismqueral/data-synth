@@ -1,5 +1,8 @@
 # Changelog
 
+## 2025-11-14
+- fixed vercel deployment 404 errors for ES6 modules - disabled cleanUrls setting in vercel.json (was stripping .js extensions), added explicit routes for all JavaScript files, enhanced headers to ensure proper MIME type (application/javascript) for both root and lib/ directory modules, resolves issue where audio-engine.js, parameter-mapper.js, patch-viz.js, and main.js were returning 404 on Vercel but working locally
+
 ## 2025-11-13 (Refactoring)
 - optimized vercel deployment configuration - created .vercelignore to exclude test/, docs/, _archive/, and dev files from deployment, updated vercel.json with proper headers for ES6 modules (Content-Type for .js files), added security headers (X-Content-Type-Options, X-Frame-Options), removed unnecessary builds config for cleaner static deployment
 - refined d3 connection line dimming and z-ordering - made dimmed lines even lighter (#efefef instead of #ddd) to fade into background more subtly, added raise() calls to bring active connections to front ensuring black/yellow lines always appear above dimmed gray lines, improves visual hierarchy and focus during hover interactions
