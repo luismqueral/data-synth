@@ -391,10 +391,14 @@ async function handlePlay() {
     // Initialize audio engine if needed
     if (!audioEngine.audioContext) {
         audioEngine.initEffects();
-        audioEngine.setupVisualizer(document.getElementById('audioVisualizer'));
     }
     
-    // Ensure visualizer is set up (may not exist if audio context was already initialized)
+    // Ensure effects chain is initialized (might not exist if audio context was created elsewhere)
+    if (!audioEngine.delayNode || !audioEngine.reverbNode) {
+        audioEngine.initEffects();
+    }
+    
+    // Ensure visualizer is set up
     if (!audioEngine.analyser) {
         audioEngine.setupVisualizer(document.getElementById('audioVisualizer'));
     }
@@ -680,8 +684,15 @@ async function playNote(audioParams) {
     source.connect(filter);
     filter.connect(panner);
     panner.connect(envelope);
-    envelope.connect(audioEngine.reverbNode);
-    envelope.connect(audioEngine.reverbDryGain);
+    
+    // Connect to effects chain if available, otherwise directly to destination
+    if (audioEngine.reverbNode && audioEngine.reverbDryGain) {
+        envelope.connect(audioEngine.reverbNode);
+        envelope.connect(audioEngine.reverbDryGain);
+    } else {
+        // No effects chain - connect directly to destination
+        envelope.connect(audioEngine.audioContext.destination);
+    }
 }
 
 function updateDelayParameters(audioParams) {
