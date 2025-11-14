@@ -158,28 +158,35 @@ function setupEventListeners() {
     // UI INTERACTIONS (Slide-out panels, toggles, show/hide)
     // ========================================================================
     
-    // Settings panel - slide out from left
+    // Settings panel - slide out from left and push content
     const settingsPanel = document.getElementById('settingsPanel');
     const settingsBackdrop = document.getElementById('settingsBackdrop');
     const settingsTrigger = document.getElementById('settingsTriggerBtn');
     const settingsClose = document.getElementById('settingsCloseBtn');
+    const mainContent = document.querySelector('.main-content-wrapper');
     
     // Open settings panel
     settingsTrigger.addEventListener('click', () => {
         settingsPanel.classList.add('open');
         settingsBackdrop.classList.add('open');
+        mainContent.classList.add('shifted');
+        settingsTrigger.classList.add('shifted');
     });
     
     // Close settings panel (via close button)
     settingsClose.addEventListener('click', () => {
         settingsPanel.classList.remove('open');
         settingsBackdrop.classList.remove('open');
+        mainContent.classList.remove('shifted');
+        settingsTrigger.classList.remove('shifted');
     });
     
     // Close settings panel (via backdrop click)
     settingsBackdrop.addEventListener('click', () => {
         settingsPanel.classList.remove('open');
         settingsBackdrop.classList.remove('open');
+        mainContent.classList.remove('shifted');
+        settingsTrigger.classList.remove('shifted');
     });
     
     // Pitch quantization toggle (show/hide scale selector)

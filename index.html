@@ -62,11 +62,15 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: 600;
-            transition: background 0.2s;
+            transition: all 0.3s ease-in-out;
         }
         
         .settings-trigger:hover {
             background: #333;
+        }
+        
+        .settings-trigger.shifted {
+            left: 340px;
         }
         
         .settings-panel {
@@ -87,6 +91,16 @@
         
         .settings-panel.open {
             transform: translateX(0);
+        }
+        
+        /* Main content shifts right when panel opens */
+        .main-content-wrapper {
+            transition: margin-left 0.3s ease-in-out;
+            margin-left: 0;
+        }
+        
+        .main-content-wrapper.shifted {
+            margin-left: 320px;
         }
         
         .settings-panel-header {
@@ -136,7 +150,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.1);
             z-index: 1000;
             opacity: 0;
             pointer-events: none;
@@ -180,6 +194,15 @@
                 left: 12px;
                 padding: 10px 12px;
                 font-size: 12px;
+            }
+            
+            .settings-trigger.shifted {
+                left: 12px;
+            }
+            
+            /* Don't shift content on mobile - panel is full width */
+            .main-content-wrapper.shifted {
+                margin-left: 0;
             }
         }
         
@@ -497,7 +520,7 @@
         </div>
     </div>
     
-    <div class="pa3 content-wrapper" style="max-width: 900px; margin: 0 auto;">
+    <div class="pa3 content-wrapper main-content-wrapper" style="max-width: 900px; margin: 0 auto;">
         <h1 class="f1 mb2 mt0 tc" style="font-family: 'Lucida Blackletter', 'Blackletter686', serif; font-weight: normal;">DataSynth</h1>
         <p class="tc f6 gray mb3" style="max-width: 600px; margin-left: auto; margin-right: auto;">
             Turn any dataset into sound. <a href="https://github.com/luismqueral/data-2-sound" target="_blank" class="black underline">Learn More</a>
