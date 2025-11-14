@@ -139,17 +139,16 @@
         
         .settings-panel {
             position: fixed;
-            top: 12px;
+            top: 0;
             left: -320px;
-            width: 308px;
-            height: calc(100vh - 24px);
+            width: 320px;
+            height: 100vh;
             background: #fafafa;
             z-index: 999;
             transition: left 0.3s ease-in-out;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            margin-left: 12px;
         }
         
         .settings-panel.open {
@@ -169,7 +168,6 @@
         .settings-panel-header {
             padding: 20px;
             background: #fafafa;
-            border-bottom: 1px solid #e0e0e0;
             display: flex;
             align-items: center;
             justify-content: flex-start;
@@ -584,8 +582,7 @@
             
             <div class="mb3" id="waveformSection">
                 <div class="b mb2 f6">Waveform</div>
-                <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #ddd;">
-                    <div class="f7 mb1" style="color: #666;">Classic</div>
+                <div>
                     <label class="waveform-option">
                         <input type="radio" name="waveform" value="sine" checked>
                         <svg class="waveform-visual" viewBox="0 0 40 20" fill="none" stroke="currentColor" stroke-width="2">
@@ -614,9 +611,6 @@
                         </svg>
                         <span>Triangle</span>
                     </label>
-                </div>
-                <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #ddd;">
-                    <div class="f7 mb1" style="color: #666;">Noise</div>
                     <label class="waveform-option">
                         <input type="radio" name="waveform" value="white-noise">
                         <svg class="waveform-visual" viewBox="0 0 40 20" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -638,9 +632,6 @@
                         </svg>
                         <span>Brown Noise</span>
                     </label>
-                </div>
-                <div>
-                    <div class="f7 mb1" style="color: #666;">Synthesis</div>
                     <label class="waveform-option">
                         <input type="radio" name="waveform" value="fm">
                         <svg class="waveform-visual" viewBox="0 0 40 20" fill="none" stroke="currentColor" stroke-width="1.5">
