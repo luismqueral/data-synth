@@ -250,15 +250,15 @@
         // Oscillator
         const osc = engine.createCustomOscillator(440, 'sine', 1000);
         test('audio-engine', 'createCustomOscillator - sine wave', osc !== null && osc.oscillator);
-        test('audio-engine', 'Oscillator frequency set', osc.oscillator.frequency.value === 440);
-        test('audio-engine', 'Oscillator type set', osc.oscillator.type === 'sine');
+        test('audio-engine', 'Oscillator frequency set', osc && osc.oscillator && osc.oscillator.frequency.value === 440);
+        test('audio-engine', 'Oscillator type set', osc && osc.oscillator && osc.oscillator.type === 'sine');
         
         const fm = engine.createCustomOscillator(440, 'fm', 1000);
-        test('audio-engine', 'FM synthesis creates oscillators', fm !== null && fm.oscillator);
+        test('audio-engine', 'FM synthesis creates oscillators', fm !== null && fm && fm.oscillator);
         
         const additive = engine.createCustomOscillator(440, 'additive', 1000);
-        test('audio-engine', 'Additive synthesis creates oscillators', additive !== null && additive.oscillators);
-        test('audio-engine', 'Additive has multiple oscillators', additive.oscillators.length > 1);
+        test('audio-engine', 'Additive synthesis creates oscillators', additive !== null && additive && additive.oscillators);
+        test('audio-engine', 'Additive has multiple oscillators', additive && additive.oscillators && additive.oscillators.length > 1);
         
         // Visualizer
         const canvas = document.createElement('canvas');
