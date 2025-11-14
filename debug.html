@@ -65,10 +65,22 @@
     <div id="results"></div>
     
     <script type="module">
-        import { getValueByPath, safeId, extractPaths, extractValues, analyzeDataVariance } from './lib/data-processor.js';
-        import { AudioEngine } from './lib/audio-engine.js';
-        import { ParameterMapper } from './lib/parameter-mapper.js';
-        import { PatchViz } from './lib/patch-viz.js';
+        // Error handling wrapper
+        window.addEventListener('error', (e) => {
+            document.getElementById('results').innerHTML = `
+                <div style="background: #f8d7da; padding: 20px; border: 1px solid #dc3545; border-radius: 4px;">
+                    <strong>JavaScript Error:</strong><br>
+                    <code>${e.message}</code><br>
+                    <small>${e.filename}:${e.lineno}</small>
+                </div>
+            `;
+        });
+        
+        try {
+            const { getValueByPath, safeId, extractPaths, extractValues, analyzeDataVariance } = await import('./lib/data-processor.js');
+            const { AudioEngine } = await import('./lib/audio-engine.js');
+            const { ParameterMapper } = await import('./lib/parameter-mapper.js');
+            const { PatchViz } = await import('./lib/patch-viz.js');
         
         // System info
         document.getElementById('browser').textContent = navigator.userAgent.match(/(Chrome|Firefox|Safari|Edge)\/[\d.]+/)?.[0] || 'Unknown';
@@ -310,6 +322,17 @@
         });
         
         console.log(`✅ ${passed}/${total} tests passed`);
+        
+        } catch (error) {
+            console.error('Error running tests:', error);
+            document.getElementById('results').innerHTML = `
+                <div style="background: #f8d7da; padding: 20px; border: 1px solid #dc3545; border-radius: 4px; font-family: monospace;">
+                    <strong>Error loading modules:</strong><br>
+                    ${error.message}<br>
+                    <small>${error.stack}</small>
+                </div>
+            `;
+        }
     </script>
 </body>
 </html>
