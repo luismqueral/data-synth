@@ -1,0 +1,147 @@
+[
+  {
+    "id": 1,
+    "oscillation": 0.64,
+    "wavelength": 523.3,
+    "intensity": 0.77,
+    "propagation": 18.4,
+    "interference": 0.52,
+    "reflection": 0.38,
+    "absorption": 0.71,
+    "transmission": 156.8,
+    "refraction": 0.45
+  },
+  {
+    "id": 2,
+    "oscillation": 0.89,
+    "wavelength": 698.7,
+    "intensity": 0.43,
+    "propagation": 31.2,
+    "interference": 0.81,
+    "reflection": 0.67,
+    "absorption": 0.56,
+    "transmission": 278.4,
+    "refraction": 0.73
+  },
+  {
+    "id": 3,
+    "oscillation": 0.37,
+    "wavelength": 312.5,
+    "intensity": 0.92,
+    "propagation": 12.7,
+    "interference": 0.29,
+    "reflection": 0.15,
+    "absorption": 0.84,
+    "transmission": 98.3,
+    "refraction": 0.22
+  },
+  {
+    "id": 4,
+    "oscillation": 0.71,
+    "wavelength": 445.9,
+    "intensity": 0.68,
+    "propagation": 24.6,
+    "interference": 0.64,
+    "reflection": 0.49,
+    "absorption": 0.73,
+    "transmission": 187.5,
+    "refraction": 0.58
+  },
+  {
+    "id": 5,
+    "oscillation": 0.55,
+    "wavelength": 589.2,
+    "intensity": 0.81,
+    "propagation": 27.9,
+    "interference": 0.46,
+    "reflection": 0.72,
+    "absorption": 0.39,
+    "transmission": 234.7,
+    "refraction": 0.66
+  },
+  {
+    "id": 6,
+    "oscillation": 0.82,
+    "wavelength": 756.4,
+    "intensity": 0.52,
+    "proportation": 35.3,
+    "interference": 0.77,
+    "reflection": 0.84,
+    "absorption": 0.48,
+    "transmission": 312.9,
+    "refraction": 0.81
+  },
+  {
+    "id": 7,
+    "oscillation": 0.48,
+    "wavelength": 378.6,
+    "intensity": 0.86,
+    "propagation": 16.5,
+    "interference": 0.35,
+    "reflection": 0.23,
+    "absorption": 0.79,
+    "transmission": 124.6,
+    "refraction": 0.31
+  },
+  {
+    "id": 8,
+    "oscillation": 0.76,
+    "wavelength": 612.8,
+    "intensity": 0.59,
+    "propagation": 29.7,
+    "interference": 0.69,
+    "reflection": 0.56,
+    "absorption": 0.65,
+    "transmission": 256.3,
+    "refraction": 0.71
+  },
+  {
+    "id": 9,
+    "oscillation": 0.93,
+    "wavelength": 834.1,
+    "intensity": 0.34,
+    "propagation": 39.8,
+    "interference": 0.88,
+    "reflection": 0.91,
+    "absorption": 0.42,
+    "transmission": 378.2,
+    "refraction": 0.87
+  },
+  {
+    "id": 10,
+    "oscillation": 0.42,
+    "wavelength": 267.3,
+    "intensity": 0.95,
+    "propagation": 9.4,
+    "interference": 0.24,
+    "reflection": 0.11,
+    "absorption": 0.88,
+    "transmission": 76.5,
+    "refraction": 0.18
+  },
+  {
+    "id": 11,
+    "oscillation": 0.68,
+    "wavelength": 489.7,
+    "intensity": 0.74,
+    "propagation": 21.3,
+    "interference": 0.58,
+    "reflection": 0.43,
+    "absorption": 0.67,
+    "transmission": 198.4,
+    "refraction": 0.52
+  },
+  {
+    "id": 12,
+    "oscillation": 0.51,
+    "wavelength": 556.2,
+    "intensity": 0.63,
+    "propagation": 25.8,
+    "interference": 0.41,
+    "reflection": 0.61,
+    "absorption": 0.54,
+    "transmission": 223.7,
+    "refraction": 0.47
+  }
+]
+

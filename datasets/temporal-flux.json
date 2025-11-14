@@ -1,0 +1,147 @@
+[
+  {
+    "id": 1,
+    "momentum": 145.7,
+    "entropy": 0.56,
+    "coherence": 0.78,
+    "dispersion": 23.4,
+    "resonance": 0.42,
+    "threshold": 89.2,
+    "variance": 0.68,
+    "potential": 234,
+    "gradient": 0.31
+  },
+  {
+    "id": 2,
+    "momentum": 287.3,
+    "entropy": 0.83,
+    "coherence": 0.45,
+    "dispersion": 41.8,
+    "resonance": 0.71,
+    "threshold": 156.7,
+    "variance": 0.89,
+    "potential": 412,
+    "gradient": 0.64
+  },
+  {
+    "id": 3,
+    "momentum": 98.2,
+    "entropy": 0.34,
+    "coherence": 0.91,
+    "dispersion": 15.6,
+    "resonance": 0.28,
+    "threshold": 62.3,
+    "variance": 0.47,
+    "potential": 156,
+    "gradient": 0.19
+  },
+  {
+    "id": 4,
+    "momentum": 213.6,
+    "entropy": 0.67,
+    "coherence": 0.62,
+    "dispersion": 32.9,
+    "resonance": 0.55,
+    "threshold": 118.4,
+    "variance": 0.73,
+    "potential": 328,
+    "gradient": 0.48
+  },
+  {
+    "id": 5,
+    "momentum": 342.8,
+    "entropy": 0.91,
+    "coherence": 0.37,
+    "dispersion": 52.3,
+    "resonance": 0.84,
+    "threshold": 187.9,
+    "variance": 0.96,
+    "potential": 487,
+    "gradient": 0.76
+  },
+  {
+    "id": 6,
+    "momentum": 167.4,
+    "entropy": 0.48,
+    "coherence": 0.73,
+    "dispersion": 26.7,
+    "resonance": 0.39,
+    "threshold": 94.6,
+    "variance": 0.58,
+    "potential": 267,
+    "gradient": 0.35
+  },
+  {
+    "id": 7,
+    "momentum": 256.9,
+    "entropy": 0.74,
+    "coherence": 0.53,
+    "dispersion": 38.2,
+    "resonance": 0.63,
+    "threshold": 142.1,
+    "variance": 0.81,
+    "potential": 376,
+    "gradient": 0.57
+  },
+  {
+    "id": 8,
+    "momentum": 78.5,
+    "entropy": 0.29,
+    "coherence": 0.96,
+    "dispersion": 11.3,
+    "resonance": 0.21,
+    "threshold": 51.8,
+    "variance": 0.38,
+    "potential": 134,
+    "gradient": 0.14
+  },
+  {
+    "id": 9,
+    "momentum": 298.1,
+    "entropy": 0.79,
+    "coherence": 0.41,
+    "dispersion": 45.6,
+    "resonance": 0.77,
+    "threshold": 173.2,
+    "variance": 0.92,
+    "potential": 445,
+    "gradient": 0.69
+  },
+  {
+    "id": 10,
+    "momentum": 189.7,
+    "entropy": 0.61,
+    "coherence": 0.68,
+    "dispersion": 29.4,
+    "resonance": 0.47,
+    "threshold": 107.5,
+    "variance": 0.64,
+    "potential": 298,
+    "gradient": 0.42
+  },
+  {
+    "id": 11,
+    "momentum": 124.3,
+    "entropy": 0.43,
+    "coherence": 0.82,
+    "dispersion": 19.8,
+    "resonance": 0.35,
+    "threshold": 78.9,
+    "variance": 0.52,
+    "potential": 215,
+    "gradient": 0.26
+  },
+  {
+    "id": 12,
+    "momentum": 267.5,
+    "entropy": 0.72,
+    "coherence": 0.49,
+    "dispersion": 36.1,
+    "resonance": 0.68,
+    "threshold": 134.8,
+    "variance": 0.78,
+    "potential": 358,
+    "gradient": 0.53
+  }
+]
+

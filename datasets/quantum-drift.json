@@ -1,0 +1,147 @@
+[
+  {
+    "id": 1,
+    "spin": 0.5,
+    "charge": -1.2,
+    "entanglement": 0.87,
+    "superposition": 0.63,
+    "decoherence": 145.3,
+    "tunneling": 0.41,
+    "uncertainty": 23.7,
+    "probability": 0.74,
+    "energy": 892
+  },
+  {
+    "id": 2,
+    "spin": 1.5,
+    "charge": 2.4,
+    "entanglement": 0.34,
+    "superposition": 0.91,
+    "decoherence": 267.8,
+    "tunneling": 0.68,
+    "uncertainty": 41.2,
+    "probability": 0.52,
+    "energy": 1456
+  },
+  {
+    "id": 3,
+    "spin": -0.5,
+    "charge": -0.8,
+    "entanglement": 0.92,
+    "superposition": 0.45,
+    "decoherence": 98.6,
+    "tunneling": 0.27,
+    "uncertainty": 16.9,
+    "probability": 0.83,
+    "energy": 634
+  },
+  {
+    "id": 4,
+    "spin": 1.0,
+    "charge": 1.6,
+    "entanglement": 0.61,
+    "superposition": 0.78,
+    "decoherence": 189.4,
+    "tunneling": 0.54,
+    "uncertainty": 32.5,
+    "probability": 0.66,
+    "energy": 1123
+  },
+  {
+    "id": 5,
+    "spin": 2.0,
+    "charge": 3.2,
+    "entanglement": 0.23,
+    "superposition": 0.97,
+    "decoherence": 342.1,
+    "tunneling": 0.79,
+    "uncertainty": 53.8,
+    "probability": 0.38,
+    "energy": 1789
+  },
+  {
+    "id": 6,
+    "spin": 0.0,
+    "charge": 0.0,
+    "entanglement": 0.75,
+    "superposition": 0.58,
+    "decoherence": 167.9,
+    "tunneling": 0.46,
+    "uncertainty": 28.3,
+    "probability": 0.71,
+    "energy": 945
+  },
+  {
+    "id": 7,
+    "spin": -1.5,
+    "charge": -2.4,
+    "entanglement": 0.94,
+    "superposition": 0.29,
+    "decoherence": 76.5,
+    "tunneling": 0.19,
+    "uncertainty": 12.4,
+    "probability": 0.89,
+    "energy": 523
+  },
+  {
+    "id": 8,
+    "spin": 0.5,
+    "charge": 0.8,
+    "entanglement": 0.56,
+    "superposition": 0.84,
+    "decoherence": 223.7,
+    "tunneling": 0.62,
+    "uncertainty": 37.9,
+    "probability": 0.59,
+    "energy": 1267
+  },
+  {
+    "id": 9,
+    "spin": 1.5,
+    "charge": 2.0,
+    "entanglement": 0.42,
+    "superposition": 0.95,
+    "decoherence": 298.3,
+    "tunneling": 0.73,
+    "uncertainty": 48.6,
+    "probability": 0.44,
+    "energy": 1598
+  },
+  {
+    "id": 10,
+    "spin": -1.0,
+    "charge": -1.6,
+    "entanglement": 0.88,
+    "superposition": 0.51,
+    "decoherence": 123.8,
+    "tunneling": 0.36,
+    "uncertainty": 21.5,
+    "probability": 0.79,
+    "energy": 756
+  },
+  {
+    "id": 11,
+    "spin": 2.5,
+    "charge": 4.0,
+    "entanglement": 0.18,
+    "superposition": 0.99,
+    "decoherence": 389.6,
+    "tunneling": 0.86,
+    "uncertainty": 61.2,
+    "probability": 0.31,
+    "energy": 2034
+  },
+  {
+    "id": 12,
+    "spin": 0.5,
+    "charge": 1.2,
+    "entanglement": 0.69,
+    "superposition": 0.72,
+    "decoherence": 201.4,
+    "tunneling": 0.51,
+    "uncertainty": 34.7,
+    "probability": 0.63,
+    "energy": 1089
+  }
+]
+

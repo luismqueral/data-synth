@@ -1,0 +1,147 @@
+[
+  {
+    "id": 1,
+    "density": 0.73,
+    "luminosity": 845.2,
+    "temperature": 3200,
+    "radius": 12.4,
+    "mass": 2.8,
+    "rotation": 0.34,
+    "magnetism": 156,
+    "opacity": 0.61,
+    "drift": 4.2
+  },
+  {
+    "id": 2,
+    "density": 0.92,
+    "luminosity": 1240.7,
+    "temperature": 4800,
+    "radius": 18.9,
+    "mass": 5.3,
+    "rotation": 0.67,
+    "magnetism": 289,
+    "opacity": 0.84,
+    "drift": 7.1
+  },
+  {
+    "id": 3,
+    "density": 0.41,
+    "luminosity": 432.1,
+    "temperature": 2100,
+    "radius": 8.3,
+    "mass": 1.6,
+    "rotation": 0.19,
+    "magnetism": 92,
+    "opacity": 0.38,
+    "drift": 2.5
+  },
+  {
+    "id": 4,
+    "density": 0.65,
+    "luminosity": 976.8,
+    "temperature": 3900,
+    "radius": 15.2,
+    "mass": 3.7,
+    "rotation": 0.52,
+    "magnetism": 214,
+    "opacity": 0.71,
+    "drift": 5.8
+  },
+  {
+    "id": 5,
+    "density": 0.88,
+    "luminosity": 1567.3,
+    "temperature": 5200,
+    "radius": 21.6,
+    "mass": 6.1,
+    "rotation": 0.78,
+    "magnetism": 341,
+    "opacity": 0.93,
+    "drift": 8.4
+  },
+  {
+    "id": 6,
+    "density": 0.52,
+    "luminosity": 634.9,
+    "temperature": 2800,
+    "radius": 10.7,
+    "mass": 2.2,
+    "rotation": 0.41,
+    "magnetism": 127,
+    "opacity": 0.49,
+    "drift": 3.6
+  },
+  {
+    "id": 7,
+    "density": 0.79,
+    "luminosity": 1123.5,
+    "temperature": 4300,
+    "radius": 17.4,
+    "mass": 4.5,
+    "rotation": 0.63,
+    "magnetism": 267,
+    "opacity": 0.77,
+    "drift": 6.3
+  },
+  {
+    "id": 8,
+    "density": 0.36,
+    "luminosity": 378.6,
+    "temperature": 1850,
+    "radius": 7.1,
+    "mass": 1.3,
+    "rotation": 0.15,
+    "magnetism": 74,
+    "opacity": 0.32,
+    "drift": 1.9
+  },
+  {
+    "id": 9,
+    "density": 0.84,
+    "luminosity": 1389.2,
+    "temperature": 4750,
+    "radius": 19.8,
+    "mass": 5.7,
+    "rotation": 0.71,
+    "magnetism": 312,
+    "opacity": 0.86,
+    "drift": 7.7
+  },
+  {
+    "id": 10,
+    "density": 0.58,
+    "luminosity": 712.4,
+    "temperature": 3100,
+    "radius": 11.9,
+    "mass": 2.5,
+    "rotation": 0.48,
+    "magnetism": 183,
+    "opacity": 0.55,
+    "drift": 4.1
+  },
+  {
+    "id": 11,
+    "density": 0.94,
+    "luminosity": 1678.9,
+    "temperature": 5600,
+    "radius": 23.2,
+    "mass": 6.8,
+    "rotation": 0.83,
+    "magnetism": 378,
+    "opacity": 0.97,
+    "drift": 9.2
+  },
+  {
+    "id": 12,
+    "density": 0.47,
+    "luminosity": 523.7,
+    "temperature": 2450,
+    "radius": 9.5,
+    "mass": 1.9,
+    "rotation": 0.27,
+    "magnetism": 108,
+    "opacity": 0.44,
+    "drift": 2.8
+  }
+]
+

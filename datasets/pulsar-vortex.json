@@ -1,0 +1,147 @@
+[
+  {
+    "id": 1,
+    "amplitude": 0.82,
+    "frequency": 432.5,
+    "phase": 0.15,
+    "resonance": 2.8,
+    "velocity": 0.67,
+    "decay": 1.2,
+    "harmonics": 3,
+    "offset": 120,
+    "modulation": 0.45
+  },
+  {
+    "id": 2,
+    "amplitude": 0.45,
+    "frequency": 256.3,
+    "phase": 0.89,
+    "resonance": 4.2,
+    "velocity": 0.92,
+    "decay": 0.8,
+    "harmonics": 5,
+    "offset": 85,
+    "modulation": 0.67
+  },
+  {
+    "id": 3,
+    "amplitude": 0.91,
+    "frequency": 512.7,
+    "phase": 0.33,
+    "resonance": 1.5,
+    "velocity": 0.41,
+    "decay": 2.1,
+    "harmonics": 2,
+    "offset": 200,
+    "modulation": 0.23
+  },
+  {
+    "id": 4,
+    "amplitude": 0.68,
+    "frequency": 384.2,
+    "phase": 0.72,
+    "resonance": 3.6,
+    "velocity": 0.55,
+    "decay": 1.5,
+    "harmonics": 4,
+    "offset": 150,
+    "modulation": 0.81
+  },
+  {
+    "id": 5,
+    "amplitude": 0.34,
+    "frequency": 192.8,
+    "phase": 0.51,
+    "resonance": 2.1,
+    "velocity": 0.73,
+    "decay": 0.6,
+    "harmonics": 6,
+    "offset": 95,
+    "modulation": 0.39
+  },
+  {
+    "id": 6,
+    "amplitude": 0.77,
+    "frequency": 288.9,
+    "phase": 0.44,
+    "resonance": 3.9,
+    "velocity": 0.88,
+    "decay": 1.8,
+    "harmonics": 3,
+    "offset": 175,
+    "modulation": 0.52
+  },
+  {
+    "id": 7,
+    "amplitude": 0.59,
+    "frequency": 640.1,
+    "phase": 0.67,
+    "resonance": 1.8,
+    "velocity": 0.36,
+    "decay": 2.4,
+    "harmonics": 7,
+    "offset": 220,
+    "modulation": 0.71
+  },
+  {
+    "id": 8,
+    "amplitude": 0.88,
+    "frequency": 480.6,
+    "phase": 0.22,
+    "resonance": 2.5,
+    "velocity": 0.61,
+    "decay": 1.1,
+    "harmonics": 4,
+    "offset": 140,
+    "modulation": 0.28
+  },
+  {
+    "id": 9,
+    "amplitude": 0.42,
+    "frequency": 336.4,
+    "phase": 0.95,
+    "resonance": 4.7,
+    "velocity": 0.79,
+    "decay": 0.9,
+    "harmonics": 5,
+    "offset": 110,
+    "modulation": 0.64
+  },
+  {
+    "id": 10,
+    "amplitude": 0.71,
+    "frequency": 576.8,
+    "phase": 0.38,
+    "resonance": 3.2,
+    "velocity": 0.47,
+    "decay": 1.7,
+    "harmonics": 3,
+    "offset": 190,
+    "modulation": 0.36
+  },
+  {
+    "id": 11,
+    "amplitude": 0.53,
+    "frequency": 224.5,
+    "phase": 0.81,
+    "resonance": 2.3,
+    "velocity": 0.84,
+    "decay": 1.3,
+    "harmonics": 6,
+    "offset": 125,
+    "modulation": 0.58
+  },
+  {
+    "id": 12,
+    "amplitude": 0.96,
+    "frequency": 416.3,
+    "phase": 0.19,
+    "resonance": 1.9,
+    "velocity": 0.52,
+    "decay": 2.2,
+    "harmonics": 2,
+    "offset": 165,
+    "modulation": 0.44
+  }
+]
+
