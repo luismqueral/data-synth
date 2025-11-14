@@ -11,7 +11,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- D3.js for visualization -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -27,6 +27,17 @@
     
     <style>
         * {
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+        
+        /* Keep monospace for data/code elements */
+        .node-text,
+        .node-value,
+        input[type="text"],
+        input[type="number"],
+        select,
+        code,
+        pre {
             font-family: 'IBM Plex Mono', monospace;
         }
         
@@ -744,7 +755,7 @@
         
         <!-- Patch View (Full Width) -->
         <div id="nodeView" style="margin-bottom: 20px; background: #fafafa; padding: 20px; width: 100%;">
-            <div id="columnHeaders" style="position: relative; height: 40px; margin-bottom: 10px; padding-top: 20px;">
+            <div id="columnHeaders" style="position: relative; height: 40px; margin-bottom: 20px; padding-top: 20px;">
                 <div id="leftHeader" style="position: absolute; font-family: 'Lucida Blackletter', 'Blackletter686', serif; font-size: 24px; font-weight: normal; color: #000; transform: translateX(-50%);">Data Fields</div>
                 <div id="rightHeader" style="position: absolute; font-family: 'Lucida Blackletter', 'Blackletter686', serif; font-size: 24px; font-weight: normal; color: #000; transform: translateX(-50%);">Audio Parameters</div>
             </div>
