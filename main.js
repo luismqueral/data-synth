@@ -103,6 +103,9 @@ let currentPlaybackId = 0;
 function init() {
     console.log('Initializing DataSynth...');
     
+    // Make settings panel visible now that CSS is loaded
+    document.getElementById('settingsPanel').style.visibility = 'visible';
+    
     // Wire up event listeners
     setupEventListeners();
     
