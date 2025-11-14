@@ -1,7 +1,7 @@
 # Changelog
 
 ## 2025-11-14
-- converted settings ui to slide-out panel that pushes content - replaced accordion dropdown with modern drawer pattern where panel reveals from left and pushes main content 320px to the right (not overlay), settings button shifts with content to stay visible, reduced backdrop to subtle 10% opacity, synchronized 300ms animations create smooth revealing effect, panel closes via X button or backdrop click, mobile responsive with full-width panel and no content shift, cleaner main view since settings no longer occupy vertical space in content flow
+- converted settings ui to slide-out panel that pushes content - replaced accordion dropdown with modern drawer pattern where panel reveals from left and pushes entire page 320px to the right (true side-by-side layout, not overlay), entire body element shifts creating unified push effect, panel slides from left: -320px to left: 0, backdrop only covers shifted content area with very subtle 5% opacity, settings button shifts with content to stay visible, panel closes via X button or backdrop click, mobile responsive with full-width overlay panel, cleaner main view since settings no longer occupy vertical space in content flow
 - configured vercel for static ES6 module serving - added @vercel/static build configuration to explicitly treat project as static site, created package.json with "type": "module" declaration, simplified vercel.json to essential MIME type headers for .js files, ensures all modules (audio-engine.js, parameter-mapper.js, patch-viz.js, main.js) served correctly as static assets with proper text/javascript content-type
 
 ## 2025-11-13 (Refactoring)
