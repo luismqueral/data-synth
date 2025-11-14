@@ -172,37 +172,21 @@ function setupEventListeners() {
             document.body.classList.remove('shifted');
             settingsTrigger.classList.remove('shifted');
             settingsTrigger.title = 'Settings';
-            
-            // Re-center D3 visualization immediately for full width
-            if (numericPaths.length > 0) {
-                // Small delay to let DOM update
-                requestAnimationFrame(() => {
-                    const container = document.getElementById('patchViz').parentElement;
-                    const actualWidth = container.getBoundingClientRect().width;
-                    console.log('↔️ Panel closed, re-centering viz to:', actualWidth);
-                    patchViz.setWidth(actualWidth);
-                    patchViz.render(numericPaths, parameterMapper.mappings, parameterMapper, isPlaying);
-                });
-            }
         } else {
             // Open panel
             settingsPanel.classList.add('open');
             document.body.classList.add('shifted');
             settingsTrigger.classList.add('shifted');
             settingsTrigger.title = 'Close';
-            
-            // Re-center D3 visualization immediately for reduced width
-            if (numericPaths.length > 0) {
-                // Small delay to let DOM update
-                requestAnimationFrame(() => {
-                    const svgElement = document.getElementById('patchViz');
-                    const actualWidth = svgElement.parentElement.getBoundingClientRect().width;
-                    console.log('↔️ Panel opened, re-centering viz to:', actualWidth);
-                    patchViz.setWidth(actualWidth);
-                    patchViz.render(numericPaths, parameterMapper.mappings, parameterMapper, isPlaying);
-                });
-            }
         }
+        
+        // Redraw patch visualization after panel animation completes (300ms)
+        // This ensures the D3 viz responds to the new available width
+        setTimeout(() => {
+            if (parsedData) {
+                updatePatchVisualization();
+            }
+        }, 350);
     });
     
     // Pitch quantization toggle (show/hide scale selector)
