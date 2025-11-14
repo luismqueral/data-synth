@@ -172,12 +172,30 @@ function setupEventListeners() {
             document.body.classList.remove('shifted');
             settingsTrigger.classList.remove('shifted');
             settingsTrigger.title = 'Settings';
+            
+            // Re-center D3 visualization for full width
+            setTimeout(() => {
+                if (numericPaths.length > 0) {
+                    const fullWidth = window.innerWidth;
+                    patchViz.setWidth(fullWidth);
+                    patchViz.render(numericPaths, parameterMapper.mappings, parameterMapper, isPlaying);
+                }
+            }, 300); // Wait for CSS transition to complete
         } else {
             // Open panel
             settingsPanel.classList.add('open');
             document.body.classList.add('shifted');
             settingsTrigger.classList.add('shifted');
             settingsTrigger.title = 'Close';
+            
+            // Re-center D3 visualization for reduced width
+            setTimeout(() => {
+                if (numericPaths.length > 0) {
+                    const availableWidth = window.innerWidth - 320; // Minus panel width
+                    patchViz.setWidth(availableWidth);
+                    patchViz.render(numericPaths, parameterMapper.mappings, parameterMapper, isPlaying);
+                }
+            }, 300); // Wait for CSS transition to complete
         }
     });
     
