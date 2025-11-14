@@ -1,6 +1,8 @@
 # Changelog
 
 ## 2025-11-14
+- cleaned up settings panel design - removed white spacing margins around panel (back to full edge-to-edge), removed border-bottom from settings header, removed waveform category labels (Classic, Noise, Synthesis), removed divider lines between waveform groups, cleaner flatter waveform list with just visual icons and names, more minimal and cohesive settings design
+- fixed horizontal scrollbars on patch visualization - changed SVG width from HTML attribute to CSS style, added display: block to prevent inline spacing, added overflow-x: hidden to nodeView container, ensures SVG respects container bounds at all viewport sizes
 - added Lucida Blackletter custom font files - included woff2 and woff formats in fonts/ directory, created @font-face declaration with proper fallbacks, font-display: swap for better performance, DataSynth title now displays in authentic Lucida Blackletter instead of system fallback, custom typography properly integrated
 - refactored D3 column positioning for predictable centered layout - completely overhauled positioning logic to use center-based symmetric layout instead of edge-based percentages, columns now positioned at center ± (distance/2), fixed distances with responsive breakpoints (250px mobile, 400px tablet, 500px desktop), added safeguards to prevent overlap (min distance = nodeWidth + 50px), SVG width explicitly set to container width, always centered and symmetric regardless of viewport size, much more predictable during resizes
 - optimized patch view container structure - simplified DOM by removing unnecessary nested divs, moved nodeView id to outer container for true full width, cleaner structure enables better width calculations and more predictable behavior

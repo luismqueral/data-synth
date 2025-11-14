@@ -16,9 +16,6 @@
     <!-- D3.js for visualization -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    
     <!-- Preload critical modules for faster startup -->
     <link rel="modulepreload" href="./lib/data-processor.js">
     <link rel="modulepreload" href="./lib/audio-engine.js">
@@ -82,10 +79,8 @@
             background: transparent;
             color: #999;
             border: 1px solid #ddd;
-            padding: 10px;
+            padding: 10px 14px;
             cursor: pointer;
-            width: 40px;
-            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -109,12 +104,16 @@
             background: #f0f0f0;
         }
         
-        /* Icon crossfade animation */
+        /* Icon and text crossfade animation */
         .settings-icon,
         .close-icon {
-            position: absolute;
-            font-size: 18px;
             transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            flex-shrink: 0;
+        }
+        
+        .settings-text {
+            transition: opacity 0.3s ease-in-out;
+            white-space: nowrap;
         }
         
         .settings-icon {
@@ -125,6 +124,8 @@
         .close-icon {
             opacity: 0;
             transform: rotate(-90deg);
+            position: absolute;
+            left: 10px;
         }
         
         .settings-trigger.shifted .settings-icon {
@@ -135,6 +136,10 @@
         .settings-trigger.shifted .close-icon {
             opacity: 1;
             transform: rotate(0deg);
+        }
+        
+        .settings-trigger.shifted .settings-text {
+            opacity: 0;
         }
         
         .settings-panel {
@@ -163,27 +168,6 @@
         
         body.shifted {
             margin-left: 320px;
-        }
-        
-        .settings-panel-header {
-            padding: 20px;
-            background: #fafafa;
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            flex-shrink: 0;
-            min-height: 60px;
-        }
-        
-        .settings-panel-header h2 {
-            margin: 0;
-            margin-left: 50px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #666;
-            line-height: 40px;
         }
         
         .settings-panel-content {
@@ -467,10 +451,18 @@
 <body>
     <!-- Settings Trigger Button -->
     <button id="settingsTriggerBtn" class="settings-trigger" title="Settings">
-        <!-- Sliders icon (settings) -->
-        <i class="fa-solid fa-sliders settings-icon"></i>
-        <!-- X icon (close) -->
-        <i class="fa-solid fa-xmark close-icon"></i>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <!-- Tune icon (settings) - Material Icons -->
+            <svg class="settings-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/>
+            </svg>
+            <!-- Close icon - Material Icons -->
+            <svg class="close-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+            <!-- Settings text -->
+            <span class="settings-text" style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Settings</span>
+        </div>
     </button>
     
     <!-- Settings Backdrop -->
@@ -478,9 +470,6 @@
     
     <!-- Settings Panel -->
     <div id="settingsPanel" class="settings-panel" style="visibility: hidden;">
-        <div class="settings-panel-header">
-            <h2>Settings</h2>
-        </div>
         <div class="settings-panel-content" id="settingsPanelContent">
             <!-- All settings controls -->
             <div class="mb3" style="padding-bottom: 12px; border-bottom: 2px solid #ddd;">
@@ -756,7 +745,9 @@
                 </div>
             </div>
             <button id="randomizeMappingsBtn" disabled class="ba b--black bg-white pointer hover-bg-black hover-white" style="padding: 16px 24px; font-size: 24px; min-width: 180px; height: 64px;">
-                <i class="fa-solid fa-shuffle" style="margin-right: 8px;"></i>Randomize
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px; vertical-align: middle;">
+                    <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/>
+                </svg>Randomize
             </button>
         </div>
         
