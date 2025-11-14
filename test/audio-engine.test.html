@@ -449,11 +449,11 @@
             addTest(section6, 'dataArray is Uint8Array', 
                 engine.dataArray instanceof Uint8Array);
             addTest(section6, 'dataArray has correct size', 
-                engine.dataArray.length === engine.analyser.frequencyBinCount);
+                engine.dataArray.length === engine.analyser.fftSize);
             
-            addTest(section6, 'analyser fftSize is 256', engine.analyser.fftSize === 256);
-            addTest(section6, 'analyser smoothing is 0 (instant response)', 
-                engine.analyser.smoothingTimeConstant === 0);
+            addTest(section6, 'analyser fftSize is 1024', engine.analyser.fftSize === 1024);
+            addTest(section6, 'analyser smoothing is 0.3 (smooth waveform)', 
+                engine.analyser.smoothingTimeConstant === 0.3);
             
             addTest(section6, 'canvas context stored', engine.visualizerCtx !== null);
             addTest(section6, 'canvas reference stored', engine.visualizerCanvas !== null);
