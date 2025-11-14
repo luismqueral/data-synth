@@ -173,14 +173,17 @@ function setupEventListeners() {
             settingsTrigger.classList.remove('shifted');
             settingsTrigger.title = 'Settings';
             
-            // Re-center D3 visualization for full width
-            setTimeout(() => {
-                if (numericPaths.length > 0) {
-                    const fullWidth = window.innerWidth;
-                    patchViz.setWidth(fullWidth);
+            // Re-center D3 visualization immediately for full width
+            if (numericPaths.length > 0) {
+                // Small delay to let DOM update
+                requestAnimationFrame(() => {
+                    const container = document.getElementById('patchViz').parentElement;
+                    const actualWidth = container.getBoundingClientRect().width;
+                    console.log('↔️ Panel closed, re-centering viz to:', actualWidth);
+                    patchViz.setWidth(actualWidth);
                     patchViz.render(numericPaths, parameterMapper.mappings, parameterMapper, isPlaying);
-                }
-            }, 300); // Wait for CSS transition to complete
+                });
+            }
         } else {
             // Open panel
             settingsPanel.classList.add('open');
@@ -188,14 +191,17 @@ function setupEventListeners() {
             settingsTrigger.classList.add('shifted');
             settingsTrigger.title = 'Close';
             
-            // Re-center D3 visualization for reduced width
-            setTimeout(() => {
-                if (numericPaths.length > 0) {
-                    const availableWidth = window.innerWidth - 320; // Minus panel width
-                    patchViz.setWidth(availableWidth);
+            // Re-center D3 visualization immediately for reduced width
+            if (numericPaths.length > 0) {
+                // Small delay to let DOM update
+                requestAnimationFrame(() => {
+                    const svgElement = document.getElementById('patchViz');
+                    const actualWidth = svgElement.parentElement.getBoundingClientRect().width;
+                    console.log('↔️ Panel opened, re-centering viz to:', actualWidth);
+                    patchViz.setWidth(actualWidth);
                     patchViz.render(numericPaths, parameterMapper.mappings, parameterMapper, isPlaying);
-                }
-            }, 300); // Wait for CSS transition to complete
+                });
+            }
         }
     });
     
