@@ -118,16 +118,17 @@
         
         .settings-panel {
             position: fixed;
-            top: 0;
+            top: 12px;
             left: -320px;
-            width: 320px;
-            height: 100vh;
+            width: 308px;
+            height: calc(100vh - 24px);
             background: #fafafa;
             z-index: 999;
             transition: left 0.3s ease-in-out;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
+            margin-left: 12px;
         }
         
         .settings-panel.open {
