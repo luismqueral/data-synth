@@ -1,0 +1,19 @@
+{
+  "name": "data-synth",
+  "version": "2.0.0",
+  "description": "Turn any dataset into sound - client-side audio data sonification tool",
+  "type": "module",
+  "scripts": {
+    "dev": "python3 -m http.server 8000",
+    "test": "echo 'Open test/*.test.html in browser'"
+  },
+  "keywords": [
+    "sonification",
+    "data-visualization",
+    "web-audio",
+    "audio"
+  ],
+  "author": "Luis Queral",
+  "license": "MIT"
+}
+

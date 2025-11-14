@@ -1,7 +1,14 @@
 {
+  "version": 2,
+  "builds": [
+    {
+      "src": "**/*",
+      "use": "@vercel/static"
+    }
+  ],
   "headers": [
     {
-      "source": "/lib/(.*).js",
+      "source": "/(.*).js",
       "headers": [
         {
           "key": "Content-Type",
@@ -10,7 +17,7 @@
       ]
     },
     {
-      "source": "/(.*).js",
+      "source": "/lib/(.*).js",
       "headers": [
         {
           "key": "Content-Type",
