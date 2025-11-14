@@ -163,13 +163,12 @@ function setupEventListeners() {
     const settingsBackdrop = document.getElementById('settingsBackdrop');
     const settingsTrigger = document.getElementById('settingsTriggerBtn');
     const settingsClose = document.getElementById('settingsCloseBtn');
-    const mainContent = document.querySelector('.main-content-wrapper');
     
     // Open settings panel
     settingsTrigger.addEventListener('click', () => {
         settingsPanel.classList.add('open');
         settingsBackdrop.classList.add('open');
-        mainContent.classList.add('shifted');
+        document.body.classList.add('shifted');
         settingsTrigger.classList.add('shifted');
     });
     
@@ -177,7 +176,7 @@ function setupEventListeners() {
     settingsClose.addEventListener('click', () => {
         settingsPanel.classList.remove('open');
         settingsBackdrop.classList.remove('open');
-        mainContent.classList.remove('shifted');
+        document.body.classList.remove('shifted');
         settingsTrigger.classList.remove('shifted');
     });
     
@@ -185,7 +184,7 @@ function setupEventListeners() {
     settingsBackdrop.addEventListener('click', () => {
         settingsPanel.classList.remove('open');
         settingsBackdrop.classList.remove('open');
-        mainContent.classList.remove('shifted');
+        document.body.classList.remove('shifted');
         settingsTrigger.classList.remove('shifted');
     });
     
