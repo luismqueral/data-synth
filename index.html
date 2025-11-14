@@ -102,8 +102,29 @@
             border-radius: 3px;
             width: auto;
             justify-content: flex-start;
-            box-shadow: 0 8px 16px rgba(250, 250, 250, 0.95),
-                        0 4px 8px rgba(0, 0, 0, 0.05);
+            z-index: 12;
+        }
+        
+        /* Gradient fade at top of panel when open */
+        .settings-panel-fade {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 320px;
+            height: 100px;
+            background: linear-gradient(to bottom, 
+                #fafafa 0%, 
+                #fafafa 50%,
+                rgba(250, 250, 250, 0.8) 70%,
+                rgba(250, 250, 250, 0) 100%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            z-index: 11;
+        }
+        
+        .settings-panel.open .settings-panel-fade {
+            opacity: 1;
         }
         
         .settings-trigger.shifted:hover {
@@ -475,6 +496,9 @@
     
     <!-- Settings Panel -->
     <div id="settingsPanel" class="settings-panel" style="visibility: hidden;">
+        <!-- Gradient fade overlay (only visible when panel open) -->
+        <div class="settings-panel-fade"></div>
+        
         <div class="settings-panel-content" id="settingsPanelContent">
             <!-- All settings controls -->
             <div class="mb3" style="padding-bottom: 12px; border-bottom: 2px solid #ddd;">
