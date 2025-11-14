@@ -188,18 +188,28 @@
         test('parameter-mapper', 'getAudioParams - sampler has sampleOffset', samplerParams.some(p => p.id === 'sampleOffset'));
         
         mapper.samplerMode = false;
+        
+        // intelligentMapping needs properly formatted paths with variance data
         const testPaths = [
-            { path: 'value1', min: 0, max: 100, variance: 30 },
-            { path: 'value2', min: 0, max: 100, variance: 50 }
+            { path: 'value1', type: 'number', variance: 30, min: 0, max: 100, uniqueRatio: 0.5 },
+            { path: 'value2', type: 'number', variance: 50, min: 0, max: 100, uniqueRatio: 0.8 },
+            { path: 'value3', type: 'number', variance: 20, min: 0, max: 50, uniqueRatio: 0.6 }
         ];
         
-        mapper.intelligentMapping(testPaths);
-        test('parameter-mapper', 'intelligentMapping - creates mappings', Object.values(mapper.mappings).some(m => m && m.path));
-        test('parameter-mapper', 'intelligentMapping - maps critical params', mapper.mappings.frequency?.path !== undefined);
-        
-        const origPath = mapper.mappings.frequency?.path;
-        mapper.randomizeMappings(testPaths);
-        test('parameter-mapper', 'randomizeMappings - changes paths', mapper.mappings.frequency?.path !== origPath);
+        try {
+            mapper.intelligentMapping(testPaths);
+            test('parameter-mapper', 'intelligentMapping - creates mappings', Object.values(mapper.mappings).some(m => m && m.path));
+            test('parameter-mapper', 'intelligentMapping - maps critical params', mapper.mappings.frequency?.path !== undefined);
+            
+            const origPath = mapper.mappings.frequency?.path;
+            mapper.randomizeMappings(testPaths);
+            test('parameter-mapper', 'randomizeMappings - changes paths', mapper.mappings.frequency?.path !== origPath);
+        } catch (e) {
+            console.error('intelligentMapping error:', e);
+            test('parameter-mapper', 'intelligentMapping - creates mappings', false);
+            test('parameter-mapper', 'intelligentMapping - maps critical params', false);
+            test('parameter-mapper', 'randomizeMappings - changes paths', false);
+        }
         
         const origMin = mapper.mappings.frequency?.min;
         mapper.randomizeRanges();
