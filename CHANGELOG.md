@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2025-11-14
+- added Lucida Blackletter custom font files - included woff2 and woff formats in fonts/ directory, created @font-face declaration with proper fallbacks, font-display: swap for better performance, DataSynth title now displays in authentic Lucida Blackletter instead of system fallback, custom typography properly integrated
 - refactored D3 column positioning for predictable centered layout - completely overhauled positioning logic to use center-based symmetric layout instead of edge-based percentages, columns now positioned at center ± (distance/2), fixed distances with responsive breakpoints (250px mobile, 400px tablet, 500px desktop), added safeguards to prevent overlap (min distance = nodeWidth + 50px), SVG width explicitly set to container width, always centered and symmetric regardless of viewport size, much more predictable during resizes
 - optimized patch view container structure - simplified DOM by removing unnecessary nested divs, moved nodeView id to outer container for true full width, cleaner structure enables better width calculations and more predictable behavior
 - made entire site full-width layout - removed max-width: 900px constraint from main content wrapper, site now spans full viewport width for more spacious feel, removed 'Patch View' heading, patch view has near-white background (#fafafa) with 20px padding, simplified patch view styling without negative margin hacks, entire interface feels more open and integrated
