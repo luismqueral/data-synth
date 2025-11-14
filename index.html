@@ -16,6 +16,9 @@
     <!-- D3.js for visualization -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
     <!-- Preload critical modules for faster startup -->
     <link rel="modulepreload" href="./lib/data-processor.js">
     <link rel="modulepreload" href="./lib/audio-engine.js">
@@ -89,6 +92,7 @@
         .settings-icon,
         .close-icon {
             position: absolute;
+            font-size: 18px;
             transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
         }
         
@@ -281,8 +285,7 @@
             
             .settings-icon,
             .close-icon {
-                width: 18px;
-                height: 18px;
+                font-size: 16px;
             }
             
             /* Don't shift body on mobile - panel is full width overlay */
@@ -434,19 +437,9 @@
     <!-- Settings Trigger Button -->
     <button id="settingsTriggerBtn" class="settings-trigger" title="Settings">
         <!-- Sliders icon (settings) -->
-        <svg class="settings-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <path d="M2 6 L18 6" />
-            <path d="M2 10 L18 10" />
-            <path d="M2 14 L18 14" />
-            <circle cx="6" cy="6" r="2" fill="currentColor" />
-            <circle cx="14" cy="10" r="2" fill="currentColor" />
-            <circle cx="8" cy="14" r="2" fill="currentColor" />
-        </svg>
+        <i class="fa-solid fa-sliders settings-icon"></i>
         <!-- X icon (close) -->
-        <svg class="close-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <path d="M5 5 L15 15" />
-            <path d="M15 5 L5 15" />
-        </svg>
+        <i class="fa-solid fa-xmark close-icon"></i>
     </button>
     
     <!-- Settings Backdrop -->
