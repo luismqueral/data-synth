@@ -97,15 +97,30 @@
         .settings-trigger.shifted {
             left: 20px;
             top: 20px;
-            background: #fafafa;
+            background: rgba(250, 250, 250, 0.95);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             border: 1px solid #ddd;
             border-radius: 3px;
             width: auto;
             justify-content: flex-start;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            position: relative;
+        }
+        
+        .settings-trigger.shifted::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: linear-gradient(to bottom, rgba(250, 250, 250, 0.6), rgba(250, 250, 250, 0));
+            pointer-events: none;
         }
         
         .settings-trigger.shifted:hover {
-            background: #f0f0f0;
+            background: rgba(240, 240, 240, 0.95);
         }
         
         /* Icon and text crossfade animation */
