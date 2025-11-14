@@ -394,6 +394,11 @@ async function handlePlay() {
         audioEngine.setupVisualizer(document.getElementById('audioVisualizer'));
     }
     
+    // Ensure visualizer is set up (may not exist if audio context was already initialized)
+    if (!audioEngine.analyser) {
+        audioEngine.setupVisualizer(document.getElementById('audioVisualizer'));
+    }
+    
     // Start visualizer animation
     audioEngine.drawVisualizer(isPlaying);
     
