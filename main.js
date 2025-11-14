@@ -397,8 +397,7 @@ async function handlePlay() {
     
     document.getElementById('playIcon').textContent = '⏹';
     document.getElementById('playText').textContent = 'Stop';
-    document.getElementById('audioVisualizer').classList.add('active');
-    document.getElementById('outputLabel').style.display = 'block';
+    document.getElementById('audioVisualizerContainer').style.display = 'block';
     
     // Initialize audio engine if needed
     if (!audioEngine.audioContext) {
@@ -475,8 +474,7 @@ async function handlePlay() {
         isPlaying = false;
         document.getElementById('playIcon').textContent = '▶';
         document.getElementById('playText').textContent = 'Play Data';
-        document.getElementById('audioVisualizer').classList.remove('active');
-        document.getElementById('outputLabel').style.display = 'none';
+        document.getElementById('audioVisualizerContainer').style.display = 'none';
         audioEngine.stopVisualizer();
         patchViz.clearNodeValues();
         console.log(`✅ Playback session #${thisPlaybackId} completed`);
@@ -497,8 +495,7 @@ function stopPlayback() {
     
     document.getElementById('playIcon').textContent = '▶';
     document.getElementById('playText').textContent = 'Play Data';
-    document.getElementById('audioVisualizer').classList.remove('active');
-    document.getElementById('outputLabel').style.display = 'none';
+    document.getElementById('audioVisualizerContainer').style.display = 'none';
     document.getElementById('itemValue').textContent = '--';
     
     console.log(`⏹ Playback stopped, invalidated session (now at #${currentPlaybackId})`);

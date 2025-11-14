@@ -306,17 +306,23 @@
         }
         
         /* ================================================================
-           AUDIO VISUALIZER STYLES
+           AUDIO VISUALIZER STYLES (Oscilloscope)
            Required by: lib/audio-engine.js
            ================================================================ */
         
-        #audioVisualizer {
-            background: #eee;
-            display: none;
+        #audioVisualizerContainer {
+            background: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 4px;
+            padding: 12px;
+            box-shadow: inset 0 0 20px rgba(0, 255, 0, 0.1);
         }
         
-        #audioVisualizer.active {
-            display: block;
+        #audioVisualizer {
+            background: #000;
+            border: 1px solid #222;
+            border-radius: 2px;
+            image-rendering: crisp-edges;
         }
         
         /* ================================================================
@@ -756,14 +762,13 @@
             </button>
         </div>
         
-        <!-- Audio Visualizer -->
-        <div style="margin-bottom: 20px;">
-            <div id="outputLabel" class="f7 mb1" style="color: #666; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: none;">Output</div>
-            <canvas id="audioVisualizer" style="width: 100%; height: 120px;"></canvas>
-        </div>
-        
         <!-- Patch View (Full Width) -->
         <div id="nodeView" style="margin-bottom: 20px; background: #fafafa; padding: 20px; width: 100%;">
+            <!-- Audio Visualizer (Oscilloscope) -->
+            <div class="center mw6 mb4" style="display: none;" id="audioVisualizerContainer">
+                <canvas id="audioVisualizer" style="width: 100%; height: 100px;"></canvas>
+            </div>
+            
             <div id="columnHeaders" style="position: relative; height: 40px; margin-bottom: 20px; padding-top: 20px;">
                 <div id="leftHeader" style="position: absolute; font-family: 'Lucida Blackletter', 'Blackletter686', serif; font-size: 24px; font-weight: normal; color: #000; transform: translateX(-50%);">Data Fields</div>
                 <div id="rightHeader" style="position: absolute; font-family: 'Lucida Blackletter', 'Blackletter686', serif; font-size: 24px; font-weight: normal; color: #000; transform: translateX(-50%);">Audio Parameters</div>
