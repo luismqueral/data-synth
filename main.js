@@ -183,10 +183,11 @@ function setupEventListeners() {
         // Redraw patch visualization after panel animation completes (300ms)
         // This ensures the D3 viz responds to the new available width
         setTimeout(() => {
-            if (parsedData) {
-                updatePatchVisualization();
+            if (parsedData && numericPaths && numericPaths.length > 0) {
+                console.log('🔄 Settings panel toggled, redrawing patch visualization');
+                patchViz.render(numericPaths, parameterMapper.mappings, parameterMapper, isPlaying);
             }
-        }, 350);
+        }, 400);
     });
     
     // Pitch quantization toggle (show/hide scale selector)
