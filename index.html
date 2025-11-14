@@ -148,6 +148,16 @@
             overflow-y: auto;
         }
         
+        /* Hide scrollbar but keep functionality */
+        .settings-panel-content::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .settings-panel-content {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
         .settings-backdrop {
             display: none;
         }
