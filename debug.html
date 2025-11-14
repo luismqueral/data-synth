@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataSynth Debug Surface</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Tachyons -->
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css">
+    
+    <style>
+        * {
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+        
+        body {
+            background: #fafafa;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .module-section {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .module-header {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .status-badge {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        
+        .status-pass {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .test-result {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            padding: 8px 12px;
+            margin: 4px 0;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .test-pass {
+            background: #f0f9f4;
+            border-left: 3px solid #28a745;
+        }
+        
+        .test-fail {
+            background: #fff5f5;
+            border-left: 3px solid #dc3545;
+        }
+        
+        .test-icon {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .pass-icon {
+            color: #28a745;
+        }
+        
+        .fail-icon {
+            color: #dc3545;
+        }
+        
+        .summary-card {
+            background: #000;
+            color: #fff;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .summary-stat {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 32px;
+            font-weight: 600;
+        }
+        
+        .summary-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+        
+        code {
+            font-family: 'IBM Plex Mono', monospace;
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        
+        .info-panel {
+            background: #f8f9fa;
+            border-left: 3px solid #007bff;
+            padding: 12px 16px;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div style="max-width: 1200px; margin: 0 auto;">
+        <header class="mb4">
+            <h1 class="f1 mb2" style="font-family: 'IBM Plex Sans', sans-serif; font-weight: 600;">DataSynth Debug Surface</h1>
+            <p class="f6 gray">Comprehensive test suite and module diagnostics</p>
+        </header>
+        
+        <!-- Summary Cards -->
+        <div class="flex gap3 mb4" id="summaryCards">
+            <div class="summary-card flex-auto">
+                <div class="summary-stat" id="totalTests">--</div>
+                <div class="summary-label">Total Tests</div>
+            </div>
+            <div class="summary-card flex-auto" style="background: #28a745;">
+                <div class="summary-stat" id="passedTests">--</div>
+                <div class="summary-label">Passed</div>
+            </div>
+            <div class="summary-card flex-auto" style="background: #dc3545;">
+                <div class="summary-stat" id="failedTests">--</div>
+                <div class="summary-label">Failed</div>
+            </div>
+            <div class="summary-card flex-auto" style="background: #007bff;">
+                <div class="summary-stat" id="successRate">--</div>
+                <div class="summary-label">Success Rate</div>
+            </div>
+        </div>
+        
+        <!-- System Info -->
+        <div class="module-section">
+            <div class="module-header">
+                System Information
+            </div>
+            <div class="info-panel">
+                <div class="mb2"><strong>Browser:</strong> <span id="browserInfo">--</span></div>
+                <div class="mb2"><strong>User Agent:</strong> <code id="userAgent" style="font-size: 11px;">--</code></div>
+                <div class="mb2"><strong>Screen:</strong> <span id="screenInfo">--</span></div>
+                <div class="mb2"><strong>DPR:</strong> <span id="dprInfo">--</span></div>
+                <div><strong>Web Audio API:</strong> <span id="audioApiInfo">--</span></div>
+            </div>
+        </div>
+        
+        <!-- Module Test Results -->
+        <div id="moduleResults"></div>
+    </div>
+    
+    <script type="module">
+        import { 
+            getValueByPath, 
+            safeId, 
+            extractPaths, 
+            extractValues, 
+            analyzeDataVariance 
+        } from './lib/data-processor.js';
+        import { AudioEngine } from './lib/audio-engine.js';
+        import { ParameterMapper } from './lib/parameter-mapper.js';
+        import { PatchViz } from './lib/patch-viz.js';
+        
+        // ====================================================================
+        // SYSTEM INFORMATION
+        // ====================================================================
+        
+        document.getElementById('browserInfo').textContent = navigator.userAgentData?.brands?.map(b => `${b.brand} ${b.version}`).join(', ') || 'Unknown';
+        document.getElementById('userAgent').textContent = navigator.userAgent;
+        document.getElementById('screenInfo').textContent = `${window.screen.width} × ${window.screen.height}`;
+        document.getElementById('dprInfo').textContent = `${window.devicePixelRatio}x`;
+        document.getElementById('audioApiInfo').textContent = 'AudioContext' in window ? '✅ Supported' : '❌ Not Supported';
+        
+        // ====================================================================
+        // TEST RUNNER
+        // ====================================================================
+        
+        const allTests = [];
+        let totalPassed = 0;
+        let totalFailed = 0;
+        
+        function addTest(moduleName, testName, result) {
+            allTests.push({ module: moduleName, name: testName, pass: result });
+            if (result) {
+                totalPassed++;
+            } else {
+                totalFailed++;
+            }
+        }
+        
+        function renderModuleResults(moduleName, tests) {
+            const passed = tests.filter(t => t.pass).length;
+            const total = tests.length;
+            const failRate = total - passed;
+            
+            const section = document.createElement('div');
+            section.className = 'module-section';
+            
+            const statusClass = failRate === 0 ? 'status-pass' : 'status-fail';
+            const statusText = failRate === 0 ? `${passed}/${total} PASS` : `${failRate} FAIL`;
+            
+            section.innerHTML = `
+                <div class="module-header">
+                    <span>${moduleName}</span>
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                </div>
+                <div class="test-list"></div>
+            `;
+            
+            const testList = section.querySelector('.test-list');
+            
+            tests.forEach(test => {
+                const testEl = document.createElement('div');
+                testEl.className = test.pass ? 'test-result test-pass' : 'test-result test-fail';
+                
+                const icon = test.pass ? '✓' : '✗';
+                const iconClass = test.pass ? 'pass-icon' : 'fail-icon';
+                
+                testEl.innerHTML = `
+                    <span class="test-icon ${iconClass}">${icon}</span>
+                    <span style="flex: 1;">${test.name}</span>
+                `;
+                
+                testList.appendChild(testEl);
+            });
+            
+            document.getElementById('moduleResults').appendChild(section);
+        }
+        
+        // ====================================================================
+        // RUN ALL TESTS
+        // ====================================================================
+        
+        console.log('🧪 Running DataSynth Test Suite...\n');
+        
+        // ===== DATA PROCESSOR TESTS =====
+        console.group('📦 Data Processor Tests');
+        
+        // getValueByPath tests
+        const testData = { user: { name: 'Luis', age: 30 }, properties: { mag: 4.5 } };
+        addTest('Data Processor', 'getValueByPath - simple path', getValueByPath(testData, 'properties.mag') === 4.5);
+        addTest('Data Processor', 'getValueByPath - nested path', getValueByPath(testData, 'user.name') === 'Luis');
+        addTest('Data Processor', 'getValueByPath - null handling', getValueByPath(null, 'path') === undefined);
+        addTest('Data Processor', 'getValueByPath - missing path', getValueByPath(testData, 'missing.path') === undefined);
+        
+        // safeId tests
+        addTest('Data Processor', 'safeId - converts dots', safeId('properties.mag') === 'properties_mag');
+        addTest('Data Processor', 'safeId - handles brackets', safeId('arr[0].value').includes('arr') && safeId('arr[0].value').includes('value'));
+        
+        // extractPaths tests
+        const sampleData = [{ properties: { mag: 4.5, depth: 10 } }, { properties: { mag: 3.2, depth: 15 } }];
+        const paths = extractPaths(sampleData);
+        addTest('Data Processor', 'extractPaths - finds numeric fields', paths.length >= 2);
+        addTest('Data Processor', 'extractPaths - returns path objects', paths[0] && paths[0].path && paths[0].type);
+        
+        console.groupEnd();
+        
+        // ===== PARAMETER MAPPER TESTS =====
+        console.group('🎛️ Parameter Mapper Tests');
+        
+        const mapper = new ParameterMapper();
+        addTest('Parameter Mapper', 'ParameterMapper - constructor creates instance', mapper !== null);
+        addTest('Parameter Mapper', 'initializeMappings() creates mappings', () => {
+            mapper.initializeMappings();
+            return Object.keys(mapper.mappings).length > 0;
+        }());
+        
+        const synthParams = mapper.getAudioParams();
+        addTest('Parameter Mapper', 'getAudioParams - returns array', Array.isArray(synthParams));
+        addTest('Parameter Mapper', 'getAudioParams - includes frequency', synthParams.some(p => p.id === 'frequency'));
+        
+        console.groupEnd();
+        
+        // ===== AUDIO ENGINE TESTS =====
+        console.group('🎵 Audio Engine Tests');
+        
+        const engine = new AudioEngine();
+        addTest('Audio Engine', 'AudioEngine - constructor creates instance', engine !== null);
+        addTest('Audio Engine', 'AudioContext not created until init', engine.audioContext === null);
+        
+        // Initialize
+        engine.initEffects();
+        addTest('Audio Engine', 'initEffects() creates AudioContext', engine.audioContext !== null);
+        addTest('Audio Engine', 'delay node created', engine.delayNode !== null);
+        addTest('Audio Engine', 'reverb node created', engine.reverbNode !== null);
+        
+        // Create test canvas for visualizer
+        const testCanvas = document.createElement('canvas');
+        testCanvas.width = 800;
+        testCanvas.height = 120;
+        document.body.appendChild(testCanvas);
+        testCanvas.style.display = 'none';
+        
+        engine.setupVisualizer(testCanvas);
+        addTest('Audio Engine', 'setupVisualizer() creates analyser', engine.analyser !== null);
+        addTest('Audio Engine', 'stereo split created', engine.splitter !== null);
+        addTest('Audio Engine', 'right analyser created', engine.analyserRight !== null);
+        addTest('Audio Engine', 'fftSize configured', engine.analyser.fftSize === 1024);
+        
+        console.groupEnd();
+        
+        // ===== PATCH VIZ TESTS =====
+        console.group('🎨 Patch Viz Tests');
+        
+        // Create test SVG
+        const testSVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        testSVG.id = 'testPatchViz';
+        testSVG.style.display = 'none';
+        document.body.appendChild(testSVG);
+        
+        const patchViz = new PatchViz('testPatchViz');
+        addTest('Patch Viz', 'PatchViz - constructor creates instance', patchViz !== null);
+        addTest('Patch Viz', 'svg element found', patchViz.svg !== null);
+        addTest('Patch Viz', 'nodes array initialized', Array.isArray(patchViz.nodes));
+        
+        // Test render with sample data
+        const testPaths = [
+            { path: 'test.value1', type: 'number' },
+            { path: 'test.value2', type: 'number' }
+        ];
+        const testMapper = new ParameterMapper();
+        testMapper.initializeMappings();
+        
+        try {
+            patchViz.render(testPaths, testMapper.mappings, testMapper, false);
+            addTest('Patch Viz', 'render() executes without error', true);
+            addTest('Patch Viz', 'nodes created after render', patchViz.nodes.length > 0);
+        } catch (e) {
+            addTest('Patch Viz', 'render() executes without error', false);
+            addTest('Patch Viz', 'nodes created after render', false);
+            console.error('Patch viz render error:', e);
+        }
+        
+        console.groupEnd();
+        
+        // ====================================================================
+        // RENDER RESULTS
+        // ====================================================================
+        
+        // Update summary
+        const total = allTests.length;
+        const passed = totalPassed;
+        const failed = totalFailed;
+        const rate = total > 0 ? ((passed / total) * 100).toFixed(1) + '%' : '0%';
+        
+        document.getElementById('totalTests').textContent = total;
+        document.getElementById('passedTests').textContent = passed;
+        document.getElementById('failedTests').textContent = failed;
+        document.getElementById('successRate').textContent = rate;
+        
+        // Group tests by module
+        const modules = {};
+        allTests.forEach(test => {
+            if (!modules[test.module]) {
+                modules[test.module] = [];
+            }
+            modules[test.module].push(test);
+        });
+        
+        // Render each module
+        Object.keys(modules).sort().forEach(moduleName => {
+            renderModuleResults(moduleName, modules[moduleName]);
+        });
+        
+        console.log(`\n✅ Test Suite Complete: ${passed}/${total} passed (${rate})`);
+        
+        // Cleanup
+        document.body.removeChild(testCanvas);
+        document.body.removeChild(testSVG);
+    </script>
+</body>
+</html>
+
